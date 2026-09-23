@@ -62,7 +62,9 @@ export async function forgotPasswordAction(formData: FormData): Promise<{
       email: String(formData.get("email") ?? ""),
       ...(forAdmin ? { forAdmin: true } : {}),
     });
-    const result = await authApi.forgot(parsed);
+    const result = await authApi.forgot(
+      forAdmin ? { email: parsed.email, forAdmin: true } : { email: parsed.email },
+    );
     return result.resetPath ? { ok: true, resetPath: result.resetPath } : { ok: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Unable to start a reset" };
