@@ -103,6 +103,12 @@ export type StorefrontContent = {
   contactLead: string;
   /** Shop WhatsApp / contact phone (local or E.164). */
   supportPhone: string;
+  /** When true, public shop shows only the maintenance splash. */
+  maintenanceMode: boolean;
+  /** Full-screen message shown while maintenanceMode is on. */
+  maintenanceMessage: string;
+  /** Order/contact From header, e.g. Zermae <info@zermae.com>. SMTP stays in env. */
+  emailFrom: string;
   authLoginSrc: string;
   authRegisterSrc: string;
   authAdminSrc: string;
@@ -173,6 +179,9 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   contactLead:
     "We would love to hear from you — whether you have a question about an order, a formula, or your daily routine.",
   supportPhone: SUPPORT_PHONE_LOCAL,
+  maintenanceMode: false,
+  maintenanceMessage: "Coming Soon",
+  emailFrom: "Zermae <info@zermae.com>",
   authLoginSrc: AUTH_BANNERS.login.src,
   authRegisterSrc: AUTH_BANNERS.register.src,
   authAdminSrc: AUTH_BANNERS.adminLogin.src,
@@ -412,6 +421,9 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     aboutCopy: asStoredText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy),
     contactLead: asStoredText(record.contactLead, DEFAULT_STOREFRONT_CONTENT.contactLead),
     supportPhone: asStoredText(record.supportPhone, DEFAULT_STOREFRONT_CONTENT.supportPhone),
+    maintenanceMode: asBool(record.maintenanceMode),
+    maintenanceMessage: asStoredText(record.maintenanceMessage, DEFAULT_STOREFRONT_CONTENT.maintenanceMessage) || "Coming Soon",
+    emailFrom: asStoredText(record.emailFrom, DEFAULT_STOREFRONT_CONTENT.emailFrom) || DEFAULT_STOREFRONT_CONTENT.emailFrom,
     authLoginSrc: asStoredText(record.authLoginSrc, DEFAULT_STOREFRONT_CONTENT.authLoginSrc),
     authRegisterSrc: asStoredText(record.authRegisterSrc, DEFAULT_STOREFRONT_CONTENT.authRegisterSrc),
     authAdminSrc: asStoredText(record.authAdminSrc, DEFAULT_STOREFRONT_CONTENT.authAdminSrc),

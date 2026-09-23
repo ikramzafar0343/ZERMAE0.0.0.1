@@ -3,6 +3,7 @@ export const ADMIN_NAV = [
   { id: "inventory", label: "Inventory", href: "/admin/inventory" },
   { id: "orders", label: "Orders", href: "/admin/orders" },
   { id: "storefront", label: "Storefront", href: "/admin/customer-side" },
+  { id: "settings", label: "Settings", href: "/admin/settings" },
   { id: "promos", label: "Promos", href: "/admin/promos" },
 ] as const;
 

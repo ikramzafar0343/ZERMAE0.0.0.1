@@ -23,6 +23,7 @@ export function middleware(request: NextRequest): NextResponse {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
 
   const { pathname } = request.nextUrl;
   if (

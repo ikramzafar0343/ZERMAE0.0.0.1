@@ -177,19 +177,31 @@ export async function notifyOrderPlaced(order: OrderRecord, opts: SupportPhoneOp
 }
 
 export function orderEmailText(order: OrderRecord, appUrl: string, opts: SupportPhoneOpts = {}): string {
-  const lines = order.items.map((item) => `${item.name} × ${item.quantity}`).join("\n");
+  const lines = order.items.map((item) => {
+    const unit = formatMoney(item.price);
+    const lineTotal = formatMoney(item.price * item.quantity);
+    return `${item.name} × ${item.quantity} @ ${unit} = ${lineTotal}`;
+  });
   const display = formatSupportPhoneDisplay(opts.supportPhone);
   const e164 = supportPhoneE164(opts.supportPhone);
   const digits = resolveSupportPhoneDigits(opts.supportPhone);
   return [
     `Assalam o Alaikum ${order.customer},`,
     ``,
-    `Thank you for your Zermae order ${order.orderNumber}.`,
+    `This email confirms that we have successfully received your Zermae order.`,
     ``,
-    lines,
+    `Order number: ${order.orderNumber}`,
     ``,
-    `Total: ${formatMoney(order.total)}`,
+    `Items ordered:`,
+    ...lines,
+    ``,
+    `Subtotal: ${formatMoney(order.subtotal)}`,
+    order.discountAmount > 0 ? `Discount: -${formatMoney(order.discountAmount)}` : null,
+    `Shipping: ${formatMoney(order.shippingFee)}`,
+    order.taxAmount > 0 ? `${order.taxLabel || "Tax"}: ${formatMoney(order.taxAmount)}` : null,
+    `Total amount: ${formatMoney(order.total)}`,
     `Payment: Cash on delivery`,
+    ``,
     `We will deliver within 3–5 working days.`,
     ``,
     `Need help? Call or WhatsApp ${display} (${e164}).`,
@@ -198,6 +210,9 @@ export function orderEmailText(order: OrderRecord, appUrl: string, opts: Support
     `Track a guest order: ${appUrl.replace(/\/$/, "")}/orders/lookup`,
     `(use this email and order number)`,
     ``,
+    `Thank you for shopping with Zermae.`,
     `— Zermae`,
-  ].join("\n");
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }

@@ -53,3 +53,45 @@
     outline-offset: 3px;
   }
 }
+
+.maintenance-splash {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--color-brand-blush) 55%, transparent), transparent 55%),
+    radial-gradient(ellipse at 80% 90%, color-mix(in srgb, var(--color-brand-mint) 50%, transparent), transparent 50%),
+    var(--color-brand-bg);
+}
+
+.maintenance-splash-inner {
+  width: min(36rem, 100%);
+  text-align: center;
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+}
+
+.maintenance-splash-logo {
+  margin-bottom: 0.5rem;
+}
+
+.maintenance-splash-eyebrow {
+  margin: 0;
+  font-family: var(--font-nav);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.maintenance-splash-title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: clamp(2.4rem, 7vw, 4.2rem);
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--color-brand-primary);
+}

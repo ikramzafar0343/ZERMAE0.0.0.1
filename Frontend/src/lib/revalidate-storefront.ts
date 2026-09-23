@@ -13,6 +13,7 @@ const STOREFRONT_PATHS = [
   "/about-us",
   "/contact",
   "/admin/customer-side",
+  "/admin/settings",
   "/admin/promos",
   "/admin/inventory",
   "/admin/orders",

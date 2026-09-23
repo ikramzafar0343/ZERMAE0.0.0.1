@@ -7,11 +7,14 @@ export async function sendMail(input: {
   to: string;
   subject: string;
   text: string;
+  from?: string;
 }): Promise<boolean> {
   const env = getEnv();
   if (!env.SMTP_HOST || !env.SMTP_PORT) {
+    logger.warn({ to: input.to, subject: input.subject }, "SMTP is not configured; email was not sent");
     return false;
   }
+  const from = (input.from ?? env.EMAIL_FROM).trim() || env.EMAIL_FROM;
   try {
     const transporter = nodemailer.createTransport({
       host: env.SMTP_HOST,
@@ -25,7 +28,7 @@ export async function sendMail(input: {
         : undefined,
     });
     await transporter.sendMail({
-      from: env.EMAIL_FROM,
+      from,
       to: input.to,
       subject: input.subject,
       text: input.text,

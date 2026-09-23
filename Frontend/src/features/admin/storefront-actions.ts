@@ -37,6 +37,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     if (!user || !ADMIN_ROLES.includes(user.role)) {
       redirect("/admin/login");
     }
+    const current = await storefrontService.getFull();
     const collectionKeys = Object.keys(DEFAULT_STOREFRONT_CONTENT.collectionImages);
     const categoryCount = Math.min(8, Math.max(0, Number(formData.get("categoryCount") ?? 0)));
     const categoryIndexes = Array.from({ length: categoryCount }, (_, index) => index);
@@ -103,6 +104,9 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
         category.image = categoryImages[index] ?? "";
       }
     });
+    published.content.maintenanceMode = current.content.maintenanceMode;
+    published.content.maintenanceMessage = current.content.maintenanceMessage;
+    published.content.emailFrom = current.content.emailFrom;
     await storefrontService.updatePublished(published.commerce, published.theme, published.content);
     revalidateStorefront();
     redirect("/admin/customer-side");

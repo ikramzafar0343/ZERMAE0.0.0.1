@@ -6,6 +6,7 @@ import { formatMoney } from "@/constants/storefront";
 import { AppError } from "@/lib/app-error";
 import { sha256Hex } from "@/lib/crypto";
 import { getEnv } from "@/lib/env";
+import { logger } from "@/lib/logger";
 import { withTransaction } from "@/server/database/query";
 import { idempotencyRepository } from "@/server/database/repositories/idempotency/idempotency.repository";
 import { orderRepository } from "@/server/database/repositories/order/order.repository";
@@ -144,16 +145,25 @@ export class OrderService {
     });
     const storefront = await storefrontService.getFull();
     const supportOpts = { supportPhone: storefront.content.supportPhone };
-    await sendMail({
+    const from = storefront.content.emailFrom?.trim() || getEnv().EMAIL_FROM;
+    const customerSent = await sendMail({
       to: order.email,
-      subject: `Zermae order ${order.orderNumber}`,
+      subject: `Order confirmation ${order.orderNumber} — Zermae`,
       text: orderEmailText(order, getEnv().APP_URL, supportOpts),
+      from,
     });
-    await sendMail({
+    if (!customerSent) {
+      logger.warn({ orderNumber: order.orderNumber, to: order.email }, "Customer order confirmation email was not sent");
+    }
+    const supportSent = await sendMail({
       to: getEnv().SUPPORT_EMAIL,
       subject: `New Zermae order ${order.orderNumber}`,
       text: shopOrderAlertEmail(order, supportOpts),
+      from,
     });
+    if (!supportSent) {
+      logger.warn({ orderNumber: order.orderNumber }, "Shop order alert email was not sent");
+    }
     await notifyOrderPlaced(order, supportOpts);
     return order;
   }

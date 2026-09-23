@@ -67,10 +67,25 @@ export function IconSignOut({ className }: IconProps) {
   );
 }
 
+export function IconSettings({ className }: IconProps) {
+  return (
+    <Svg className={className}>
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M12 3.5v2.2M12 18.3V20.5M4.9 6.5l1.6 1.6M17.5 16.9l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.9 17.5l1.6-1.6M17.5 7.1l1.6-1.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 export const ADMIN_NAV_ICONS = {
   overview: IconOverview,
   inventory: IconInventory,
   orders: IconOrders,
   storefront: IconStorefront,
+  settings: IconSettings,
   promos: IconPromos,
 } as const;
