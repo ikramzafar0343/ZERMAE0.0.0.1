@@ -60,7 +60,7 @@ export async function forgotPasswordAction(formData: FormData): Promise<{
     const forAdmin = String(formData.get("forAdmin") ?? "") === "true";
     const parsed = parseSchema(forgotPasswordSchema, {
       email: String(formData.get("email") ?? ""),
-      forAdmin: forAdmin || undefined,
+      ...(forAdmin ? { forAdmin: true } : {}),
     });
     const result = await authApi.forgot(parsed);
     return result.resetPath ? { ok: true, resetPath: result.resetPath } : { ok: true };
