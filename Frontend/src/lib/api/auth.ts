@@ -16,7 +16,7 @@ export const authApi = {
   register: async (input: { name: string; email: string; password: string; confirmPassword: string }) =>
     apiRequest<{ user: AuthUser }>("POST", "/auth/register", input),
   logout: async () => apiRequest<{ ok: boolean }>("POST", "/auth/logout", {}),
-  forgot: async (input: { email: string }) =>
+  forgot: async (input: { email: string; forAdmin?: boolean }) =>
     apiRequest<{ resetPath?: string | undefined }>("POST", "/auth/forgot", input),
   reset: async (input: { token: string; password: string; confirmPassword: string }) =>
     apiRequest<{ ok: boolean }>("POST", "/auth/reset", input),

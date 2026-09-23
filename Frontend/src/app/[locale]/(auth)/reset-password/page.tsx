@@ -9,17 +9,18 @@ import { getStorefront } from "@/lib/storefront";
 export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; context?: string }>;
 }) {
   const user = await getSessionUser();
   if (user) {
     redirect("/account");
   }
-  const { token } = await searchParams;
+  const { token, context } = await searchParams;
+  const forAdmin = context === "admin";
   const storefront = await getStorefront();
   return (
     <AuthPageFrame image={storefront.content.authLoginSrc} imageAlt={AUTH_BANNERS.login.alt}>
-      <ResetPasswordForm token={token ?? ""} />
+      <ResetPasswordForm token={token ?? ""} forAdmin={forAdmin} />
     </AuthPageFrame>
   );
 }

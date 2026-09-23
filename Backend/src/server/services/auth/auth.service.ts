@@ -1,4 +1,4 @@
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 
 import bcrypt from "bcrypt";
 
@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger";
 import { accountRepository } from "@/server/database/repositories/account/account.repository";
 import { sessionRepository } from "@/server/database/repositories/session/session.repository";
 import { sendMail } from "@/server/mail/mailer";
+import { resolveShopNotifyEmail } from "@/server/mail/shop-notify-email";
 
 export type AuthUser = {
   readonly id: string;
@@ -29,13 +30,8 @@ function toAuthUser(row: { id: string; name: string; email: string; role: Role; 
   };
 }
 
-function passcodesMatch(input: string, expected: string): boolean {
-  const left = input.trim().padStart(4, "0");
-  const right = expected.trim().padStart(4, "0");
-  if (left.length !== 4 || right.length !== 4) {
-    return false;
-  }
-  return timingSafeEqual(Buffer.from(left), Buffer.from(right));
+function generateAdminOtp(): string {
+  return String(randomInt(1000, 10000));
 }
 
 export class AuthService {
@@ -84,12 +80,39 @@ export class AuthService {
     if (!valid) {
       throw AppError.unauthenticated("Invalid email or password");
     }
+
     const challengeId = randomBytes(24).toString("hex");
+    const otp = generateAdminOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await accountRepository.setAdminChallenge(account.id, {
       challengeId,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      otpHash: sha256Hex(otp),
+      expiresAt,
     });
-    logger.info({ userId: account.id }, "Admin passcode challenge issued");
+
+    const shopEmail = await resolveShopNotifyEmail();
+    const sent = await sendMail({
+      to: shopEmail,
+      subject: "Zermae admin login code",
+      text: [
+        `Your Zermae admin login code is ${otp}.`,
+        "",
+        "It expires in 10 minutes.",
+        `Requested for account: ${account.email}`,
+        "",
+        "If you did not try to sign in, ignore this email.",
+      ].join("\n"),
+    });
+
+    if (!sent) {
+      if (getEnv().NODE_ENV === "production") {
+        await accountRepository.clearAdminChallenge(account.id);
+        throw AppError.unprocessable("Unable to send login code. Check SMTP settings and try again.");
+      }
+      logger.warn({ userId: account.id, otp }, "SMTP missing; admin OTP logged for local development");
+    }
+
+    logger.info({ userId: account.id, shopEmail }, "Admin OTP challenge issued");
     return { challengeId };
   }
 
@@ -99,12 +122,17 @@ export class AuthService {
       throw AppError.unauthenticated("Invalid verification session");
     }
     if (!account.admin_login_otp_expires || account.admin_login_otp_expires.getTime() < Date.now()) {
-      throw AppError.expired("Passcode session expired");
+      throw AppError.expired("OTP session expired");
     }
-    if (!passcodesMatch(input.otp, getEnv().ADMIN_PASSCODE)) {
-      throw AppError.unauthenticated("Invalid passcode");
+    if (!account.admin_login_otp_hash) {
+      throw AppError.unauthenticated("Invalid OTP");
+    }
+    const submitted = sha256Hex(input.otp.trim());
+    if (!timingSafeHexEqual(submitted, account.admin_login_otp_hash)) {
+      throw AppError.unauthenticated("Invalid OTP");
     }
     await accountRepository.clearAdminChallenge(account.id);
+    await accountRepository.markLogin(account.id);
     const sessionToken = await this.createSession(account.id);
     return { user: toAuthUser(account), sessionToken };
   }
@@ -149,18 +177,63 @@ export class AuthService {
     return `${encodedEmail}.${expires}.${signature}`;
   }
 
-  async requestPasswordReset(email: string): Promise<{ resetPath?: string | undefined }> {
+  async requestPasswordReset(
+    email: string,
+    options?: { forAdmin?: boolean },
+  ): Promise<{ resetPath?: string | undefined }> {
     const normalized = email.toLowerCase().trim();
     const account = await accountRepository.findByEmail(normalized);
     if (!account) {
       return {};
     }
+
+    const isAdminAccount = ADMIN_ROLES.includes(account.role);
+    if (options?.forAdmin) {
+      if (!isAdminAccount) {
+        return {};
+      }
+    }
+
     const token = this.createPasswordResetToken(account.email, account.password_hash);
-    const resetPath = `/reset-password?token=${encodeURIComponent(token)}`;
+    const isAdminReset = Boolean(options?.forAdmin && isAdminAccount);
+    const resetPath = isAdminReset
+      ? `/reset-password?token=${encodeURIComponent(token)}&context=admin`
+      : `/reset-password?token=${encodeURIComponent(token)}`;
+    const resetUrl = `${getEnv().APP_URL}${resetPath}`;
+
+    if (isAdminReset) {
+      const shopEmail = await resolveShopNotifyEmail();
+      const sent = await sendMail({
+        to: shopEmail,
+        subject: "Zermae admin password reset",
+        text: [
+          "A password reset was requested for the Zermae admin panel.",
+          "",
+          `Admin account: ${account.email}`,
+          `Name: ${account.name}`,
+          "",
+          "Use this link to choose a new password. It expires in one hour:",
+          resetUrl,
+          "",
+          "If you did not request this, ignore this email.",
+        ].join("\n"),
+      });
+      if (!sent && getEnv().NODE_ENV !== "production") {
+        return { resetPath };
+      }
+      return {};
+    }
+
     const sent = await sendMail({
       to: account.email,
       subject: "Reset your Zermae password",
-      text: `Use this link to choose a new password. It expires in one hour.\n\n${getEnv().APP_URL}${resetPath}`,
+      text: [
+        "Use this link to choose a new password. It expires in one hour.",
+        "",
+        resetUrl,
+        "",
+        "If you did not request this, ignore this email.",
+      ].join("\n"),
     });
     if (!sent && getEnv().NODE_ENV !== "production") {
       return { resetPath };

@@ -21,6 +21,7 @@ export const loginSchema = z.object({
 
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
+  forAdmin: z.boolean().optional(),
 });
 
 export const resetPasswordSchema = z
@@ -36,7 +37,7 @@ export const resetPasswordSchema = z
 
 export const adminVerifyPasscodeSchema = z.object({
   challengeId: z.string().min(1),
-  otp: z.string().trim().regex(/^\d{4}$/, "Enter the 4-digit passcode"),
+  otp: z.string().trim().regex(/^\d{4}$/, "Enter the 4-digit OTP"),
 });
 
 export const newsletterSchema = z.object({

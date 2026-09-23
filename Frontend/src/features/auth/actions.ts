@@ -57,7 +57,11 @@ export async function forgotPasswordAction(formData: FormData): Promise<{
   resetPath?: string;
 }> {
   try {
-    const parsed = parseSchema(forgotPasswordSchema, { email: String(formData.get("email") ?? "") });
+    const forAdmin = String(formData.get("forAdmin") ?? "") === "true";
+    const parsed = parseSchema(forgotPasswordSchema, {
+      email: String(formData.get("email") ?? ""),
+      forAdmin: forAdmin || undefined,
+    });
     const result = await authApi.forgot(parsed);
     return result.resetPath ? { ok: true, resetPath: result.resetPath } : { ok: true };
   } catch (error) {
@@ -66,6 +70,7 @@ export async function forgotPasswordAction(formData: FormData): Promise<{
 }
 
 export async function resetPasswordAction(formData: FormData): Promise<{ error?: string }> {
+  const forAdmin = String(formData.get("forAdmin") ?? "") === "true";
   try {
     const parsed = parseSchema(resetPasswordSchema, {
       token: String(formData.get("token") ?? ""),
@@ -76,5 +81,5 @@ export async function resetPasswordAction(formData: FormData): Promise<{ error?:
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Unable to update password" };
   }
-  redirect("/login");
+  redirect(forAdmin ? "/admin/login" : "/login");
 }

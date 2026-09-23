@@ -44,7 +44,7 @@ export function AdminLoginForm() {
           </label>
           <PasswordField name="password" label="Password" placeholder="Password" autoComplete="current-password" />
           <div className="auth-form-password-meta">
-            <Link href="/forgot-password" className="auth-link">
+            <Link href="/forgot-password?context=admin" className="auth-link">
               Forgot password?
             </Link>
           </div>

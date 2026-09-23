@@ -31,7 +31,7 @@ export async function adminVerifyAction(formData: FormData): Promise<{ error?: s
     });
     await authApi.adminVerify(parsed);
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Invalid passcode" };
+    return { error: error instanceof Error ? error.message : "Invalid OTP" };
   }
   const store = await cookies();
   if (!store.get(sessionCookieName)?.value) {

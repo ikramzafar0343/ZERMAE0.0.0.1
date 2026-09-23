@@ -6,15 +6,21 @@ import { ForgotPasswordForm } from "@/features/auth/forgot-password-form";
 import { getSessionUser } from "@/lib/session";
 import { getStorefront } from "@/lib/storefront";
 
-export default async function ForgotPasswordPage() {
+export default async function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ context?: string }>;
+}) {
   const user = await getSessionUser();
   if (user) {
     redirect("/account");
   }
+  const { context } = await searchParams;
+  const forAdmin = context === "admin";
   const storefront = await getStorefront();
   return (
     <AuthPageFrame image={storefront.content.authLoginSrc} imageAlt={AUTH_BANNERS.login.alt}>
-      <ForgotPasswordForm />
+      <ForgotPasswordForm forAdmin={forAdmin} />
     </AuthPageFrame>
   );
 }

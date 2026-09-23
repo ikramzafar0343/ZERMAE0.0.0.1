@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 import { IconClose } from "@/components/icons/icons";
 
-const PASSCODE_LENGTH = 4;
+const OTP_LENGTH = 4;
 
 function digitsFromValue(value: string): string[] {
-  const chars = value.replace(/\D/g, "").slice(0, PASSCODE_LENGTH).split("");
-  return Array.from({ length: PASSCODE_LENGTH }, (_, index) => chars[index] ?? "");
+  const chars = value.replace(/\D/g, "").slice(0, OTP_LENGTH).split("");
+  return Array.from({ length: OTP_LENGTH }, (_, index) => chars[index] ?? "");
 }
 
 export function AdminPasscodeModal({
@@ -42,11 +42,11 @@ export function AdminPasscodeModal({
     if (!open) {
       return;
     }
-    const passcode = digits.join("");
-    if (passcode.length !== PASSCODE_LENGTH || passcode === lastAttemptRef.current) {
+    const otp = digits.join("");
+    if (otp.length !== OTP_LENGTH || otp === lastAttemptRef.current) {
       return;
     }
-    lastAttemptRef.current = passcode;
+    lastAttemptRef.current = otp;
     formRef.current?.requestSubmit();
   }, [digits, open]);
 
@@ -54,7 +54,7 @@ export function AdminPasscodeModal({
     return null;
   }
 
-  const passcode = digits.join("");
+  const otp = digits.join("");
 
   function updateDigits(next: string[]) {
     setDigits(next);
@@ -65,7 +65,7 @@ export function AdminPasscodeModal({
     const next = [...digits];
     next[index] = digit;
     updateDigits(next);
-    if (digit && index < PASSCODE_LENGTH - 1) {
+    if (digit && index < OTP_LENGTH - 1) {
       inputsRef.current[index + 1]?.focus();
     }
   }
@@ -82,19 +82,21 @@ export function AdminPasscodeModal({
   function handlePaste(event: React.ClipboardEvent<HTMLInputElement>) {
     event.preventDefault();
     updateDigits(digitsFromValue(event.clipboardData.getData("text")));
-    inputsRef.current[PASSCODE_LENGTH - 1]?.focus();
+    inputsRef.current[OTP_LENGTH - 1]?.focus();
   }
 
   return (
     <div className="admin-modal-root" role="presentation">
-      <button type="button" className="admin-modal-overlay" aria-label="Close passcode dialog" onClick={onClose} />
-      <div className="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-passcode-title">
+      <button type="button" className="admin-modal-overlay" aria-label="Close OTP dialog" onClick={onClose} />
+      <div className="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-otp-title">
         <header className="admin-modal-header">
           <div>
-            <h2 id="admin-passcode-title" className="admin-modal-title">
-              Enter passcode
+            <h2 id="admin-otp-title" className="admin-modal-title">
+              Enter OTP
             </h2>
-            <p className="admin-passcode-copy">Enter the 4-digit admin passcode to finish signing in.</p>
+            <p className="admin-passcode-copy">
+              We sent a 4-digit code to the shop email. Enter it to finish signing in.
+            </p>
           </div>
           <button type="button" className="admin-modal-close" aria-label="Close" onClick={onClose}>
             <IconClose />
@@ -102,9 +104,9 @@ export function AdminPasscodeModal({
         </header>
         <form ref={formRef} className="admin-passcode-form" action={onSubmit}>
           <input type="hidden" name="challengeId" value={challengeId} />
-          <input type="hidden" name="otp" value={passcode} />
+          <input type="hidden" name="otp" value={otp} />
           <div className="admin-modal-body">
-            <div className="admin-passcode-grid" role="group" aria-label="4-digit passcode">
+            <div className="admin-passcode-grid" role="group" aria-label="4-digit OTP">
               {digits.map((digit, index) => (
                 <input
                   key={index}
@@ -118,7 +120,7 @@ export function AdminPasscodeModal({
                   pattern="[0-9]*"
                   className="admin-passcode-digit"
                   value={digit}
-                  aria-label={`Passcode digit ${index + 1}`}
+                  aria-label={`OTP digit ${index + 1}`}
                   onChange={(event) => handleChange(index, event.target.value)}
                   onKeyDown={(event) => handleKeyDown(index, event.key)}
                   onPaste={handlePaste}

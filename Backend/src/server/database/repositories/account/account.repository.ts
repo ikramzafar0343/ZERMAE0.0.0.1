@@ -72,15 +72,16 @@ export class AccountRepository {
 
   async setAdminChallenge(id: string, input: {
     challengeId: string;
+    otpHash: string;
     expiresAt: Date;
   }): Promise<void> {
     await query(
       `UPDATE account
        SET admin_login_challenge_id = $2,
-           admin_login_otp_hash = NULL,
-           admin_login_otp_expires = $3
+           admin_login_otp_hash = $3,
+           admin_login_otp_expires = $4
        WHERE id = $1 AND deleted_at IS NULL`,
-      [id, input.challengeId, input.expiresAt],
+      [id, input.challengeId, input.otpHash, input.expiresAt],
     );
   }
 
@@ -89,8 +90,7 @@ export class AccountRepository {
       `UPDATE account
        SET admin_login_challenge_id = NULL,
            admin_login_otp_hash = NULL,
-           admin_login_otp_expires = NULL,
-           last_login_at = NOW()
+           admin_login_otp_expires = NULL
        WHERE id = $1 AND deleted_at IS NULL`,
       [id],
     );

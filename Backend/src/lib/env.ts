@@ -50,7 +50,8 @@ const envSchema = z.object({
   SEED_ADMIN_EMAIL: z.string().email(),
   SEED_ADMIN_PASSWORD: z.string().min(8),
   SEED_ADMIN_NAME: z.string().min(1),
-  ADMIN_PASSCODE: z.string().regex(/^\d{4}$/, "ADMIN_PASSCODE must be a 4-digit code"),
+  // Legacy field — unused for login (emailed OTP). Optional so existing .env still boots.
+  ADMIN_PASSCODE: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
