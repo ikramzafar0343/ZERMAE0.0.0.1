@@ -9,6 +9,16 @@ function isAdminPath(pathname: string): boolean {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
+/** Auth recovery must stay open during maintenance (admin OTP reset links, etc.). */
+function isAuthRecoveryPath(pathname: string): boolean {
+  return (
+    pathname === "/forgot-password" ||
+    pathname.startsWith("/forgot-password/") ||
+    pathname === "/reset-password" ||
+    pathname.startsWith("/reset-password/")
+  );
+}
+
 /** Strip locale prefix like /en/... for path checks. */
 function stripLocale(pathname: string): string {
   const match = pathname.match(/^\/(en)(?=\/|$)/);
@@ -35,7 +45,7 @@ export async function PublicSiteGate({ children }: { children: ReactNode }) {
     }
   }
   const path = stripLocale(pathname);
-  if (isAdminPath(path)) {
+  if (isAdminPath(path) || isAuthRecoveryPath(path)) {
     return children;
   }
 
