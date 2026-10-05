@@ -1,6 +1,9 @@
 {
 	email info@zermae.com
 	auto_https off
+	servers {
+		protocols h1 h2
+	}
 }
 
 http://zermae.com, http://www.zermae.com {
