@@ -57,29 +57,23 @@ services:
       API_PREFIX: ${API_PREFIX:-/api/v1}
       HOSTNAME: 0.0.0.0
       PORT: "3000"
-    # Published for host-network Caddy (avoids docker-proxy TLS breakage on public IP)
+    # Published for host-network nginx
     ports:
       - "127.0.0.1:3000:3000"
 
-  caddy:
-    image: caddy:2.8-alpine
+  nginx:
+    image: nginx:1.27-alpine
     restart: unless-stopped
     depends_on:
       - web
       - api
-    # Host network: bind 80/443 directly. docker-proxy path works on
-    # 127.0.0.1 but fails TLS handshake when traffic hits the public IP.
+    # Bind 80/443 on the host (same path as before; Hostinger public :443 may still be broken)
     network_mode: host
     volumes:
-      - ./deploy/hostinger/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/hostinger/nginx.conf:/etc/nginx/nginx.conf:ro
       - zermae_uploads:/srv/uploads:ro
-      - zermae_caddy_data:/data
-      - zermae_caddy_config:/config
-      # Used after DNS-01 certbot issues certs (see deploy/hostinger/README.md)
       - /etc/letsencrypt:/etc/letsencrypt:ro
 
 volumes:
   zermae_pgdata:
   zermae_uploads:
-  zermae_caddy_data:
-  zermae_caddy_config:
