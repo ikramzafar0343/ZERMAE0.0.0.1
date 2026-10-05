@@ -1,0 +1,19 @@
+zermae.com, www.zermae.com {
+	encode gzip zstd
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	handle_path /uploads/* {
+		root * /srv/uploads
+		file_server
+	}
+
+	reverse_proxy web:3000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+}

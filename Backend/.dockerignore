@@ -1,0 +1,11 @@
+# Backend build context: Backend/
+node_modules
+npm-debug.log*
+.env
+.env.*
+!.env.example
+dist
+coverage
+*.log
+.git
+.DS_Store

@@ -21,3 +21,4 @@ Frontend/public/uploads/*
 !Frontend/public/uploads/.gitkeep
 deploy/secrets/
 *.tar.gz
+.vscode/

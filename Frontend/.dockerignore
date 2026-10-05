@@ -1,0 +1,12 @@
+# Frontend build context: Frontend/
+node_modules
+.next
+npm-debug.log*
+.env
+.env.*
+!.env.example
+coverage
+*.log
+.git
+.DS_Store
+public/uploads
