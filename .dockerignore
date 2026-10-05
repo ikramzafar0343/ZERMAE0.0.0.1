@@ -1,0 +1,16 @@
+# Backend image is built from repo root context
+node_modules
+Frontend/node_modules
+Frontend/.next
+**/npm-debug.log*
+.env
+.env.*
+!.env.example
+dist
+coverage
+*.log
+.git
+.DS_Store
+.vscode
+Frontend/AGENTS.md
+Frontend/CLAUDE.md

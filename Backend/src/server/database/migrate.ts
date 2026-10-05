@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,10 +11,29 @@ import { logger } from "@/lib/logger";
 loadDotEnv();
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
-const migrationsDir = path.resolve(directory, "../../../../Database/migrations");
+
+async function resolveMigrationsDir(): Promise<string> {
+  const candidates = [
+    // Monorepo (Backend/src/server/database → repo/Database/migrations)
+    path.resolve(directory, "../../../../Database/migrations"),
+    // Docker image (/app/src/server/database → /app/Database/migrations)
+    path.resolve(directory, "../../../Database/migrations"),
+    path.resolve(process.cwd(), "Database/migrations"),
+  ];
+  for (const candidate of candidates) {
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      // try next
+    }
+  }
+  throw new Error(`Migrations folder not found. Tried: ${candidates.join(", ")}`);
+}
 
 async function migrate(): Promise<void> {
   const env = getEnv();
+  const migrationsDir = await resolveMigrationsDir();
   const clientPool = new pg.Pool({ connectionString: env.DATABASE_MIGRATE_URL });
   try {
     await clientPool.query(`
