@@ -25,5 +25,7 @@ zermae.com, www.zermae.com {
 		file_server
 	}
 
-	reverse_proxy web:3000
+	# Host-network Caddy cannot resolve Compose DNS names
+	reverse_proxy 127.0.0.1:3000
 }
+

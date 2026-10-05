@@ -57,8 +57,9 @@ services:
       API_PREFIX: ${API_PREFIX:-/api/v1}
       HOSTNAME: 0.0.0.0
       PORT: "3000"
-    expose:
-      - "3000"
+    # Published for host-network Caddy (avoids docker-proxy TLS breakage on public IP)
+    ports:
+      - "127.0.0.1:3000:3000"
 
   caddy:
     image: caddy:2.8-alpine
@@ -66,9 +67,9 @@ services:
     depends_on:
       - web
       - api
-    ports:
-      - "80:80"
-      - "443:443"
+    # Host network: bind 80/443 directly. docker-proxy path works on
+    # 127.0.0.1 but fails TLS handshake when traffic hits the public IP.
+    network_mode: host
     volumes:
       - ./deploy/hostinger/Caddyfile:/etc/caddy/Caddyfile:ro
       - zermae_uploads:/srv/uploads:ro
