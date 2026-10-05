@@ -3,20 +3,12 @@
 	auto_https off
 }
 
-# Serve HTTP without redirecting ACME away (used after certs exist, or for temporary access).
 http://zermae.com, http://www.zermae.com {
-	handle_path /uploads/* {
-		root * /srv/uploads
-		file_server
-	}
-	reverse_proxy web:3000
+	redir https://{host}{uri} permanent
 }
 
 zermae.com, www.zermae.com {
-	# After DNS-01 certbot succeeds, use:
-	#   tls /etc/letsencrypt/live/zermae.com/fullchain.pem /etc/letsencrypt/live/zermae.com/privkey.pem
-	# Until then, temporary local cert so HTTPS works (browser will warn once).
-	tls internal
+	tls /etc/letsencrypt/live/zermae.com/fullchain.pem /etc/letsencrypt/live/zermae.com/privkey.pem
 
 	encode gzip zstd
 	header {
