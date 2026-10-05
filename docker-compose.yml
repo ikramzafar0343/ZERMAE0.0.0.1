@@ -74,6 +74,8 @@ services:
       - zermae_uploads:/srv/uploads:ro
       - zermae_caddy_data:/data
       - zermae_caddy_config:/config
+      # Used after DNS-01 certbot issues certs (see deploy/hostinger/README.md)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
 volumes:
   zermae_pgdata:

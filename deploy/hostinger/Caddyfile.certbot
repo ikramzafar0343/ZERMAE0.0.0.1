@@ -1,0 +1,25 @@
+{
+	email info@zermae.com
+	auto_https off
+}
+
+zermae.com, www.zermae.com {
+	tls /etc/letsencrypt/live/zermae.com/fullchain.pem /etc/letsencrypt/live/zermae.com/privkey.pem
+
+	encode gzip zstd
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	@http protocol http
+	redir @http https://{host}{uri} permanent
+
+	handle_path /uploads/* {
+		root * /srv/uploads
+		file_server
+	}
+
+	reverse_proxy web:3000
+}
