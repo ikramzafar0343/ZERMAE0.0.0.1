@@ -1,3 +1,9 @@
+{
+	email info@zermae.com
+	# Avoid global HTTP→HTTPS until ACME can answer on plain HTTP.
+	auto_https disable_redirects
+}
+
 zermae.com, www.zermae.com {
 	encode gzip zstd
 	header {
@@ -6,14 +12,17 @@ zermae.com, www.zermae.com {
 		-Server
 	}
 
+	# Redirect browsers to HTTPS, but never ACME challenge paths.
+	@httpNotAcme {
+		protocol http
+		not path /.well-known/acme-challenge/*
+	}
+	redir @httpNotAcme https://{host}{uri} permanent
+
 	handle_path /uploads/* {
 		root * /srv/uploads
 		file_server
 	}
 
-	reverse_proxy web:3000 {
-		header_up X-Forwarded-Proto {scheme}
-		header_up X-Forwarded-Host {host}
-		header_up X-Real-IP {remote_host}
-	}
+	reverse_proxy web:3000
 }
