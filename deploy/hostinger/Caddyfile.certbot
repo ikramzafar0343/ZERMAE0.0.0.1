@@ -1,6 +1,11 @@
 {
 	email info@zermae.com
 	auto_https off
+	# If SNI is missing/stripped on the public path, Caddy otherwise
+	# looks up a cert for the local IP (72.61.119.3) and aborts TLS.
+	default_sni zermae.com
+	fallback_sni zermae.com
+	debug
 	servers {
 		protocols h1 h2
 	}
