@@ -1,20 +1,34 @@
 {
 	email info@zermae.com
 	auto_https off
-	# If SNI is missing/stripped on the public path, Caddy otherwise
-	# looks up a cert for the local IP (72.61.119.3) and aborts TLS.
 	default_sni zermae.com
 	fallback_sni zermae.com
-	debug
 	servers {
 		protocols h1 h2
 	}
 }
 
+# HTTP serves the app directly. Hostinger's network path breaks guest TLS on
+# :443 (edge answers with TLS alert even when nothing listens in the VM).
+# Put Cloudflare in front (orange cloud + SSL Flexible) so visitors get HTTPS
+# while origin stays on :80 until Hostinger fixes 443 passthrough.
 http://zermae.com, http://www.zermae.com {
-	redir https://{host}{uri} permanent
+	encode gzip zstd
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	handle_path /uploads/* {
+		root * /srv/uploads
+		file_server
+	}
+
+	reverse_proxy 127.0.0.1:3000
 }
 
+# Local / future direct HTTPS (works on 127.0.0.1; public :443 may still be broken)
 zermae.com, www.zermae.com {
 	tls /etc/letsencrypt/live/zermae.com/fullchain.pem /etc/letsencrypt/live/zermae.com/privkey.pem
 
@@ -30,7 +44,5 @@ zermae.com, www.zermae.com {
 		file_server
 	}
 
-	# Host-network Caddy cannot resolve Compose DNS names
 	reverse_proxy 127.0.0.1:3000
 }
-
