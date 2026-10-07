@@ -199,7 +199,8 @@ export class AuthService {
     const resetPath = isAdminReset
       ? `/reset-password?token=${encodeURIComponent(token)}&context=admin`
       : `/reset-password?token=${encodeURIComponent(token)}`;
-    const resetUrl = `${getEnv().APP_URL}${resetPath}`;
+    const appBase = getEnv().APP_URL.replace(/\/$/, "");
+    const resetUrl = new URL(resetPath, `${appBase}/`).toString();
 
     if (isAdminReset) {
       const shopEmail = await resolveShopNotifyEmail();
@@ -218,8 +219,11 @@ export class AuthService {
           "If you did not request this, ignore this email.",
         ].join("\n"),
       });
-      if (!sent && getEnv().NODE_ENV !== "production") {
-        return { resetPath };
+      if (!sent) {
+        if (getEnv().NODE_ENV !== "production") {
+          return { resetPath };
+        }
+        throw AppError.unprocessable("Unable to send the reset email. Check SMTP settings and try again.");
       }
       return {};
     }
@@ -235,8 +239,11 @@ export class AuthService {
         "If you did not request this, ignore this email.",
       ].join("\n"),
     });
-    if (!sent && getEnv().NODE_ENV !== "production") {
-      return { resetPath };
+    if (!sent) {
+      if (getEnv().NODE_ENV !== "production") {
+        return { resetPath };
+      }
+      throw AppError.unprocessable("Unable to send the reset email. Check SMTP settings and try again.");
     }
     return {};
   }

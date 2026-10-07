@@ -31,8 +31,9 @@ services:
       UPLOAD_DIR: /app/uploads
     volumes:
       - zermae_uploads:/app/uploads
-    expose:
-      - "5000"
+    # Published for host-network nginx (/api → this port)
+    ports:
+      - "127.0.0.1:5000:5000"
 
   web:
     build:
