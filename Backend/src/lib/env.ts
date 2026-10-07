@@ -32,6 +32,8 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().min(1),
   SUPPORT_EMAIL: z.string().email(),
   EMAIL_FROM: z.string().min(1),
+  /** Prefer Resend in production — not tied to Google password / 2SV. */
+  RESEND_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().optional(),
   SMTP_SECURE: booleanFromString.optional(),
