@@ -25,6 +25,8 @@ echo "== Building and starting containers =="
 docker compose pull
 docker compose build --pull
 docker compose up -d
+# File bind-mounts keep the old inode after git pull unless nginx is recreated
+docker compose up -d --force-recreate nginx
 
 echo "== Status =="
 docker compose ps
