@@ -10,8 +10,9 @@ import {
 } from "@/constants/order-status";
 import { ADMIN_ROLES } from "@/constants/roles";
 import { formatMoney } from "@/constants/storefront";
+import { AdminOrderStatusForm } from "@/features/admin/admin-order-status-form";
 import { IconOrders } from "@/features/admin/admin-nav-icons";
-import { updateOrderStatusAction, updateOrderTrackingAction, deleteOrderAction } from "@/features/admin/catalog-actions";
+import { updateOrderTrackingAction, deleteOrderAction } from "@/features/admin/catalog-actions";
 import { CmsImage } from "@/features/media/cms-image";
 import { PrintButton } from "@/features/orders/print-button";
 import { orderService } from "@/lib/api/orders";
@@ -118,21 +119,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             Status
           </h2>
           {next.length > 0 ? (
-            <form action={updateOrderStatusAction} className="admin-orders-status-form">
-              <input type="hidden" name="orderId" value={order.id} />
-              <label className="admin-product-label" htmlFor="status">
-                Update status
-              </label>
-              <select id="status" name="status" defaultValue={status} className="admin-product-soft admin-product-select">
-                <option value={status}>{ORDER_STATUS_LABELS[status]}</option>
-                {next.map((value) => (
-                  <option key={value} value={value}>
-                    {ORDER_STATUS_LABELS[value]}
-                  </option>
-                ))}
-              </select>
-              <ConfirmSubmit className="admin-product-cta" message="Update this order status?" label="Update status" />
-            </form>
+            <AdminOrderStatusForm orderId={order.id} orderNumber={order.orderNumber} nextStatuses={next} />
           ) : (
             <p className="admin-orders-muted">{ORDER_STATUS_LABELS[status]} — no further status changes.</p>
           )}

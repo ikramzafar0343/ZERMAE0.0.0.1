@@ -1,10 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { ORDER_STATUS, type OrderStatus } from "@/constants/order-status";
 import { ADMIN_ROLES } from "@/constants/roles";
 import { productIdFromForm, productPayloadFromForm } from "@/features/admin/parse-product-form";
+import { AppError } from "@/lib/app-error";
 import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { revalidateStorefront } from "@/lib/revalidate-storefront";
@@ -66,15 +68,33 @@ export async function updateStockAction(formData: FormData): Promise<void> {
   revalidateStorefront();
 }
 
-export async function updateOrderStatusAction(formData: FormData): Promise<void> {
-  await requireAdmin();
-  const id = String(formData.get("orderId") ?? "");
-  const status = String(formData.get("status") ?? "") as OrderStatus;
-  if (!(Object.values(ORDER_STATUS) as string[]).includes(status)) {
-    return;
+export async function updateOrderStatusAction(
+  formData: FormData,
+): Promise<{ ok?: boolean; error?: string }> {
+  try {
+    await requireAdmin();
+    const id = String(formData.get("orderId") ?? "");
+    const orderNumber = String(formData.get("orderNumber") ?? "").trim();
+    const status = String(formData.get("status") ?? "") as OrderStatus;
+    if (!id || !(Object.values(ORDER_STATUS) as string[]).includes(status)) {
+      return { error: "Choose a valid status to update." };
+    }
+    await orderService.updateStatus(id, status);
+    revalidateStorefront();
+    revalidatePath("/admin/orders");
+    if (orderNumber) {
+      revalidatePath(`/admin/orders/${orderNumber}`);
+      redirect(`/admin/orders/${orderNumber}`);
+    }
+    return { ok: true };
+  } catch (error) {
+    if (typeof error === "object" && error && "digest" in error) {
+      throw error;
+    }
+    return {
+      error: error instanceof AppError ? error.message : "Status could not be updated",
+    };
   }
-  await orderService.updateStatus(id, status);
-  revalidateStorefront();
 }
 
 export async function updateOrderTrackingAction(formData: FormData): Promise<void> {

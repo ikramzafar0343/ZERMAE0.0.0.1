@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
+import { ADMIN_ROLES } from "@/constants/roles";
 import { formatMoney } from "@/constants/storefront";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
 import { OrderTotals } from "@/features/checkout/order-totals";
@@ -20,7 +21,9 @@ export default async function CheckoutPage() {
     productService.getByIds(cart.items.map((item) => item.productId)),
     orderService.getCommerceSettings(),
   ]);
-  const addresses = user ? await addressService.list(user.id) : [];
+  // Admin/staff sessions must not prefill customer checkout fields
+  const isCustomer = Boolean(user && !ADMIN_ROLES.includes(user.role));
+  const addresses = isCustomer && user ? await addressService.list(user.id) : [];
   const map = new Map(products.map((product) => [product.id, product]));
   const lines = cart.items.map((item) => {
     const product = map.get(item.productId);
@@ -45,8 +48,8 @@ export default async function CheckoutPage() {
         <div className="checkout-layout">
           <CheckoutForm
             itemsJson={JSON.stringify(cart.items)}
-            defaultName={user?.name}
-            defaultEmail={user?.email}
+            defaultName={isCustomer ? user?.name : undefined}
+            defaultEmail={isCustomer ? user?.email : undefined}
             addresses={addresses}
           />
           <aside className="checkout-summary">

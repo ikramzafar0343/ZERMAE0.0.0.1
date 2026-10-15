@@ -221,6 +221,10 @@ export class OrderService {
       throw AppError.notFound("Order not found");
     }
     const current = order.status as OrderStatus;
+    // Idempotent: double-submit after a successful change must not error
+    if (current === status) {
+      return order;
+    }
     if (!ORDER_STATUS_TRANSITIONS[current].includes(status)) {
       throw AppError.validation([{ field: "status", message: "Invalid status transition" }]);
     }

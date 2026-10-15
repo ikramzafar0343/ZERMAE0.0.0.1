@@ -1,3 +1,4 @@
+import { ROLES } from "@/constants/roles";
 import { AppError } from "@/lib/app-error";
 import { parseSchema } from "@/lib/parse-schema";
 import { checkoutSchema } from "@/schemas/order";
@@ -18,5 +19,7 @@ export async function handler(ctx: RequestContext) {
   if (!idempotencyKey) {
     throw AppError.validation([{ field: "Idempotency-Key", message: "Required" }]);
   }
-  return orderService.checkout(body, user?.id ?? null, idempotencyKey);
+  // Only link storefront orders to real customer accounts — not admin/staff sessions
+  const accountId = user?.role === ROLES.CUSTOMER ? user.id : null;
+  return orderService.checkout(body, accountId, idempotencyKey);
 }
