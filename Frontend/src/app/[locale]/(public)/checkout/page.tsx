@@ -1,29 +1,22 @@
 import { redirect } from "next/navigation";
 
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
-import { ADMIN_ROLES } from "@/constants/roles";
 import { formatMoney } from "@/constants/storefront";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
 import { OrderTotals } from "@/features/checkout/order-totals";
-import { addressService } from "@/lib/api/addresses";
 import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { readCart } from "@/lib/cart-cookie";
-import { getSessionUser } from "@/lib/session";
 
 export default async function CheckoutPage() {
   const cart = await readCart();
   if (cart.items.length === 0) {
     redirect("/cart");
   }
-  const [user, products, commerce] = await Promise.all([
-    getSessionUser(),
+  const [products, commerce] = await Promise.all([
     productService.getByIds(cart.items.map((item) => item.productId)),
     orderService.getCommerceSettings(),
   ]);
-  // Admin/staff sessions must not prefill customer checkout fields
-  const isCustomer = Boolean(user && !ADMIN_ROLES.includes(user.role));
-  const addresses = isCustomer && user ? await addressService.list(user.id) : [];
   const map = new Map(products.map((product) => [product.id, product]));
   const lines = cart.items.map((item) => {
     const product = map.get(item.productId);
@@ -46,12 +39,7 @@ export default async function CheckoutPage() {
           <p className="section-intro-description">Enter your details to finalize your Zermae order.</p>
         </header>
         <div className="checkout-layout">
-          <CheckoutForm
-            itemsJson={JSON.stringify(cart.items)}
-            defaultName={isCustomer ? user?.name : undefined}
-            defaultEmail={isCustomer ? user?.email : undefined}
-            addresses={addresses}
-          />
+          <CheckoutForm itemsJson={JSON.stringify(cart.items)} />
           <aside className="checkout-summary">
             <p className="checkout-summary-title">Order Summary</p>
             <ul className="checkout-summary-items">
