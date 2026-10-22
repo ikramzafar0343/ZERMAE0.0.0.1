@@ -42,7 +42,9 @@ export class UploadService {
       throw AppError.validation([{ field: "data", message: "Invalid upload path" }]);
     }
     await writeFile(target, buffer);
-    return { url: `/uploads/${name}` };
+    // Public media route (HMAC-free) — served through nginx /api → API disk.
+    const prefix = env.API_PREFIX.replace(/\/$/, "");
+    return { url: `${prefix}/media/${name}` };
   }
 }
 

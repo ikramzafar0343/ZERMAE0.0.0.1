@@ -1,9 +1,14 @@
 import Image, { type ImageProps } from "next/image";
 
+import { resolvePublicImageUrl } from "@/lib/public-image-url";
+
 function shouldSkipOptimizer(src: string): boolean {
-  // blob/data: not fetchable by the optimizer
-  // /uploads/: runtime files served by nginx (not always on the Next disk at optimize time)
-  return src.startsWith("blob:") || src.startsWith("data:") || src.startsWith("/uploads/");
+  return (
+    src.startsWith("blob:") ||
+    src.startsWith("data:") ||
+    src.startsWith("/uploads/") ||
+    src.startsWith("/api/v1/media/")
+  );
 }
 
 export function CmsImage({
@@ -25,10 +30,11 @@ export function CmsImage({
   sizes?: string;
   priority?: boolean;
 }) {
+  const resolved = resolvePublicImageUrl(src);
   const props: ImageProps = {
-    src,
+    src: resolved,
     alt,
-    unoptimized: shouldSkipOptimizer(src),
+    unoptimized: shouldSkipOptimizer(resolved) || shouldSkipOptimizer(src),
   };
   if (className) {
     props.className = className;

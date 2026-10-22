@@ -44,8 +44,9 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
 
   const host = req.headers.host ?? `${env.API_HOST}:${env.API_PORT}`;
   const url = new URL(req.url ?? "/", `http://${host}`);
-  const apiPath = url.pathname.startsWith(env.API_PREFIX)
-    ? url.pathname.slice(env.API_PREFIX.length) || "/"
+  const apiPrefix = env.API_PREFIX.replace(/\/$/, "");
+  const apiPath = url.pathname.startsWith(apiPrefix)
+    ? url.pathname.slice(apiPrefix.length) || "/"
     : url.pathname;
 
   try {
