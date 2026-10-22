@@ -4,7 +4,6 @@ import { useId, useRef, useState } from "react";
 
 import { IconClose, IconPlus } from "@/components/icons/icons";
 import { uploadProductImageAction } from "@/features/admin/catalog-actions";
-import { CmsImage } from "@/features/media/cms-image";
 
 const MAX_IMAGES = 6;
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -186,12 +185,8 @@ export function ProductImageUploader({
         aria-label={primary ? "Replace or add product photos" : "Upload product photos"}
       >
         {primary?.preview ? (
-          primary.preview.startsWith("blob:") ? (
-            // eslint-disable-next-line @next/next/no-img-element -- local object URL preview while uploading
-            <img src={primary.preview} alt="Main product photo" className="admin-product-stage-image" />
-          ) : (
-            <CmsImage src={primary.preview} alt="Main product photo" width={420} height={280} className="admin-product-stage-image" />
-          )
+          // eslint-disable-next-line @next/next/no-img-element -- admin preview (blob or /uploads) without next/image
+          <img src={primary.preview} alt="Main product photo" className="admin-product-stage-image" />
         ) : (
           <span className="admin-product-stage-empty">Drop a photo here or click to upload</span>
         )}
@@ -203,12 +198,8 @@ export function ProductImageUploader({
             className={`admin-product-thumb${index === 0 ? " is-active" : ""}${slot.uploading ? " is-uploading" : ""}`}
           >
             <button type="button" className="admin-product-thumb-pick" onClick={() => setPrimary(index)} aria-label={`Set photo ${index + 1} as main`}>
-              {slot.preview.startsWith("blob:") ? (
-                // eslint-disable-next-line @next/next/no-img-element -- local object URL preview while uploading
-                <img src={slot.preview} alt="" className="admin-product-thumb-img" />
-              ) : (
-                <CmsImage src={slot.preview} alt="" width={48} height={48} className="admin-product-thumb-img" />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element -- admin thumb preview */}
+              <img src={slot.preview} alt="" className="admin-product-thumb-img" />
             </button>
             <button type="button" className="admin-product-thumb-remove" onClick={() => removeAt(index)} aria-label={`Remove photo ${index + 1}`}>
               <IconClose />

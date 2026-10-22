@@ -1,7 +1,9 @@
 import Image, { type ImageProps } from "next/image";
 
-function isInlinePreview(src: string): boolean {
-  return src.startsWith("blob:") || src.startsWith("data:");
+function shouldSkipOptimizer(src: string): boolean {
+  // blob/data: not fetchable by the optimizer
+  // /uploads/: runtime files served by nginx (not always on the Next disk at optimize time)
+  return src.startsWith("blob:") || src.startsWith("data:") || src.startsWith("/uploads/");
 }
 
 export function CmsImage({
@@ -26,7 +28,7 @@ export function CmsImage({
   const props: ImageProps = {
     src,
     alt,
-    unoptimized: isInlinePreview(src),
+    unoptimized: shouldSkipOptimizer(src),
   };
   if (className) {
     props.className = className;
