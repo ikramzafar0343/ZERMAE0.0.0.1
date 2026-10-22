@@ -2,7 +2,7 @@ import { DEFAULT_RETURN_POLICY, DISCOUNT_TYPES, normalizeCategoryFilter, PRODUCT
 import { BEST_SELLERS } from "@/constants/site";
 import { AppError } from "@/lib/app-error";
 import type { DbClient } from "@/server/database/query";
-import { serializeProduct } from "@/server/database/repositories/product/product.mapper";
+import { serializeProduct, serializeProductCard } from "@/server/database/repositories/product/product.mapper";
 import { productRepository, type ProductWrite } from "@/server/database/repositories/product/product.repository";
 import type { ProductColor, ProductImage, ProductRecord, SerializedProduct } from "@/types/product";
 
@@ -108,7 +108,7 @@ export class ProductService {
       order: query.order === "asc" ? "ASC" : "DESC",
     });
     return {
-      products: result.docs.map(serializeProduct),
+      products: result.docs.map(serializeProductCard),
       pagination: result.pagination,
     };
   }
@@ -141,12 +141,12 @@ export class ProductService {
       return [];
     }
     const docs = await productRepository.searchStorefront(trimmed, limit);
-    return docs.map(serializeProduct);
+    return docs.map(serializeProductCard);
   }
 
   async getByIds(ids: string[], client?: DbClient): Promise<SerializedProduct[]> {
     const docs = await productRepository.findByIds(ids, client);
-    return docs.filter((item) => item.status === PRODUCT_STATUS.PUBLISHED).map(serializeProduct);
+    return docs.filter((item) => item.status === PRODUCT_STATUS.PUBLISHED).map(serializeProductCard);
   }
 
   async getPublishedByIds(ids: string[], client?: DbClient): Promise<SerializedProduct[]> {
@@ -158,7 +158,7 @@ export class ProductService {
     for (const sku of skus) {
       const record = await productRepository.findBySku(sku);
       if (record && record.status === PRODUCT_STATUS.PUBLISHED) {
-        items.push(serializeProduct(record));
+        items.push(serializeProductCard(record));
       }
     }
     return items;

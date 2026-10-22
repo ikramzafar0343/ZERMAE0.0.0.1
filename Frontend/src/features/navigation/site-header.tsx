@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,12 +9,16 @@ import { IconBag, IconClose, IconHeart, IconMenu, IconSearch, IconUser } from "@
 import { Logo } from "@/components/ui/logo";
 import { NAV_ITEMS } from "@/constants/site";
 import type { StorefrontNavLink } from "@/constants/storefront";
-import { MiniCart } from "@/features/cart/mini-cart";
 import { CmsImage } from "@/features/media/cms-image";
-import { SearchModal } from "@/features/navigation/search-modal";
 import { SiteToast } from "@/features/navigation/site-toast";
 import { BAG_EVENT } from "@/lib/bag-events";
 import { cn } from "@/lib/cn";
+
+const SearchModal = dynamic(
+  () => import("@/features/navigation/search-modal").then((mod) => mod.SearchModal),
+  { ssr: false },
+);
+const MiniCart = dynamic(() => import("@/features/cart/mini-cart").then((mod) => mod.MiniCart), { ssr: false });
 
 type SiteHeaderProps = {
   isAuthenticated: boolean;

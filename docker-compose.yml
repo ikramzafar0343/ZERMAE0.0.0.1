@@ -31,6 +31,16 @@ services:
       UPLOAD_DIR: /app/uploads
     volumes:
       - zermae_uploads:/app/uploads
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:5000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     # Published for host-network nginx (/api → this port)
     ports:
       - "127.0.0.1:5000:5000"
@@ -58,6 +68,9 @@ services:
       API_PREFIX: ${API_PREFIX:-/api/v1}
       HOSTNAME: 0.0.0.0
       PORT: "3000"
+    volumes:
+      # So /_next/image can optimize product uploads (same files nginx serves at /uploads/)
+      - zermae_uploads:/app/public/uploads:ro
     # Published for host-network nginx
     ports:
       - "127.0.0.1:3000:3000"

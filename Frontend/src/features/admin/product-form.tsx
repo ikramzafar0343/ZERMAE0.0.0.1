@@ -88,6 +88,9 @@ export function ProductForm({
     if (title.length < 2) {
       next.title = "Product name is required.";
     }
+    if (slots.some((slot) => slot.uploading || (slot.file && !slot.url))) {
+      next.images = "Wait for photos to finish uploading.";
+    }
     if (nextIntent === "draft") {
       return next;
     }
@@ -110,7 +113,8 @@ export function ProductForm({
     if (!category) {
       next.category = "Category is required.";
     }
-    if (slots.length === 0) {
+    const readyImages = slots.filter((slot) => slot.url);
+    if (readyImages.length === 0) {
       next.images = "Add a main product photo.";
     }
     return next;
@@ -126,6 +130,7 @@ export function ProductForm({
     if (!form) {
       return;
     }
+    const readyImages = slots.filter((slot) => slot.url);
     const formData = new FormData(form);
     formData.set("status", nextIntent === "draft" ? PRODUCT_STATUS.DRAFT : PRODUCT_STATUS.PUBLISHED);
     formData.set("sizes", sizes.join("\n"));
@@ -139,13 +144,10 @@ export function ProductForm({
     } else {
       formData.delete("bestSeller");
     }
-    slots.forEach((slot, index) => {
-      if (slot.file) {
-        formData.set(`imageFile${index + 1}`, slot.file);
-      }
-      if (slot.url) {
-        formData.set(`imageUrl${index + 1}`, slot.url);
-      }
+    formData.set("imageCount", String(readyImages.length));
+    formData.set("imagesCleared", readyImages.length === 0 ? "1" : "0");
+    readyImages.forEach((slot, index) => {
+      formData.set(`imageUrl${index + 1}`, slot.url);
     });
     setIntent(nextIntent);
     setSaveError("");
@@ -195,11 +197,21 @@ export function ProductForm({
                 {saveError}
               </p>
             ) : null}
-            <button type="button" className="admin-product-ghost" disabled={pending} onClick={() => submit("draft")}>
+            <button
+              type="button"
+              className="admin-product-ghost"
+              disabled={pending || slots.some((slot) => slot.uploading)}
+              onClick={() => submit("draft")}
+            >
               <IconFile />
               {pending && intent === "draft" ? "Saving..." : "Save Draft"}
             </button>
-            <button type="button" className="admin-product-cta" disabled={pending} onClick={() => submit("publish")}>
+            <button
+              type="button"
+              className="admin-product-cta"
+              disabled={pending || slots.some((slot) => slot.uploading)}
+              onClick={() => submit("publish")}
+            >
               <IconCheck />
               {pending && intent === "publish" ? (isNew ? "Creating..." : "Saving...") : isNew ? "Add Product" : "Save Product"}
             </button>
@@ -303,10 +315,13 @@ export function ProductForm({
             <ProductImageUploader
               slots={slots}
               onChange={(next) => {
-                setSlots(next);
-                if (next.length > 0) {
-                  setErrors((current) => omitError(current, "images"));
-                }
+                setSlots((current) => {
+                  const resolved = typeof next === "function" ? next(current) : next;
+                  if (resolved.some((slot) => slot.url) || resolved.length > 0) {
+                    queueMicrotask(() => setErrors((errorsState) => omitError(errorsState, "images")));
+                  }
+                  return resolved;
+                });
               }}
               error={errors.images}
             />

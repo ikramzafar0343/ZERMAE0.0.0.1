@@ -1,15 +1,12 @@
 import "./globals.css";
-import "./product-highlights.css";
-import "./glow-stats.css";
-import "./features.css";
-import "./home-faq.css";
 import "./footer.css";
 import "./storefront.css";
 
-import { Cormorant_Garamond, Inter, Plus_Jakarta_Sans, Poppins } from "next/font/google";
+import { Cormorant_Garamond, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { brandDescription, brandName } from "@/constants/brand";
+import { DEFAULT_STOREFRONT_THEME } from "@/constants/storefront";
 import { CookieBanner } from "@/features/consent/cookie-banner";
 import { ThemeStyle } from "@/features/theme/theme-style";
 import { getStorefront } from "@/lib/storefront";
@@ -24,12 +21,6 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-poppins",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
   display: "swap",
 });
 
@@ -63,13 +54,16 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const storefront = await getStorefront();
+  let theme = DEFAULT_STOREFRONT_THEME;
+  try {
+    theme = (await getStorefront()).theme;
+  } catch {
+    // Default theme keeps first paint unblocked if the API is slow/down.
+  }
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body
-        className={`${plusJakarta.variable} ${poppins.variable} ${inter.variable} ${cormorant.variable} min-h-screen bg-brand-bg antialiased`}
-      >
-        <ThemeStyle theme={storefront.theme} />
+      <body className={`${plusJakarta.variable} ${poppins.variable} ${cormorant.variable} min-h-screen bg-brand-bg antialiased`}>
+        <ThemeStyle theme={theme} />
         {children}
         <CookieBanner />
       </body>

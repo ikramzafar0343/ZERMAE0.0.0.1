@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 
-import { type Locale,LOCALES } from "@/constants/site";
-
-export const dynamic = "force-dynamic";
+import { type Locale, LOCALES } from "@/constants/site";
 
 export function generateStaticParams(): Array<{ locale: Locale }> {
   return LOCALES.map((locale) => ({ locale }));

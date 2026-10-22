@@ -112,3 +112,46 @@ export function toProductRecord(
 export function serializeProduct(product: ProductRecord): SerializedProduct {
   return { ...product, _id: product.id, category: toFrontendCategory(product.category) };
 }
+
+/** Slim card payload for catalog lists — one image, no long copy. */
+export function serializeProductCard(product: ProductRecord): SerializedProduct {
+  const primary = product.images[0];
+  return {
+    id: product.id,
+    _id: product.id,
+    title: product.title,
+    slug: product.slug,
+    sku: product.sku,
+    category: toFrontendCategory(product.category),
+    price: product.price,
+    originalPrice: product.originalPrice,
+    discount: product.discount,
+    discountType: product.discountType,
+    description: {
+      intro: product.description.intro,
+      detail: "",
+      highlights: [],
+    },
+    specifications: {
+      composition: "",
+      care: "",
+      includes: product.specifications.includes,
+    },
+    returnPolicy: "",
+    sizes: [],
+    tileColor: product.tileColor,
+    colors: [],
+    images: primary ? [{ url: primary.url, alt: primary.alt, order: 0 }] : [],
+    variants: [],
+    bestSeller: product.bestSeller,
+    stock: product.stock,
+    lowStockThreshold: product.lowStockThreshold,
+    rating: product.rating,
+    reviewCount: product.reviewCount,
+    status: product.status,
+    version: product.version,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
+    effectivePrice: product.effectivePrice,
+  };
+}

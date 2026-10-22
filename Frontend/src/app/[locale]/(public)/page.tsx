@@ -1,3 +1,10 @@
+import "../../product-highlights.css";
+import "../../glow-stats.css";
+import "../../features.css";
+import "../../home-faq.css";
+
+import { Suspense } from "react";
+
 import { visibleShopCategories } from "@/constants/storefront";
 import { BestSellers } from "@/features/catalog/best-sellers";
 import { BrandStory } from "@/features/catalog/brand-story";
@@ -12,16 +19,38 @@ import { productService } from "@/lib/api/products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
 
-export default async function HomePage() {
+async function HomeBestSellers() {
   const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
   const products = await productService.getBySkus(storefront.content.bestSellerSkus);
   const bestSellers = resolveBestSellers(products, wishlist.ids, storefront.content.bestSellerColors);
+  return <BestSellers items={bestSellers} currency={storefront.commerce.currency} />;
+}
+
+function BestSellersFallback() {
+  return (
+    <section className="best-sellers" aria-busy="true" aria-label="Loading bestsellers">
+      <div className="best-sellers-inner">
+        <h2 className="best-sellers-title">Our Best Sellers</h2>
+        <div className="best-sellers-grid">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="product-card" style={{ minHeight: "20rem", opacity: 0.35 }} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default async function HomePage() {
+  const storefront = await getStorefront();
 
   return (
     <div className="home-flow bg-brand-bg">
       <HeroHome content={storefront.content} />
       <ShopByCategory categories={visibleShopCategories(storefront.content)} />
-      <BestSellers items={bestSellers} currency={storefront.commerce.currency} />
+      <Suspense fallback={<BestSellersFallback />}>
+        <HomeBestSellers />
+      </Suspense>
       <BrandStory content={storefront.content} />
       <ProductHighlights image={storefront.content.productHighlightsImage} />
       <GlowStats image={storefront.content.glowStatsImage} />

@@ -233,11 +233,11 @@ install_nginx() {
   local dest=""
   if [[ -d /etc/nginx/sites-available ]]; then
     dest="/etc/nginx/sites-available/${DOMAIN}"
-    sed "s/__WEB_PORT__/${web_port}/g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
+    sed -e "s|__WEB_PORT__|${web_port}|g" -e "s|__APP_ROOT__|${APP_ROOT}|g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
     ln -sfn "${dest}" "/etc/nginx/sites-enabled/${DOMAIN}"
   else
     dest="/etc/nginx/conf.d/${DOMAIN}.conf"
-    sed "s/__WEB_PORT__/${web_port}/g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
+    sed -e "s|__WEB_PORT__|${web_port}|g" -e "s|__APP_ROOT__|${APP_ROOT}|g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
   fi
   nginx -t
   systemctl reload nginx

@@ -25,6 +25,9 @@ async function main(): Promise<void> {
   const server = createServer((req, res) => {
     void handleApiRequest(req, res);
   });
+  server.requestTimeout = 120_000;
+  server.headersTimeout = 125_000;
+  server.keepAliveTimeout = 65_000;
   server.listen(env.API_PORT, env.API_HOST, () => {
     logger.info({ host: env.API_HOST, port: env.API_PORT }, "Native HTTP API listening");
   });

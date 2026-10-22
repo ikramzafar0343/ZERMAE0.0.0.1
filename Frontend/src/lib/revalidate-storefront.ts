@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { LOCALES } from "@/constants/site";
 
@@ -30,6 +30,8 @@ function revalidateEntry(path: string, asLayout: boolean): void {
 }
 
 export function revalidateStorefront(productId?: string): void {
+  revalidateTag("storefront", { expire: 0 });
+  revalidateTag("products", { expire: 0 });
   for (const path of STOREFRONT_PATHS) {
     const asLayout = path === "/" || path === "/collections";
     revalidateEntry(path, asLayout);

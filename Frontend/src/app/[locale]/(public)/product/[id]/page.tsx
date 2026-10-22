@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { CATEGORY_LABELS, getCategoryPath } from "@/constants/catalog";
 import { productImageUrls, toCatalogProduct } from "@/features/catalog/map-product";
@@ -13,6 +14,36 @@ import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
 import type { SerializedProduct } from "@/types/product";
 
+async function RelatedProducts({
+  productId,
+  category,
+  currency,
+  tileColors,
+  wishlistIds,
+}: {
+  productId: string;
+  category: string;
+  currency: string;
+  tileColors: string[];
+  wishlistIds: string[];
+}) {
+  const related = (await productService.list({ category, limit: 8 })).products
+    .filter((item) => item.id !== productId)
+    .slice(0, 3)
+    .map(toCatalogProduct);
+  if (related.length === 0) {
+    return null;
+  }
+  return (
+    <section className="product-carousel-section product-carousel-section--last">
+      <h2 className="product-section-title">
+        Complete <span className="product-section-title-accent">The Ritual</span>
+      </h2>
+      <ProductGrid products={related} wishlistIds={wishlistIds} currency={currency} tileColors={tileColors} />
+    </section>
+  );
+}
+
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let product: SerializedProduct;
@@ -21,16 +52,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   } catch {
     notFound();
   }
+  const [wishlist, storefront] = await Promise.all([readWishlist(), getStorefront()]);
 
   const images = productImageUrls(product);
   const uniqueImages = images.filter((image, index) => images.indexOf(image) === index);
   const category = product.category;
-  const related = (await productService.list({ category, limit: 8 })).products
-    .filter((item) => item.id !== product.id)
-    .slice(0, 3)
-    .map(toCatalogProduct);
-  const wishlist = await readWishlist();
-  const storefront = await getStorefront();
   const wished = wishlist.ids.includes(product.id);
   const featureImage = uniqueImages[1];
   const words = product.title.trim().split(/\s+/);
@@ -119,14 +145,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
         ) : null}
-        {related.length > 0 ? (
-          <section className="product-carousel-section product-carousel-section--last">
-            <h2 className="product-section-title">
-              Complete <span className="product-section-title-accent">The Ritual</span>
-            </h2>
-            <ProductGrid products={related} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
-          </section>
-        ) : null}
+        <Suspense fallback={null}>
+          <RelatedProducts
+            productId={product.id}
+            category={category}
+            currency={storefront.commerce.currency}
+            tileColors={storefront.content.productCardColors}
+            wishlistIds={wishlist.ids}
+          />
+        </Suspense>
       </div>
     </div>
   );

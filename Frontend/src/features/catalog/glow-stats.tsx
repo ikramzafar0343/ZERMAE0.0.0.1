@@ -30,7 +30,6 @@ export function GlowStats({ image }: { image: string }) {
               alt={GLOW_STATS_ALT}
               width={234}
               height={606}
-              priority
               sizes="(max-width: 899px) 16.5rem, 21rem"
               className="glow-stats-cutout"
             />

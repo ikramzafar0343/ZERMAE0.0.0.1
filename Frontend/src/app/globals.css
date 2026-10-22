@@ -18,7 +18,7 @@
   --font-heading: var(--font-cormorant), "Cormorant Garamond", serif;
   --font-nav: var(--font-plus-jakarta), "Plus Jakarta Sans", sans-serif;
   --font-body: var(--font-poppins), "Poppins", sans-serif;
-  --font-ui: var(--font-inter), "Inter", sans-serif;
+  --font-ui: var(--font-poppins), "Poppins", sans-serif;
 }
 
 @layer base {

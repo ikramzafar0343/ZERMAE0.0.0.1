@@ -12,7 +12,7 @@ export function middleware(request: NextRequest): NextResponse {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://res.cloudinary.com https://zermae.com https://www.zermae.com",
     "font-src 'self'",
     "connect-src 'self'",
     "frame-ancestors 'none'",

@@ -62,7 +62,11 @@ export function productIdFromForm(formData: FormData): string {
   return String(formData.get("id") ?? "");
 }
 
-export function productPayloadFromForm(formData: FormData, images: ProductFormImage[]): ProductFormPayload {
+export function productPayloadFromForm(
+  formData: FormData,
+  images: ProductFormImage[],
+  options: { imagesCleared?: boolean } = {},
+): ProductFormPayload {
   const id = productIdFromForm(formData);
   const title = String(formData.get("title") ?? "");
   const originalRaw = String(formData.get("originalPrice") ?? "").trim();
@@ -74,6 +78,15 @@ export function productPayloadFromForm(formData: FormData, images: ProductFormIm
   const discount = Number(formData.get("discount") ?? 0);
   const discountType = String(formData.get("discountType") ?? DISCOUNT_TYPES.PERCENTAGE);
   const price = Number(formData.get("price") ?? 0);
+  const imagesCleared = options.imagesCleared === true;
+  let nextImages: ProductFormImage[] | undefined;
+  if (images.length > 0) {
+    nextImages = images;
+  } else if (id && imagesCleared) {
+    nextImages = [];
+  } else {
+    nextImages = undefined;
+  }
   return {
     title,
     category: asCategory(String(formData.get("category") ?? "")),
@@ -98,6 +111,6 @@ export function productPayloadFromForm(formData: FormData, images: ProductFormIm
       care: String(formData.get("care") ?? ""),
       includes,
     },
-    images: id ? images : images.length > 0 ? images : undefined,
+    images: nextImages,
   };
 }

@@ -7,8 +7,9 @@ export const definition: RouteDefinition = {
 };
 
 export async function handler() {
+  const database = await databaseHealth();
   return {
-    status: "ok",
-    database: await databaseHealth(),
+    status: database.status === "connected" ? "ok" : "degraded",
+    database,
   };
 }

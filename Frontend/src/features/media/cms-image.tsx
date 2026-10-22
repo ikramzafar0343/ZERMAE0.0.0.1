@@ -1,5 +1,9 @@
 import Image, { type ImageProps } from "next/image";
 
+function isInlinePreview(src: string): boolean {
+  return src.startsWith("blob:") || src.startsWith("data:");
+}
+
 export function CmsImage({
   src,
   alt,
@@ -22,7 +26,7 @@ export function CmsImage({
   const props: ImageProps = {
     src,
     alt,
-    unoptimized: true,
+    unoptimized: isInlinePreview(src),
   };
   if (className) {
     props.className = className;

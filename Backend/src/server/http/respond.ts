@@ -1,10 +1,20 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { AppError } from "@/lib/app-error";
+import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
-import { type ApiErrorBody, type ApiSuccessBody,ERROR_CODES } from "@/types/api";
+import { type ApiErrorBody, type ApiSuccessBody, ERROR_CODES } from "@/types/api";
 
-export const MAX_JSON_BYTES = 8_000_000;
+/** Base64 upload payload is ~4/3 of file size; leave headroom for JSON wrappers. */
+export function maxJsonBytes(): number {
+  try {
+    return Math.ceil(getEnv().UPLOAD_MAX_FILE_SIZE * (4 / 3)) + 1_048_576;
+  } catch {
+    return 16_777_216;
+  }
+}
+
+export const MAX_JSON_BYTES = 16_777_216;
 
 export type RequestContext = {
   req: IncomingMessage;
@@ -53,7 +63,7 @@ export async function readBody(req: IncomingMessage): Promise<string> {
   for await (const chunk of req) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     size += buffer.length;
-    if (size > MAX_JSON_BYTES) {
+    if (size > maxJsonBytes()) {
       throw AppError.payloadTooLarge();
     }
     chunks.push(buffer);
@@ -63,7 +73,7 @@ export async function readBody(req: IncomingMessage): Promise<string> {
 
 export function sendJson(res: ServerResponse, status: number, body: unknown, extraHeaders: Record<string, string> = {}): void {
   const payload = JSON.stringify(body);
-  if (Buffer.byteLength(payload, "utf8") > MAX_JSON_BYTES) {
+  if (Buffer.byteLength(payload, "utf8") > maxJsonBytes()) {
     sendError(res, AppError.payloadTooLarge());
     return;
   }

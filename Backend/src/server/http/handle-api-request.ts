@@ -62,20 +62,24 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     }
 
     const ip = clientIp(req.socket.remoteAddress, header(req.headers, "x-forwarded-for"));
-    try {
-      await verifyHmac({
-        method: req.method ?? "GET",
-        path: url.pathname,
-        timestampHeader: header(req.headers, "x-timestamp"),
-        nonceHeader: header(req.headers, "x-nonce"),
-        signatureHeader: header(req.headers, "x-signature"),
-        rawBody,
-      });
-    } catch (error) {
-      await applyRateLimit(`unsigned:${ip}`, "unsigned");
-      throw error;
+    const isHealth = (req.method ?? "GET") === "GET" && (apiPath === "/health" || apiPath === "/health/");
+
+    if (!isHealth) {
+      try {
+        await verifyHmac({
+          method: req.method ?? "GET",
+          path: url.pathname,
+          timestampHeader: header(req.headers, "x-timestamp"),
+          nonceHeader: header(req.headers, "x-nonce"),
+          signatureHeader: header(req.headers, "x-signature"),
+          rawBody,
+        });
+      } catch (error) {
+        await applyRateLimit(`unsigned:${ip}`, "unsigned");
+        throw error;
+      }
+      await applyRateLimit(`signed:${ip}`, "signed");
     }
-    await applyRateLimit(`signed:${ip}`, "signed");
 
     if (!routes) {
       routes = await loadApiRoutes(fileURLToPath(new URL("../api", import.meta.url)));
@@ -109,7 +113,6 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     };
 
     const data = await matched.route.handler(ctx);
-    const status = req.method === "POST" ? 201 : 200;
     if (data === undefined) {
       res.writeHead(204);
       res.end();
@@ -117,9 +120,15 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     }
     const extraHeaders: Record<string, string> = {};
     if (req.method === "GET" && matched.route.path === "/storefront") {
-      extraHeaders["Cache-Control"] = "no-store, max-age=0";
+      extraHeaders["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300";
     }
-    sendJson(res, req.method === "POST" ? status : 200, { data }, extraHeaders);
+    if (isHealth) {
+      const health = data as { database?: { status?: string } };
+      const dbOk = health.database?.status === "connected";
+      sendJson(res, dbOk ? 200 : 503, { data }, extraHeaders);
+      return;
+    }
+    sendJson(res, req.method === "POST" ? 201 : 200, { data }, extraHeaders);
   } catch (error) {
     logger.error({ err: error instanceof Error ? error.message : "error", correlationId, path: url.pathname }, "API request failed");
     sendError(res, error, correlationId);

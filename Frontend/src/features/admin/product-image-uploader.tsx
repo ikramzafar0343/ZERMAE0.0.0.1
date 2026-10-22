@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 
 import { IconClose, IconPlus } from "@/components/icons/icons";
+import { uploadProductImageAction } from "@/features/admin/catalog-actions";
 import { CmsImage } from "@/features/media/cms-image";
 
 const MAX_IMAGES = 6;
@@ -14,6 +15,7 @@ export type ProductImageSlot = {
   preview: string;
   file: File | null;
   url: string;
+  uploading?: boolean;
 };
 
 export function createImageSlot(image?: { url: string }): ProductImageSlot {
@@ -31,7 +33,7 @@ export function ProductImageUploader({
   error,
 }: {
   slots: ProductImageSlot[];
-  onChange: (slots: ProductImageSlot[]) => void;
+  onChange: (slots: ProductImageSlot[] | ((current: ProductImageSlot[]) => ProductImageSlot[])) => void;
   error?: string | undefined;
 }) {
   const inputId = useId();
@@ -40,12 +42,53 @@ export function ProductImageUploader({
   const [localError, setLocalError] = useState("");
   const primary = slots[0];
   const message = error || localError;
+  const uploading = slots.some((slot) => slot.uploading);
+
+  function revokeBlob(preview: string) {
+    if (preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
+  }
+
+  async function uploadSlot(slotId: string, file: File) {
+    const formData = new FormData();
+    formData.set("file", file);
+    const result = await uploadProductImageAction(formData);
+    onChange((current) => {
+      const index = current.findIndex((slot) => slot.id === slotId);
+      if (index < 0) {
+        return current;
+      }
+      const existing = current[index];
+      if (!existing) {
+        return current;
+      }
+      if (result.error || !result.url) {
+        revokeBlob(existing.preview);
+        return current.filter((slot) => slot.id !== slotId);
+      }
+      revokeBlob(existing.preview);
+      const next = [...current];
+      next[index] = {
+        id: existing.id,
+        preview: result.url,
+        file: null,
+        url: result.url,
+        uploading: false,
+      };
+      return next;
+    });
+    if (result.error || !result.url) {
+      setLocalError(result.error ?? "Image could not be uploaded.");
+    }
+  }
 
   function addFiles(fileList: FileList | File[]) {
-    const next = [...slots];
     const problems: string[] = [];
+    const pending: ProductImageSlot[] = [];
+    let available = MAX_IMAGES - slots.length;
     for (const file of Array.from(fileList)) {
-      if (next.length >= MAX_IMAGES) {
+      if (available <= 0) {
         problems.push(`You can add up to ${MAX_IMAGES} photos.`);
         break;
       }
@@ -57,21 +100,39 @@ export function ProductImageUploader({
         problems.push(`${file.name} must be 5MB or smaller.`);
         continue;
       }
-      next.push({
+      pending.push({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         preview: URL.createObjectURL(file),
         file,
         url: "",
+        uploading: true,
       });
+      available -= 1;
     }
     setLocalError(problems[0] ?? "");
-    onChange(next);
+    if (pending.length === 0) {
+      return;
+    }
+    onChange((current) => {
+      const room = Math.max(0, MAX_IMAGES - current.length);
+      const toAdd = pending.slice(0, room);
+      for (const skipped of pending.slice(room)) {
+        revokeBlob(skipped.preview);
+      }
+      return toAdd.length > 0 ? [...current, ...toAdd] : current;
+    });
+    const room = Math.max(0, MAX_IMAGES - slots.length);
+    for (const slot of pending.slice(0, room)) {
+      if (slot.file) {
+        void uploadSlot(slot.id, slot.file);
+      }
+    }
   }
 
   function removeAt(index: number) {
     const slot = slots[index];
-    if (slot?.file && slot.preview.startsWith("blob:")) {
-      URL.revokeObjectURL(slot.preview);
+    if (slot) {
+      revokeBlob(slot.preview);
     }
     onChange(slots.filter((_, itemIndex) => itemIndex !== index));
   }
@@ -97,6 +158,7 @@ export function ProductImageUploader({
         type="file"
         accept={ACCEPT}
         multiple
+        disabled={uploading || slots.length >= MAX_IMAGES}
         onChange={(event) => {
           if (event.target.files) {
             addFiles(event.target.files);
@@ -108,6 +170,7 @@ export function ProductImageUploader({
         type="button"
         className={`admin-product-stage${dragOver ? " is-over" : ""}`}
         onClick={() => inputRef.current?.click()}
+        disabled={uploading || slots.length >= MAX_IMAGES}
         onDragOver={(event) => {
           event.preventDefault();
           setDragOver(true);
@@ -124,7 +187,7 @@ export function ProductImageUploader({
       >
         {primary?.preview ? (
           primary.preview.startsWith("blob:") ? (
-            // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+            // eslint-disable-next-line @next/next/no-img-element -- local object URL preview while uploading
             <img src={primary.preview} alt="Main product photo" className="admin-product-stage-image" />
           ) : (
             <CmsImage src={primary.preview} alt="Main product photo" width={420} height={280} className="admin-product-stage-image" />
@@ -135,10 +198,13 @@ export function ProductImageUploader({
       </button>
       <div className="admin-product-thumb-row">
         {slots.map((slot, index) => (
-          <div key={slot.id} className={`admin-product-thumb${index === 0 ? " is-active" : ""}`}>
+          <div
+            key={slot.id}
+            className={`admin-product-thumb${index === 0 ? " is-active" : ""}${slot.uploading ? " is-uploading" : ""}`}
+          >
             <button type="button" className="admin-product-thumb-pick" onClick={() => setPrimary(index)} aria-label={`Set photo ${index + 1} as main`}>
               {slot.preview.startsWith("blob:") ? (
-                // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+                // eslint-disable-next-line @next/next/no-img-element -- local object URL preview while uploading
                 <img src={slot.preview} alt="" className="admin-product-thumb-img" />
               ) : (
                 <CmsImage src={slot.preview} alt="" width={48} height={48} className="admin-product-thumb-img" />
@@ -150,7 +216,13 @@ export function ProductImageUploader({
           </div>
         ))}
         {slots.length < MAX_IMAGES ? (
-          <button type="button" className="admin-product-thumb-add" onClick={() => inputRef.current?.click()} aria-label="Add photo">
+          <button
+            type="button"
+            className="admin-product-thumb-add"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            aria-label="Add photo"
+          >
             <IconPlus />
           </button>
         ) : null}
@@ -159,6 +231,8 @@ export function ProductImageUploader({
         <p className="admin-product-error" role="alert">
           {message}
         </p>
+      ) : uploading ? (
+        <p className="admin-product-kicker">Uploading photo…</p>
       ) : (
         <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 5MB each. First photo is the shop image.</p>
       )}
