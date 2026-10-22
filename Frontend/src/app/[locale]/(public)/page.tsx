@@ -21,9 +21,13 @@ import { readWishlist } from "@/lib/wishlist-cookie";
 
 async function HomeBestSellers() {
   const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
-  const products = await productService.getBySkus(storefront.content.bestSellerSkus);
-  const bestSellers = resolveBestSellers(products, wishlist.ids, storefront.content.bestSellerColors);
-  return <BestSellers items={bestSellers} currency={storefront.commerce.currency} />;
+  try {
+    const products = await productService.getBySkus(storefront.content.bestSellerSkus);
+    const bestSellers = resolveBestSellers(products, wishlist.ids, storefront.content.bestSellerColors);
+    return <BestSellers items={bestSellers} currency={storefront.commerce.currency} />;
+  } catch {
+    return <BestSellers items={[]} currency={storefront.commerce.currency} />;
+  }
 }
 
 function BestSellersFallback() {

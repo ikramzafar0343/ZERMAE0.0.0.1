@@ -9,6 +9,9 @@ import { getSessionUser } from "@/lib/session";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
 
+/** Skip build-time prerender: Docker build has no `api` hostname on the compose network. */
+export const dynamic = "force-dynamic";
+
 export default async function PublicLayout({ children }: { children: ReactNode }) {
   const [user, cart, wishlist, storefront] = await Promise.all([
     getSessionUser(),
