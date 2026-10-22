@@ -42,7 +42,6 @@ export function BestSellers({ items, currency = "PKR" }: { items: ResolvedBestSe
                   <div className="best-sellers-media">
                     <div className="best-sellers-media-clip">
                       <Link href={item.href} className="best-sellers-media-link" aria-label={item.title}>
-                        <span className="best-sellers-orb" aria-hidden="true" />
                         <CmsImage
                           src={item.image}
                           alt={item.alt}

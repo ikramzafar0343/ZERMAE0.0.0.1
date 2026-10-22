@@ -91,8 +91,6 @@ export function ShopByCategory({ categories }: { categories: StorefrontShopCateg
                     <CardIcon />
                   </span>
                   <div className="shop-range-card-visual">
-                    <span className="shop-range-card-orb" aria-hidden="true" />
-                    <RangeBotanical className="shop-range-card-vine" />
                     <div className="shop-range-card-product">
                       {category.image ? (
                         <CmsImage

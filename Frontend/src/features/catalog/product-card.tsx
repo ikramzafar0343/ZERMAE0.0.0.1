@@ -48,7 +48,6 @@ export function ProductCard({
       <div className="product-card-media-wrap">
         <div className="product-card-media-clip">
           <Link href={`/product/${product.id}`} className="product-card-media-link" aria-label={product.title}>
-            <span className="product-card-orb" aria-hidden="true" />
             {primary ? (
               <CmsImage
                 src={primary}
