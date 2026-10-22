@@ -229,15 +229,16 @@ install_services() {
 
 install_nginx() {
   local web_port="$1"
+  local api_port="$2"
   mkdir -p /var/www/letsencrypt
   local dest=""
   if [[ -d /etc/nginx/sites-available ]]; then
     dest="/etc/nginx/sites-available/${DOMAIN}"
-    sed -e "s|__WEB_PORT__|${web_port}|g" -e "s|__APP_ROOT__|${APP_ROOT}|g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
+    sed -e "s|__WEB_PORT__|${web_port}|g" -e "s|__API_PORT__|${api_port}|g" -e "s|__APP_ROOT__|${APP_ROOT}|g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
     ln -sfn "${dest}" "/etc/nginx/sites-enabled/${DOMAIN}"
   else
     dest="/etc/nginx/conf.d/${DOMAIN}.conf"
-    sed -e "s|__WEB_PORT__|${web_port}|g" -e "s|__APP_ROOT__|${APP_ROOT}|g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
+    sed -e "s|__WEB_PORT__|${web_port}|g" -e "s|__API_PORT__|${api_port}|g" -e "s|__APP_ROOT__|${APP_ROOT}|g" "${APP_ROOT}/deploy/nginx/zermae.com.conf" > "${dest}"
   fi
   nginx -t
   systemctl reload nginx
@@ -323,7 +324,7 @@ install_node_modules
 migrate_and_seed
 build_frontend
 install_services "${WEB_PORT}"
-install_nginx "${WEB_PORT}"
+install_nginx "${WEB_PORT}" "${API_PORT}"
 install_certificate
 write_credentials "${ADMIN_PASS}" "${ADMIN_CODE}" "${DB_PASS}"
 

@@ -66,11 +66,11 @@ export function ProductImageUploader({
         revokeBlob(existing.preview);
         return current.filter((slot) => slot.id !== slotId);
       }
-      revokeBlob(existing.preview);
+      // Keep blob preview so the admin UI stays visible even if /uploads is briefly unreachable.
       const next = [...current];
       next[index] = {
         id: existing.id,
-        preview: result.url,
+        preview: existing.preview.startsWith("blob:") ? existing.preview : result.url,
         file: null,
         url: result.url,
         uploading: false,

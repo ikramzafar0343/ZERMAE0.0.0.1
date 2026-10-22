@@ -62,12 +62,14 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     }
 
     const ip = clientIp(req.socket.remoteAddress, header(req.headers, "x-forwarded-for"));
-    const isHealth = (req.method ?? "GET") === "GET" && (apiPath === "/health" || apiPath === "/health/");
+    const method = req.method ?? "GET";
+    const isHealth = method === "GET" && (apiPath === "/health" || apiPath === "/health/");
+    const isPublicMedia = method === "GET" && /^\/media\/[^/]+$/.test(apiPath);
 
-    if (!isHealth) {
+    if (!isHealth && !isPublicMedia) {
       try {
         await verifyHmac({
-          method: req.method ?? "GET",
+          method,
           path: url.pathname,
           timestampHeader: header(req.headers, "x-timestamp"),
           nonceHeader: header(req.headers, "x-nonce"),
@@ -85,7 +87,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       routes = await loadApiRoutes(fileURLToPath(new URL("../api", import.meta.url)));
     }
 
-    const matched = matchRoute(routes, req.method ?? "GET", apiPath);
+    const matched = matchRoute(routes, method, apiPath);
     if (!matched) {
       throw AppError.notFound(`Route ${url.pathname} not found`);
     }
@@ -99,7 +101,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     const ctx: RequestContext = {
       req,
       res,
-      method: req.method ?? "GET",
+      method,
       path: apiPath,
       url,
       headers: req.headers,
@@ -113,13 +115,20 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
     };
 
     const data = await matched.route.handler(ctx);
+    // Media handler streams bytes directly onto the response.
+    if (res.headersSent || res.writableEnded) {
+      return;
+    }
     if (data === undefined) {
       res.writeHead(204);
       res.end();
       return;
     }
+    if (data === null) {
+      return;
+    }
     const extraHeaders: Record<string, string> = {};
-    if (req.method === "GET" && matched.route.path === "/storefront") {
+    if (method === "GET" && matched.route.path === "/storefront") {
       extraHeaders["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300";
     }
     if (isHealth) {
@@ -128,7 +137,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
       sendJson(res, dbOk ? 200 : 503, { data }, extraHeaders);
       return;
     }
-    sendJson(res, req.method === "POST" ? 201 : 200, { data }, extraHeaders);
+    sendJson(res, method === "POST" ? 201 : 200, { data }, extraHeaders);
   } catch (error) {
     logger.error({ err: error instanceof Error ? error.message : "error", correlationId, path: url.pathname }, "API request failed");
     sendError(res, error, correlationId);
