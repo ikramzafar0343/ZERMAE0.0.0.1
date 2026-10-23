@@ -2786,6 +2786,28 @@
     object-position: center center;
   }
 
+  .product-main-slide {
+    opacity: 0;
+    transition: opacity 650ms ease;
+    pointer-events: none;
+  }
+
+  .product-main-slide.is-active {
+    opacity: 1;
+    z-index: 1;
+  }
+
+  .product-card-slide {
+    opacity: 0;
+    transition: opacity 600ms ease;
+    pointer-events: none;
+  }
+
+  .product-card-slide.is-active {
+    opacity: 1;
+    z-index: 1;
+  }
+
   .product-info {
     @apply order-3 space-y-7 md:sticky md:top-28;
   }
