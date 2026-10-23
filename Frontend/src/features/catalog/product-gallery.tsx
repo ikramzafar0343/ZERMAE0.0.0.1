@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { IconChevronLeft, IconChevronRight, IconClose } from "@/components/icons/icons";
 import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autoplay";
@@ -50,7 +50,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
     }
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
+    const onKey = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") {
         closeZoom();
       }
@@ -62,7 +62,7 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
     };
   }, [zoomed, closeZoom]);
 
-  const onGalleryKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const onGalleryKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (!hasMany || zoomed) {
       return;
     }
