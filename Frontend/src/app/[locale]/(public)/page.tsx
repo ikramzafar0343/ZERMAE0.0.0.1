@@ -22,8 +22,13 @@ import { readWishlist } from "@/lib/wishlist-cookie";
 async function HomeBestSellers() {
   const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
   try {
-    const products = await productService.getBySkus(storefront.content.bestSellerSkus);
-    const bestSellers = resolveBestSellers(products, wishlist.ids, storefront.content.bestSellerColors);
+    // Prefer products flagged "Best seller" in admin; fall back to CMS SKU slots.
+    const flagged = await productService.list({ bestSeller: true, limit: 6 });
+    let products = flagged.products;
+    if (products.length === 0 && storefront.content.bestSellerSkus.length > 0) {
+      products = await productService.getBySkus(storefront.content.bestSellerSkus);
+    }
+    const bestSellers = resolveBestSellers(products.slice(0, 3), wishlist.ids, storefront.content.bestSellerColors);
     return <BestSellers items={bestSellers} currency={storefront.commerce.currency} />;
   } catch {
     return <BestSellers items={[]} currency={storefront.commerce.currency} />;

@@ -9,6 +9,7 @@ import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { readCart, writeCart } from "@/lib/cart-cookie";
 import { parseSchema } from "@/lib/parse-schema";
+import { resolvePublicImageUrl } from "@/lib/public-image-url";
 import { cartItemSchema } from "@/schemas/order";
 
 export type CartActionResult = { ok?: boolean; error?: string };
@@ -138,7 +139,7 @@ export async function getMiniCartAction(): Promise<MiniCartSnapshot> {
     return {
       productId: item.productId,
       title: String(product?.title ?? "Product"),
-      image: product?.images[0]?.url ?? null,
+      image: product?.images[0]?.url ? resolvePublicImageUrl(product.images[0].url) : null,
       quantity: item.quantity,
       size: item.size ?? null,
       color: item.color ?? null,

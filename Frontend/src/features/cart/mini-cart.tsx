@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState, useTransition } from "react";
 
@@ -9,6 +8,7 @@ import { ConfirmSubmit } from "@/components/ui/confirm-submit";
 import { formatMoney } from "@/constants/storefront";
 import { getMiniCartAction, type MiniCartSnapshot, removeFromCartAction } from "@/features/cart/actions";
 import { OrderTotals } from "@/features/checkout/order-totals";
+import { CmsImage } from "@/features/media/cms-image";
 import { BAG_EVENT } from "@/lib/bag-events";
 
 const EMPTY: MiniCartSnapshot = {
@@ -98,7 +98,7 @@ export function MiniCart({
               <li key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="mini-cart-line">
                 <Link href={`/product/${line.productId}`} className="mini-cart-media" onClick={onClose}>
                   {line.image ? (
-                    <Image src={line.image} alt="" width={72} height={72} className="mini-cart-image" />
+                    <CmsImage src={line.image} alt="" width={72} height={72} className="mini-cart-image" />
                   ) : (
                     <span className="mini-cart-fallback" aria-hidden="true" />
                   )}

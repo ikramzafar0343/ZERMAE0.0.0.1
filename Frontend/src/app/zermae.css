@@ -2760,7 +2760,7 @@
   }
 
   .product-thumb-image {
-    @apply block h-full w-full object-contain object-center;
+    @apply block h-full w-full object-cover object-center;
   }
 
   .product-thumb-active {
@@ -2782,7 +2782,7 @@
 
   .product-main-image img {
     @apply block h-full w-full;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center center;
   }
 

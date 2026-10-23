@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { IconHeart, IconMinus, IconPlus, IconTrash } from "@/components/icons/icons";
@@ -8,10 +7,12 @@ import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce"
 import { formatMoney } from "@/constants/storefront";
 import { removeFromCartAction, updateCartQuantityAction } from "@/features/cart/actions";
 import { OrderTotals } from "@/features/checkout/order-totals";
+import { CmsImage } from "@/features/media/cms-image";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { readCart } from "@/lib/cart-cookie";
+import { resolvePublicImageUrl } from "@/lib/public-image-url";
 
 export default async function CartPage() {
   const cart = await readCart();
@@ -59,13 +60,15 @@ export default async function CartPage() {
               <div className="cart-items-list">
                 {lines.map((line) => {
                   const title = String(line.product?.title ?? "Product");
-                  const image = ((line.product?.images as Array<{ url: string }> | undefined) ?? [])[0]?.url;
+                  const image = resolvePublicImageUrl(
+                    ((line.product?.images as Array<{ url: string }> | undefined) ?? [])[0]?.url ?? "",
+                  );
                   const category = String(line.product?.category ?? "all");
                   return (
                     <article key={`${line.productId}-${line.size ?? ""}-${line.color ?? ""}`} className="cart-item-card">
                       <Link href={`/product/${line.productId}`} className="cart-item-media">
                         {image ? (
-                          <Image src={image} alt={title} fill className="cart-item-image" sizes="160px" />
+                          <CmsImage src={image} alt={title} fill className="cart-item-image" sizes="160px" />
                         ) : null}
                       </Link>
                       <div className="cart-item-body">

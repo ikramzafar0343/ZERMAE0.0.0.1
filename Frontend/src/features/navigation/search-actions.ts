@@ -1,6 +1,7 @@
 "use server";
 
 import { productService } from "@/lib/api/products";
+import { resolvePublicImageUrl } from "@/lib/public-image-url";
 import { getStorefront } from "@/lib/storefront";
 
 export type SearchHit = {
@@ -22,7 +23,7 @@ export async function searchProductsAction(query: string): Promise<SearchHit[]> 
     title: product.title,
     sku: product.sku,
     price: product.effectivePrice,
-    image: product.images[0]?.url ?? null,
+    image: product.images[0]?.url ? resolvePublicImageUrl(product.images[0].url) : null,
     currency: storefront.commerce.currency,
   }));
 }

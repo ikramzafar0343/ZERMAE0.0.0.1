@@ -1,4 +1,5 @@
 import { BEST_SELLERS } from "@/constants/site";
+import { resolvePublicImageUrl } from "@/lib/public-image-url";
 import type { SerializedProduct } from "@/types/product";
 
 export type ResolvedBestSeller = {
@@ -19,22 +20,25 @@ export function resolveBestSellers(
   wishlistIds: string[],
   colors: string[] = [],
 ): ResolvedBestSeller[] {
-  return products.map((matched, index) => {
-    const slot = BEST_SELLERS[index] ?? BEST_SELLERS[0];
-    const photo = matched.images[0];
-    const intro = matched.description.intro.trim();
-    const fallback = slot?.tone === "mint" ? "#d5e4cf" : "#f0c5bf";
-    return {
-      key: matched.sku || slot?.id || matched.id,
-      productId: matched.id,
-      title: matched.title,
-      description: intro.length > 0 ? intro : (slot?.description ?? ""),
-      price: matched.effectivePrice,
-      href: `/product/${matched.id}`,
-      image: photo?.url ?? slot?.image ?? "",
-      alt: photo?.alt || matched.title,
-      color: matched.tileColor || colors[index] || fallback,
-      wished: wishlistIds.includes(matched.id),
-    };
-  }).filter((item) => item.productId.length > 0 && item.image.length > 0);
+  return products
+    .map((matched, index) => {
+      const slot = BEST_SELLERS[index] ?? BEST_SELLERS[0];
+      const photo = matched.images[0];
+      const intro = matched.description.intro.trim();
+      const fallback = slot?.tone === "mint" ? "#d5e4cf" : "#f0c5bf";
+      const image = resolvePublicImageUrl(photo?.url ?? slot?.image ?? "");
+      return {
+        key: matched.sku || slot?.id || matched.id,
+        productId: matched.id,
+        title: matched.title,
+        description: intro.length > 0 ? intro : (slot?.description ?? ""),
+        price: matched.effectivePrice,
+        href: `/product/${matched.id}`,
+        image,
+        alt: photo?.alt || matched.title,
+        color: matched.tileColor || colors[index] || fallback,
+        wished: wishlistIds.includes(matched.id),
+      };
+    })
+    .filter((item) => item.productId.length > 0 && item.image.length > 0);
 }
