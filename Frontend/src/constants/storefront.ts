@@ -29,6 +29,30 @@ import {
   SHOP_RANGE_CATEGORIES,
   SUPPORT_PHONE_LOCAL,
 } from "@/constants/site";
+import {
+  buildDefaultBrand,
+  buildDefaultCollectionPages,
+  buildDefaultHome,
+  buildDefaultMenus,
+  buildDefaultPageTemplates,
+  HOME_SECTION_IDS,
+  type HomeSectionId,
+  type StorefrontBrand,
+  type StorefrontCollectionPage,
+  type StorefrontHome,
+  type StorefrontMenus,
+  type StorefrontPageTemplates,
+} from "@/constants/storefront-cms";
+
+export type {
+  HomeSectionId,
+  StorefrontBrand,
+  StorefrontCollectionPage,
+  StorefrontHome,
+  StorefrontMenus,
+  StorefrontPageTemplates,
+} from "@/constants/storefront-cms";
+export { HOME_SECTION_IDS, HOME_SECTION_LABELS, shopCategoriesAsRitualTabs } from "@/constants/storefront-cms";
 
 export type StorefrontTheme = {
   bg: string;
@@ -122,15 +146,25 @@ export type StorefrontContent = {
   productCardColors: string[];
   navLinks: StorefrontNavLink[];
   shopCategories: StorefrontShopCategory[];
+  /** Shopify-style brand / logo */
+  brand: StorefrontBrand;
+  /** Header + footer menus */
+  menus: StorefrontMenus;
+  /** Ordered home sections with hide/edit */
+  home: StorefrontHome;
+  /** About / Contact / FAQ / Legal */
+  pageTemplates: StorefrontPageTemplates;
+  /** Per-collection heroes + ritual blocks */
+  collectionPages: Record<string, StorefrontCollectionPage>;
 };
 
 export const DEFAULT_STOREFRONT_THEME: StorefrontTheme = {
-  bg: "#f5f2ee",
-  primary: "#3f3734",
-  secondary: "#c4b6a6",
-  accent: "#96976c",
-  mint: "#d5e4cf",
-  blush: "#f0c5bf",
+  bg: "#ffffff",
+  primary: "#303531",
+  secondary: "#70766f",
+  accent: "#eaa36d",
+  mint: "#ecf2f2",
+  blush: "#fce9e2",
 };
 
 export const DEFAULT_NAV_LINKS: StorefrontNavLink[] = NAV_ITEMS.map((item) => ({
@@ -199,6 +233,16 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroStageColor: DEFAULT_STOREFRONT_THEME.mint,
   productCardColors: [DEFAULT_STOREFRONT_THEME.blush, DEFAULT_STOREFRONT_THEME.mint, "#efe4ee"],
   navLinks: DEFAULT_NAV_LINKS,
+  brand: buildDefaultBrand(),
+  menus: buildDefaultMenus(),
+  home: buildDefaultHome(),
+  pageTemplates: buildDefaultPageTemplates(
+    "From serums and creams to cleansers and body treatments, Zermae is designed for people who want considered products, honest language, and a routine that stays simple.",
+    "We would love to hear from you — whether you have a question about an order, a formula, or your daily routine.",
+    SUPPORT_PHONE_LOCAL,
+    HOME_FAQ.map((item) => ({ id: item.id, question: item.question, answer: item.answer })),
+  ),
+  collectionPages: buildDefaultCollectionPages(),
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -386,6 +430,241 @@ function asCollectionTitles(value: unknown): Record<string, StorefrontCollection
   return next;
 }
 
+function asMenuLinks(value: unknown, fallback: StorefrontNavLink[]): StorefrontNavLink[] {
+  if (!Array.isArray(value)) {
+    return fallback.map((item) => ({ ...item }));
+  }
+  return value
+    .slice(0, 16)
+    .map((item, index) => {
+      const record = asRecord(item);
+      const base = fallback[index] ?? { id: `link-${index + 1}`, label: "Link", path: "/", hidden: false };
+      return {
+        id: asText(record.id, `${base.id}-${index + 1}`),
+        label: asText(record.label, base.label),
+        path: asPath(record.path, base.path),
+        hidden: asBool(record.hidden),
+      };
+    })
+    .filter((item) => item.label && item.path);
+}
+
+function asBrand(value: unknown): StorefrontBrand {
+  const fallback = DEFAULT_STOREFRONT_CONTENT.brand;
+  const record = asRecord(value);
+  return {
+    siteName: asStoredText(record.siteName, fallback.siteName),
+    logoSrc: asStoredText(record.logoSrc, fallback.logoSrc),
+    logoOnLightSrc: asStoredText(record.logoOnLightSrc, fallback.logoOnLightSrc),
+  };
+}
+
+function asMenus(value: unknown, navLinks: StorefrontNavLink[]): StorefrontMenus {
+  const fallback = DEFAULT_STOREFRONT_CONTENT.menus;
+  const record = asRecord(value);
+  const header = asMenuLinks(record.header, fallback.header);
+  return {
+    header: header.length ? header : fallback.header,
+    footerShop: asMenuLinks(record.footerShop, navLinks.length ? navLinks : fallback.footerShop),
+    footerHouse: asMenuLinks(record.footerHouse, fallback.footerHouse),
+    footerPolicies: asMenuLinks(record.footerPolicies, fallback.footerPolicies),
+  };
+}
+
+function deepMergeSection<T extends Record<string, unknown>>(fallback: T, raw: unknown): T {
+  const record = asRecord(raw);
+  const next = { ...fallback };
+  for (const key of Object.keys(fallback) as (keyof T)[]) {
+    if (!Object.prototype.hasOwnProperty.call(record, key as string)) {
+      continue;
+    }
+    const current = fallback[key];
+    const incoming = record[key as string];
+    if (Array.isArray(current)) {
+      if (Array.isArray(incoming)) {
+        (next as Record<string, unknown>)[key as string] = incoming;
+      }
+      continue;
+    }
+    if (current && typeof current === "object") {
+      continue;
+    }
+    if (typeof current === "boolean") {
+      (next as Record<string, unknown>)[key as string] = asBool(incoming);
+      continue;
+    }
+    if (typeof current === "string") {
+      (next as Record<string, unknown>)[key as string] = asStoredText(incoming, current);
+    }
+  }
+  return next;
+}
+
+function asHome(value: unknown, faqFallback: StorefrontFaqItem[]): StorefrontHome {
+  const fallback = DEFAULT_STOREFRONT_CONTENT.home;
+  const record = asRecord(value);
+  const sectionsRaw = asRecord(record.sections);
+  const orderRaw = Array.isArray(record.sectionOrder) ? record.sectionOrder.map(String) : [];
+  const sectionOrder = (
+    orderRaw.filter((id): id is HomeSectionId => (HOME_SECTION_IDS as readonly string[]).includes(id)).length
+      ? orderRaw.filter((id): id is HomeSectionId => (HOME_SECTION_IDS as readonly string[]).includes(id))
+      : [...HOME_SECTION_IDS]
+  );
+  for (const id of HOME_SECTION_IDS) {
+    if (!sectionOrder.includes(id)) sectionOrder.push(id);
+  }
+
+  const hero = deepMergeSection(fallback.sections.hero as unknown as Record<string, unknown>, sectionsRaw.hero) as unknown as StorefrontHome["sections"]["hero"];
+  const collection = deepMergeSection(fallback.sections.collection as unknown as Record<string, unknown>, sectionsRaw.collection) as unknown as StorefrontHome["sections"]["collection"];
+  const lifestyle = deepMergeSection(fallback.sections.lifestyle as unknown as Record<string, unknown>, sectionsRaw.lifestyle) as unknown as StorefrontHome["sections"]["lifestyle"];
+  const mosaic = deepMergeSection(fallback.sections.mosaic as unknown as Record<string, unknown>, sectionsRaw.mosaic) as unknown as StorefrontHome["sections"]["mosaic"];
+  const ritual = deepMergeSection(fallback.sections.ritual as unknown as Record<string, unknown>, sectionsRaw.ritual) as unknown as StorefrontHome["sections"]["ritual"];
+  const storiesBase = deepMergeSection(fallback.sections.stories as unknown as Record<string, unknown>, sectionsRaw.stories) as unknown as StorefrontHome["sections"]["stories"];
+  const faqBase = deepMergeSection(fallback.sections.faq as unknown as Record<string, unknown>, sectionsRaw.faq) as unknown as StorefrontHome["sections"]["faq"];
+  const socialBase = deepMergeSection(fallback.sections.social as unknown as Record<string, unknown>, sectionsRaw.social) as unknown as StorefrontHome["sections"]["social"];
+  const journalBase = deepMergeSection(fallback.sections.journal as unknown as Record<string, unknown>, sectionsRaw.journal) as unknown as StorefrontHome["sections"]["journal"];
+  const newsletter = deepMergeSection(fallback.sections.newsletter as unknown as Record<string, unknown>, sectionsRaw.newsletter) as unknown as StorefrontHome["sections"]["newsletter"];
+
+  const storiesRaw = asRecord(sectionsRaw.stories);
+  const faqRaw = asRecord(sectionsRaw.faq);
+  const socialRaw = asRecord(sectionsRaw.social);
+  const journalRaw = asRecord(sectionsRaw.journal);
+  const collectionRaw = asRecord(sectionsRaw.collection);
+  const ritualRaw = asRecord(sectionsRaw.ritual);
+
+  if (Array.isArray(collectionRaw.tileImageOverrides)) {
+    const overrides = collectionRaw.tileImageOverrides as unknown[];
+    collection.tileImageOverrides = Array.from({ length: 6 }, (_, i) =>
+      String(overrides[i] ?? fallback.sections.collection.tileImageOverrides[i] ?? "").trim(),
+    );
+  }
+  if (Array.isArray(ritualRaw.tileImageOverrides)) {
+    const overrides = ritualRaw.tileImageOverrides as unknown[];
+    ritual.tileImageOverrides = Array.from({ length: 3 }, (_, i) =>
+      String(overrides[i] ?? fallback.sections.ritual.tileImageOverrides[i] ?? "").trim(),
+    );
+  }
+
+  const reviewIds = new Set<string>();
+  const reviews = Array.isArray(storiesRaw.reviews)
+    ? storiesRaw.reviews.slice(0, 12).map((item, index) => {
+        const row = asRecord(item);
+        const fb = fallback.sections.stories.reviews[index] ?? fallback.sections.stories.reviews[0]!;
+        let id = asText(row.id, fb.id) || `r${index + 1}`;
+        if (reviewIds.has(id)) {
+          id = `${id}-${index}`;
+        }
+        reviewIds.add(id);
+        return {
+          id,
+          title: asStoredText(row.title, fb.title),
+          body: asStoredText(row.body, fb.body),
+          name: asStoredText(row.name, fb.name),
+          context: asStoredText(row.context, fb.context),
+          avatar: asStoredText(row.avatar, fb.avatar),
+        };
+      })
+    : storiesBase.reviews;
+
+  const homeFaqItems = Array.isArray(faqRaw.items)
+    ? asFaqItems(faqRaw.items)
+    : faqBase.items?.length
+      ? faqBase.items
+      : faqFallback;
+
+  const socialItems = Array.isArray(socialRaw.items)
+    ? socialRaw.items.slice(0, 8).map((item, index) => {
+        const row = asRecord(item);
+        const fb = fallback.sections.social.items[index] ?? fallback.sections.social.items[0]!;
+        return {
+          id: asText(row.id, fb.id),
+          src: asStoredText(row.src, fb.src),
+          href: asStoredText(row.href, fb.href),
+          handle: asStoredText(row.handle, fb.handle),
+          alt: asStoredText(row.alt, fb.alt),
+        };
+      })
+    : socialBase.items;
+
+  const articles = Array.isArray(journalRaw.articles)
+    ? journalRaw.articles.slice(0, 8).map((item, index) => {
+        const row = asRecord(item);
+        const fb = fallback.sections.journal.articles[index] ?? fallback.sections.journal.articles[0]!;
+        return {
+          id: asText(row.id, fb.id),
+          title: asStoredText(row.title, fb.title),
+          date: asStoredText(row.date, fb.date),
+          href: asPath(row.href, fb.href),
+          src: asStoredText(row.src, fb.src),
+          alt: asStoredText(row.alt, fb.alt),
+        };
+      })
+    : journalBase.articles;
+
+  return {
+    sectionOrder,
+    sections: {
+      hero,
+      collection,
+      lifestyle,
+      mosaic,
+      ritual,
+      stories: { ...storiesBase, reviews },
+      faq: { ...faqBase, items: homeFaqItems },
+      social: { ...socialBase, items: socialItems },
+      journal: { ...journalBase, articles },
+      newsletter,
+    },
+  };
+}
+
+function asPageTemplates(
+  value: unknown,
+  aboutCopy: string,
+  contactLead: string,
+  supportPhone: string,
+  faqItems: StorefrontFaqItem[],
+): StorefrontPageTemplates {
+  const fallback = buildDefaultPageTemplates(aboutCopy, contactLead, supportPhone, faqItems);
+  const record = asRecord(value);
+  const about = deepMergeSection(fallback.about as unknown as Record<string, unknown>, record.about) as unknown as StorefrontPageTemplates["about"];
+  const contact = deepMergeSection(fallback.contact as unknown as Record<string, unknown>, record.contact) as unknown as StorefrontPageTemplates["contact"];
+  const faqRaw = asRecord(record.faq);
+  const faq = {
+    imageSrc: asStoredText(faqRaw.imageSrc, fallback.faq.imageSrc),
+    imageAlt: asStoredText(faqRaw.imageAlt, fallback.faq.imageAlt),
+    items: Array.isArray(faqRaw.items) ? asFaqItems(faqRaw.items) : fallback.faq.items,
+  };
+  const privacy = deepMergeSection(fallback.privacy as unknown as Record<string, unknown>, record.privacy) as unknown as StorefrontPageTemplates["privacy"];
+  const terms = deepMergeSection(fallback.terms as unknown as Record<string, unknown>, record.terms) as unknown as StorefrontPageTemplates["terms"];
+  const shipping = deepMergeSection(fallback.shipping as unknown as Record<string, unknown>, record.shipping) as unknown as StorefrontPageTemplates["shipping"];
+  const returns = deepMergeSection(fallback.returns as unknown as Record<string, unknown>, record.returns) as unknown as StorefrontPageTemplates["returns"];
+  return { about, contact, faq, privacy, terms, shipping, returns };
+}
+
+function asCollectionPages(value: unknown): Record<string, StorefrontCollectionPage> {
+  const fallback = DEFAULT_STOREFRONT_CONTENT.collectionPages;
+  const record = asRecord(value);
+  const next: Record<string, StorefrontCollectionPage> = {};
+  for (const key of Object.keys(fallback)) {
+    const fb = fallback[key]!;
+    const row = asRecord(record[key]);
+    next[key] = {
+      heroSrc: asStoredText(row.heroSrc, fb.heroSrc),
+      titleFirst: asStoredText(row.titleFirst, fb.titleFirst),
+      titleSecond: asStoredText(row.titleSecond, fb.titleSecond),
+      ritualImage: asStoredText(row.ritualImage, fb.ritualImage),
+      ritualTitle: asStoredText(row.ritualTitle, fb.ritualTitle),
+      ritualMark: asStoredText(row.ritualMark, fb.ritualMark),
+      ritualNote1Title: asStoredText(row.ritualNote1Title, fb.ritualNote1Title),
+      ritualNote1Body: asStoredText(row.ritualNote1Body, fb.ritualNote1Body),
+      ritualNote2Title: asStoredText(row.ritualNote2Title, fb.ritualNote2Title),
+      ritualNote2Body: asStoredText(row.ritualNote2Body, fb.ritualNote2Body),
+    };
+  }
+  return next;
+}
+
 export function resolveStorefrontContent(raw: unknown): StorefrontContent {
   const record = asRecord(raw);
   const skus = Array.isArray(record.bestSellerSkus)
@@ -396,6 +675,18 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
   const shopCategories = asShopCategories(record.shopCategories, images, colors);
   const shopImages = Object.fromEntries(shopCategories.map((item) => [item.id, item.image]));
   const shopCardColors = Object.fromEntries(shopCategories.map((item) => [item.id, item.color]));
+  const faqItems = asFaqItems(record.faqItems);
+  const aboutCopy = asStoredText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy);
+  const contactLead = asStoredText(record.contactLead, DEFAULT_STOREFRONT_CONTENT.contactLead);
+  const supportPhone = asStoredText(record.supportPhone, DEFAULT_STOREFRONT_CONTENT.supportPhone);
+  const navLinks = asNavLinks(record.navLinks);
+  const pageTemplates = asPageTemplates(record.pageTemplates, aboutCopy, contactLead, supportPhone, faqItems);
+  // Keep legacy about/contact/faq fields in sync with page templates when CMS pages are present
+  const syncedAbout = asStoredText(asRecord(asRecord(record.pageTemplates).about).copy, aboutCopy) || aboutCopy;
+  const syncedContact = asStoredText(asRecord(asRecord(record.pageTemplates).contact).lead, contactLead) || contactLead;
+  const syncedPhone =
+    asStoredText(asRecord(asRecord(record.pageTemplates).contact).supportPhone, supportPhone) || supportPhone;
+  const home = asHome(record.home, faqItems);
   return {
     heroHeadline: asStoredText(record.heroHeadline, DEFAULT_STOREFRONT_CONTENT.heroHeadline),
     heroSupport: asStoredText(record.heroSupport, DEFAULT_STOREFRONT_CONTENT.heroSupport),
@@ -409,18 +700,18 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     brandStoryEnd: asStoredText(record.brandStoryEnd, DEFAULT_STOREFRONT_CONTENT.brandStoryEnd),
     productHighlightsImage: asStoredText(record.productHighlightsImage, DEFAULT_STOREFRONT_CONTENT.productHighlightsImage),
     glowStatsImage: asStoredText(record.glowStatsImage, DEFAULT_STOREFRONT_CONTENT.glowStatsImage),
-    faqImage: asStoredText(record.faqImage, DEFAULT_STOREFRONT_CONTENT.faqImage),
-    faqImageAlt: asStoredText(record.faqImageAlt, DEFAULT_STOREFRONT_CONTENT.faqImageAlt),
-    faqItems: asFaqItems(record.faqItems),
+    faqImage: asStoredText(record.faqImage, pageTemplates.faq.imageSrc || DEFAULT_STOREFRONT_CONTENT.faqImage),
+    faqImageAlt: asStoredText(record.faqImageAlt, pageTemplates.faq.imageAlt || DEFAULT_STOREFRONT_CONTENT.faqImageAlt),
+    faqItems: pageTemplates.faq.items.length ? pageTemplates.faq.items : faqItems,
     features: asFeatures(record.features),
     footerStatementLead: asStoredText(record.footerStatementLead, DEFAULT_STOREFRONT_CONTENT.footerStatementLead),
     footerStatementEnd: asStoredText(record.footerStatementEnd, DEFAULT_STOREFRONT_CONTENT.footerStatementEnd),
     socialFacebook: asStoredText(record.socialFacebook, DEFAULT_STOREFRONT_CONTENT.socialFacebook),
     socialInstagram: asStoredText(record.socialInstagram, DEFAULT_STOREFRONT_CONTENT.socialInstagram),
     socialPinterest: asStoredText(record.socialPinterest, DEFAULT_STOREFRONT_CONTENT.socialPinterest),
-    aboutCopy: asStoredText(record.aboutCopy, DEFAULT_STOREFRONT_CONTENT.aboutCopy),
-    contactLead: asStoredText(record.contactLead, DEFAULT_STOREFRONT_CONTENT.contactLead),
-    supportPhone: asStoredText(record.supportPhone, DEFAULT_STOREFRONT_CONTENT.supportPhone),
+    aboutCopy: syncedAbout,
+    contactLead: syncedContact,
+    supportPhone: syncedPhone,
     maintenanceMode: asBool(record.maintenanceMode),
     maintenanceMessage: asStoredText(record.maintenanceMessage, DEFAULT_STOREFRONT_CONTENT.maintenanceMessage) || "Coming Soon",
     emailFrom: asStoredText(record.emailFrom, DEFAULT_STOREFRONT_CONTENT.emailFrom) || DEFAULT_STOREFRONT_CONTENT.emailFrom,
@@ -430,18 +721,27 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     shopImages,
     shopCardColors,
     shopCategories,
-    navLinks: asNavLinks(record.navLinks),
+    navLinks,
     collectionImages: asImageMap(record.collectionImages, DEFAULT_STOREFRONT_CONTENT.collectionImages),
     collectionTitles: asCollectionTitles(record.collectionTitles),
     bestSellerSkus: Array.isArray(record.bestSellerSkus) ? skus : DEFAULT_STOREFRONT_CONTENT.bestSellerSkus,
     bestSellerColors: asHexList(record.bestSellerColors, DEFAULT_STOREFRONT_CONTENT.bestSellerColors),
     heroStageColor: asHex(record.heroStageColor, DEFAULT_STOREFRONT_CONTENT.heroStageColor),
     productCardColors: asHexList(record.productCardColors, DEFAULT_STOREFRONT_CONTENT.productCardColors),
+    brand: asBrand(record.brand),
+    menus: asMenus(record.menus, navLinks),
+    home,
+    pageTemplates: {
+      ...pageTemplates,
+      about: { ...pageTemplates.about, copy: syncedAbout },
+      contact: { ...pageTemplates.contact, lead: syncedContact, supportPhone: syncedPhone },
+    },
+    collectionPages: asCollectionPages(record.collectionPages),
   };
 }
 
 export function themeToCss(theme: StorefrontTheme): string {
-  return `:root{--color-brand-bg:${theme.bg};--color-brand-primary:${theme.primary};--color-brand-secondary:${theme.secondary};--color-brand-accent:${theme.accent};--color-brand-mint:${theme.mint};--color-brand-blush:${theme.blush};--color-text-main:${theme.primary};--color-text-sub:color-mix(in srgb,${theme.primary} 70%,transparent);--color-text-muted:color-mix(in srgb,${theme.primary} 40%,transparent);--color-brand-border:color-mix(in srgb,${theme.primary} 8%,transparent);}`;
+  return `:root{--color-brand-bg:${theme.bg};--color-brand-primary:${theme.primary};--color-brand-secondary:${theme.secondary};--color-brand-accent:${theme.accent};--color-brand-mint:${theme.mint};--color-brand-blush:${theme.blush};--color-text-main:${theme.primary};--color-text-sub:color-mix(in srgb,${theme.primary} 70%,transparent);--color-text-muted:color-mix(in srgb,${theme.primary} 40%,transparent);--color-brand-border:color-mix(in srgb,${theme.primary} 8%,transparent);--page:${theme.bg};--ink:${theme.primary};--body:color-mix(in srgb,${theme.primary} 70%,transparent);--muted:color-mix(in srgb,${theme.primary} 40%,transparent);--button:${theme.primary};--button-hover:color-mix(in srgb,${theme.primary} 82%,white);--header:${theme.mint};--soft:#f8f8f8;--peach:${theme.blush};--border:color-mix(in srgb,${theme.primary} 8%,transparent);--small-accent:${theme.accent};}`;
 }
 
 export function formatMoney(amount: number, currency = "PKR"): string {

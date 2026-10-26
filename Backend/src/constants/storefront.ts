@@ -27,6 +27,26 @@ import {
   SHOP_RANGE_CATEGORIES,
   SUPPORT_PHONE_LOCAL,
 } from "@/constants/site";
+import {
+  buildDefaultBrand,
+  buildDefaultCollectionPages,
+  buildDefaultHome,
+  buildDefaultMenus,
+  buildDefaultPageTemplates,
+  type StorefrontBrand,
+  type StorefrontCollectionPage,
+  type StorefrontHome,
+  type StorefrontMenus,
+  type StorefrontPageTemplates,
+} from "@/constants/storefront-cms";
+
+export type {
+  StorefrontBrand,
+  StorefrontCollectionPage,
+  StorefrontHome,
+  StorefrontMenus,
+  StorefrontPageTemplates,
+} from "@/constants/storefront-cms";
 
 export type StorefrontTheme = {
   bg: string;
@@ -120,6 +140,11 @@ export type StorefrontContent = {
   productCardColors: string[];
   navLinks: StorefrontNavLink[];
   shopCategories: StorefrontShopCategory[];
+  brand: StorefrontBrand;
+  menus: StorefrontMenus;
+  home: StorefrontHome;
+  pageTemplates: StorefrontPageTemplates;
+  collectionPages: Record<string, StorefrontCollectionPage>;
 };
 
 export const DEFAULT_STOREFRONT_THEME: StorefrontTheme = {
@@ -197,6 +222,16 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroStageColor: DEFAULT_STOREFRONT_THEME.mint,
   productCardColors: [DEFAULT_STOREFRONT_THEME.blush, DEFAULT_STOREFRONT_THEME.mint, "#efe4ee"],
   navLinks: DEFAULT_NAV_LINKS,
+  brand: buildDefaultBrand(),
+  menus: buildDefaultMenus(),
+  home: buildDefaultHome(),
+  pageTemplates: buildDefaultPageTemplates(
+    "From serums and creams to cleansers and body treatments, Zermae is designed for people who want considered products, honest language, and a routine that stays simple.",
+    "We would love to hear from you — whether you have a question about an order, a formula, or your daily routine.",
+    SUPPORT_PHONE_LOCAL,
+    HOME_FAQ.map((item) => ({ id: item.id, question: item.question, answer: item.answer })),
+  ),
+  collectionPages: buildDefaultCollectionPages(),
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -435,7 +470,53 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     bestSellerColors: asHexList(record.bestSellerColors, DEFAULT_STOREFRONT_CONTENT.bestSellerColors),
     heroStageColor: asHex(record.heroStageColor, DEFAULT_STOREFRONT_CONTENT.heroStageColor),
     productCardColors: asHexList(record.productCardColors, DEFAULT_STOREFRONT_CONTENT.productCardColors),
+    brand: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.brand, record.brand) as StorefrontBrand,
+    menus: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.menus, record.menus) as StorefrontMenus,
+    home: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.home, record.home) as StorefrontHome,
+    pageTemplates: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.pageTemplates, record.pageTemplates) as StorefrontPageTemplates,
+    collectionPages: mergeCmsObject(
+      DEFAULT_STOREFRONT_CONTENT.collectionPages,
+      record.collectionPages,
+    ) as Record<string, StorefrontCollectionPage>,
   };
+}
+
+/** Deep-merge CMS blobs; arrays in raw replace defaults when provided. */
+function mergeCmsObject<T>(fallback: T, raw: unknown): T {
+  if (raw === undefined || raw === null) {
+    return structuredClone(fallback);
+  }
+  if (Array.isArray(fallback)) {
+    return (Array.isArray(raw) ? structuredClone(raw) : structuredClone(fallback)) as T;
+  }
+  if (typeof fallback !== "object" || fallback === null) {
+    return (raw as T) ?? fallback;
+  }
+  const record = asRecord(raw);
+  const next = structuredClone(fallback) as Record<string, unknown>;
+  for (const key of Object.keys(fallback as object)) {
+    if (!Object.prototype.hasOwnProperty.call(record, key)) continue;
+    const current = (fallback as Record<string, unknown>)[key];
+    const incoming = record[key];
+    if (Array.isArray(current)) {
+      if (Array.isArray(incoming)) next[key] = structuredClone(incoming);
+      continue;
+    }
+    if (current && typeof current === "object") {
+      next[key] = mergeCmsObject(current, incoming);
+      continue;
+    }
+    if (typeof current === "boolean") {
+      next[key] = asBool(incoming);
+      continue;
+    }
+    if (typeof current === "string") {
+      next[key] = asStoredText(incoming, current);
+      continue;
+    }
+    next[key] = incoming;
+  }
+  return next as T;
 }
 
 export function themeToCss(theme: StorefrontTheme): string {

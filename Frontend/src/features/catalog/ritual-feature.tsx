@@ -51,8 +51,7 @@ export function RitualFeature({
           <h3 className="ritual-feature-name">{left.title}</h3>
           <p className="ritual-feature-copy">{left.description}</p>
         </article>
-        <div className="ritual-feature-stage">
-          <span className="ritual-still-arch" aria-hidden="true" />
+        <div className="ritual-feature-stage ritual-still--framed">
           <CmsImage
             src={image}
             alt={alt}

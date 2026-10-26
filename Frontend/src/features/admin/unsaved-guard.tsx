@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-export function UnsavedGuard({ children }: { children: ReactNode }) {
+export function UnsavedGuard({ children = null }: { children?: ReactNode }) {
   const [dirty, setDirty] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 

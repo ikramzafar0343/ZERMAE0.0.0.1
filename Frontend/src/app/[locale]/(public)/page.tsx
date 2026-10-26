@@ -1,70 +1,102 @@
-import "../../product-highlights.css";
-import "../../glow-stats.css";
-import "../../features.css";
-import "../../home-faq.css";
+import "@/app/home.css";
 
-import { Suspense } from "react";
-
-import { visibleShopCategories } from "@/constants/storefront";
-import { BestSellers } from "@/features/catalog/best-sellers";
-import { BrandStory } from "@/features/catalog/brand-story";
-import { Features } from "@/features/catalog/features";
-import { GlowStats } from "@/features/catalog/glow-stats";
-import { HeroHome } from "@/features/catalog/hero-home";
-import { HomeFaq } from "@/features/catalog/home-faq";
-import { ProductHighlights } from "@/features/catalog/product-highlights";
-import { resolveBestSellers } from "@/features/catalog/resolve-best-sellers";
-import { ShopByCategory } from "@/features/catalog/shop-by-category";
-import { productService } from "@/lib/api/products";
+import { CollectionSection } from "@/components/home/CollectionSection";
+import { CustomerStories } from "@/components/home/CustomerStories";
+import { EditorialMosaic } from "@/components/home/EditorialMosaic";
+import { FaqSection } from "@/components/home/FaqSection";
+import { HeroSection } from "@/components/home/HeroSection";
+import { HomepageMotion } from "@/components/home/HomepageMotion";
+import { JournalSection } from "@/components/home/JournalSection";
+import { LifestyleSection } from "@/components/home/LifestyleSection";
+import { NewsletterSection } from "@/components/home/NewsletterSection";
+import { RitualSection } from "@/components/home/RitualSection";
+import { SocialSection } from "@/components/home/SocialSection";
+import { shopCategoriesAsRitualTabs, type HomeSectionId } from "@/constants/storefront";
+import { loadHomeProducts } from "@/lib/home-products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
 
-async function HomeBestSellers() {
-  const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
-  try {
-    // Prefer products flagged "Best seller" in admin; fall back to CMS SKU slots.
-    const flagged = await productService.list({ bestSeller: true, limit: 6 });
-    let products = flagged.products;
-    if (products.length === 0 && storefront.content.bestSellerSkus.length > 0) {
-      products = await productService.getBySkus(storefront.content.bestSellerSkus);
-    }
-    const bestSellers = resolveBestSellers(products.slice(0, 3), wishlist.ids, storefront.content.bestSellerColors);
-    return <BestSellers items={bestSellers} currency={storefront.commerce.currency} />;
-  } catch {
-    return <BestSellers items={[]} currency={storefront.commerce.currency} />;
-  }
-}
-
-function BestSellersFallback() {
-  return (
-    <section className="best-sellers" aria-busy="true" aria-label="Loading bestsellers">
-      <div className="best-sellers-inner">
-        <h2 className="best-sellers-title">Our Best Sellers</h2>
-        <div className="best-sellers-grid">
-          {Array.from({ length: 3 }, (_, index) => (
-            <div key={index} className="product-card" style={{ minHeight: "20rem", opacity: 0.35 }} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default async function HomePage() {
-  const storefront = await getStorefront();
+  const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);
+  const home = storefront.content.home;
+  const sections = home.sections;
+  const ritualTabs = shopCategoriesAsRitualTabs(storefront.content.shopCategories);
 
-  return (
-    <div className="home-flow bg-brand-bg">
-      <HeroHome content={storefront.content} />
-      <ShopByCategory categories={visibleShopCategories(storefront.content)} />
-      <Suspense fallback={<BestSellersFallback />}>
-        <HomeBestSellers />
-      </Suspense>
-      <BrandStory content={storefront.content} />
-      <ProductHighlights image={storefront.content.productHighlightsImage} />
-      <GlowStats image={storefront.content.glowStatsImage} />
-      <Features content={storefront.content} />
-      <HomeFaq content={storefront.content} />
-    </div>
+  const { collection, featured, lifestyle, ritualCatalog, panelImage } = await loadHomeProducts(
+    storefront.content.bestSellerSkus,
+    {
+      shopCategories: storefront.content.shopCategories,
+      collectionOverrides: sections.collection.tileImageOverrides,
+      ritualOverrides: sections.ritual.tileImageOverrides,
+      ritualTabs,
+    },
   );
+
+  const currency = storefront.commerce.currency;
+  const wishlistIds = wishlist.ids;
+
+  const renderSection = (id: HomeSectionId) => {
+    switch (id) {
+      case "hero":
+        if (sections.hero.hidden) return null;
+        return (
+          <HeroSection
+            key={id}
+            featured={featured}
+            currency={currency}
+            cms={sections.hero}
+          />
+        );
+      case "collection":
+        if (sections.collection.hidden) return null;
+        return (
+          <CollectionSection
+            key={id}
+            products={collection}
+            currency={currency}
+            wishlistIds={wishlistIds}
+            cms={sections.collection}
+          />
+        );
+      case "lifestyle":
+        if (sections.lifestyle.hidden) return null;
+        return (
+          <LifestyleSection key={id} products={lifestyle} currency={currency} cms={sections.lifestyle} />
+        );
+      case "mosaic":
+        if (sections.mosaic.hidden) return null;
+        return <EditorialMosaic key={id} panelImage={panelImage} cms={sections.mosaic} />;
+      case "ritual":
+        if (sections.ritual.hidden) return null;
+        return (
+          <RitualSection
+            key={id}
+            catalog={ritualCatalog}
+            currency={currency}
+            wishlistIds={wishlistIds}
+            cms={sections.ritual}
+            tabs={ritualTabs}
+          />
+        );
+      case "stories":
+        if (sections.stories.hidden) return null;
+        return <CustomerStories key={id} cms={sections.stories} />;
+      case "faq":
+        if (sections.faq.hidden) return null;
+        return <FaqSection key={id} items={sections.faq.items} cms={sections.faq} />;
+      case "social":
+        if (sections.social.hidden) return null;
+        return <SocialSection key={id} cms={sections.social} />;
+      case "journal":
+        if (sections.journal.hidden) return null;
+        return <JournalSection key={id} cms={sections.journal} />;
+      case "newsletter":
+        if (sections.newsletter.hidden) return null;
+        return <NewsletterSection key={id} cms={sections.newsletter} />;
+      default:
+        return null;
+    }
+  };
+
+  return <HomepageMotion>{home.sectionOrder.map((id) => renderSection(id))}</HomepageMotion>;
 }

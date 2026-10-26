@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { CmsImage } from "@/features/media/cms-image";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPT = "image/png,image/jpeg,image/webp";
 
 function isAllowed(file: File) {
@@ -44,7 +44,7 @@ export function ImageUrlField({
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("Image must be 5MB or smaller.");
+      setError("Image must be 10MB or smaller.");
       return;
     }
     const transfer = new DataTransfer();
@@ -146,7 +146,7 @@ export function ImageUrlField({
           {error}
         </p>
       ) : (
-        <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 5MB. Publish to update the live shop.</p>
+        <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 10MB. Publish to update the live shop.</p>
       )}
     </div>
   );

@@ -29,6 +29,7 @@ export function middleware(request: NextRequest): NextResponse {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/assets") ||
+    pathname.startsWith("/media") ||
     pathname.startsWith("/fonts") ||
     pathname.includes(".")
   ) {

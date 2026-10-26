@@ -7,6 +7,7 @@ import { closePool, databaseHealth } from "@/server/database/pool";
 import { handleApiRequest } from "@/server/http/handle-api-request";
 import { pruneExpiredNonces } from "@/server/jobs/prune-nonces";
 import { authService } from "@/server/services/auth/auth.service";
+import { productService } from "@/server/services/products/product.service";
 
 loadDotEnv();
 
@@ -21,6 +22,8 @@ async function main(): Promise<void> {
   if (env.NODE_ENV === "development") {
     const admin = await authService.seedAdmin();
     logger.info({ email: admin.email }, "Seed admin synced from environment");
+    const demoProducts = await productService.ensureBestSellers();
+    logger.info({ count: demoProducts.length }, "Demo products synced");
   }
   const server = createServer((req, res) => {
     void handleApiRequest(req, res);

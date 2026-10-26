@@ -1,12 +1,14 @@
 import Link from "next/link";
 
+import { PageHero } from "@/components/shop/PageHero";
+import type { MiniProduct } from "@/components/shop/ProductMiniCard";
 import { normalizeCategoryFilter } from "@/constants/catalog";
 import { COLLECTION_HEROES } from "@/constants/site";
 import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
 import { toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductGrid } from "@/features/catalog/product-grid";
 import { RitualFeature } from "@/features/catalog/ritual-feature";
-import { CmsImage } from "@/features/media/cms-image";
+import { HOME_HERO } from "@/lib/content/homepage";
 import { productService } from "@/lib/api/products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
@@ -46,36 +48,41 @@ export async function CollectionView({
   const splitIndex = Math.min(6, products.length);
   const before = products.slice(0, splitIndex);
   const after = products.slice(splitIndex);
-  const heroImage = storefront.content.collectionImages[slug] ?? hero?.image ?? "";
-  const titles = storefront.content.collectionTitles[slug] ?? { first: hero?.first ?? "The", second: hero?.second ?? "Ritual" };
+  const pageCms = storefront.content.collectionPages[slug];
+  const heroImage =
+    pageCms?.ritualImage || storefront.content.collectionImages[slug] || hero?.image || "";
+  const titles = {
+    first: pageCms?.titleFirst || storefront.content.collectionTitles[slug]?.first || hero?.first || "The",
+    second: pageCms?.titleSecond || storefront.content.collectionTitles[slug]?.second || hero?.second || "Ritual",
+  };
+  const heroPoster = pageCms?.heroSrc || "";
 
   if (!hero) {
     return null;
   }
 
+  const lead = products[0];
+  const featured: MiniProduct | null = lead
+    ? {
+        id: lead.id,
+        title: lead.title,
+        price: lead.price,
+        image: lead.images[0] || heroImage,
+        href: `/product/${lead.id}`,
+      }
+    : null;
+
   return (
     <div className="min-h-screen bg-brand-bg">
-      <section className={`collection-hero collection-hero--${hero.tone}`}>
-        <div className="collection-hero-stage" aria-hidden="true">
-          <div className="collection-hero-pill" />
-          <CmsImage
-            src={heroImage}
-            alt=""
-            width={304}
-            height={637}
-            priority
-            sizes="(max-width: 767px) 12rem, 18rem"
-            className="collection-hero-product"
-          />
-        </div>
-        <div className="collection-hero-copy">
-          <h1 className="collection-hero-title">
-            {titles.first} <span className="collection-hero-title-accent">{titles.second}</span>
-          </h1>
-        </div>
-        <div className="collection-hero-fade" aria-hidden="true" />
-      </section>
-      <section className="collection-catalog">
+      <PageHero
+        title={`${titles.first} ${titles.second}`}
+        ctaLabel={HOME_HERO.ctaLabel}
+        ctaHref="#collection-catalog"
+        featured={featured}
+        currency={storefront.commerce.currency}
+        {...(heroPoster ? { mediaSrc: heroPoster } : {})}
+      />
+      <section id="collection-catalog" className="collection-catalog">
         {products.length > 0 ? (
           <nav className="collection-sort" aria-label="Sort">
             {SORTS.map((item) => (
@@ -90,11 +97,21 @@ export async function CollectionView({
           </nav>
         ) : null}
         {before.length > 0 ? (
-          <ProductGrid products={before} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
+          <ProductGrid
+            products={before}
+            wishlistIds={wishlist.ids}
+            currency={storefront.commerce.currency}
+            tileColors={storefront.content.productCardColors}
+          />
         ) : null}
         {products.length > 0 ? <RitualFeature image={heroImage} alt={hero.alt} tone={hero.tone} category={slug} /> : null}
         {after.length > 0 ? (
-          <ProductGrid products={after} wishlistIds={wishlist.ids} currency={storefront.commerce.currency} tileColors={storefront.content.productCardColors} />
+          <ProductGrid
+            products={after}
+            wishlistIds={wishlist.ids}
+            currency={storefront.commerce.currency}
+            tileColors={storefront.content.productCardColors}
+          />
         ) : null}
         {products.length === 0 ? (
           <CatalogEmptyState

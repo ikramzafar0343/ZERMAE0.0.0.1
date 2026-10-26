@@ -183,9 +183,50 @@ export class ProductService {
   async ensureBestSellers(): Promise<SerializedProduct[]> {
     const items: SerializedProduct[] = [];
     for (const slot of BEST_SELLERS) {
+      const gallery = ("images" in slot && Array.isArray(slot.images) ? slot.images : [slot.image]).map(
+        (url, order) => ({
+          url: String(url),
+          alt: `${slot.alt} view ${order + 1}`,
+          order,
+        }),
+      );
+
       const active = await productRepository.findBySku(slot.sku);
       if (active) {
         if (active.status === PRODUCT_STATUS.PUBLISHED) {
+          // Keep demo galleries in sync so PDP slide/autoplay can be tested.
+          if (slot.sku.startsWith("ZM-DEMO-") && active.images.length < 3) {
+            const updated = await productRepository.updateById(
+              active.id,
+              {
+                title: active.title,
+                slug: active.slug,
+                sku: active.sku,
+                category: active.category,
+                price: active.price,
+                originalPrice: active.originalPrice,
+                discount: active.discount,
+                discountType: active.discountType,
+                descriptionIntro: active.description.intro,
+                descriptionDetail: active.description.detail,
+                descriptionHighlights: active.description.highlights,
+                specComposition: active.specifications.composition,
+                specCare: active.specifications.care,
+                specIncludes: active.specifications.includes,
+                returnPolicy: active.returnPolicy,
+                sizes: active.sizes,
+                tileColor: active.tileColor,
+                bestSeller: true,
+                stock: active.stock,
+                status: active.status,
+                images: gallery,
+                colors: active.colors,
+              },
+              active.version,
+            );
+            items.push(serializeProduct(updated));
+            continue;
+          }
           items.push(serializeProduct(active));
         }
         continue;
@@ -219,7 +260,7 @@ export class ProductService {
         bestSeller: true,
         stock: 80,
         status: PRODUCT_STATUS.PUBLISHED,
-        images: [{ url: slot.image, alt: slot.alt, order: 0 }],
+        images: gallery,
         colors: [],
       });
       items.push(serializeProduct(record));

@@ -196,16 +196,17 @@ export function ProductCard({
         </AddToBagForm>
       </div>
       <Link href={href} className="product-card-copy">
-        <h3 className="product-card-name">{product.title}</h3>
-        {product.description ? <p className="product-card-desc">{product.description}</p> : null}
-        <p className="product-card-price-row">
-          {hasSale && product.originalPrice ? (
-            <span className="product-card-price-original">{formatMoney(product.originalPrice, currency)}</span>
-          ) : null}
-          <span className={`product-card-price${hasSale ? " product-card-price--sale" : ""}`}>
-            {formatMoney(product.price, currency)}
-          </span>
-        </p>
+        <div className="product-card-meta">
+          <h3 className="product-card-name">{product.title}</h3>
+          <p className="product-card-price-row">
+            {hasSale && product.originalPrice ? (
+              <span className="product-card-price-original">{formatMoney(product.originalPrice, currency)}</span>
+            ) : null}
+            <span className={`product-card-price${hasSale ? " product-card-price--sale" : ""}`}>
+              {formatMoney(product.price, currency)}
+            </span>
+          </p>
+        </div>
       </Link>
     </article>
   );

@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 
-import { resolveNavImages, visibleNavLinks } from "@/constants/storefront";
+import { FloatingHeader } from "@/components/home/FloatingHeader";
 import { SiteFooter } from "@/features/navigation/site-footer";
-import { SiteHeader } from "@/features/navigation/site-header";
 import { PublicSiteGate } from "@/features/site/public-site-gate";
 import { readCart } from "@/lib/cart-cookie";
 import { getSessionUser } from "@/lib/session";
@@ -19,12 +18,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <PublicSiteGate>
       <div className="flex min-h-screen flex-col">
-        <SiteHeader
+        <FloatingHeader
           isAuthenticated={Boolean(user)}
           cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
           wishlistCount={wishlist.ids.length}
-          navImages={resolveNavImages(storefront.content)}
-          navLinks={visibleNavLinks(storefront.content)}
+          brand={storefront.content.brand}
+          shopCategories={storefront.content.shopCategories}
+          headerLinks={storefront.content.menus.header}
         />
         <main id="main-content" className="flex-1">
           {children}

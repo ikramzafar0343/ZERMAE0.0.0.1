@@ -1,15 +1,17 @@
 "use client";
 
-import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { resolveCommerceSettings } from "@/constants/commerce";
 import {
-  formatMoney,
+  HOME_SECTION_IDS,
+  HOME_SECTION_LABELS,
   resolveStorefrontContent,
   resolveStorefrontTheme,
   SHOP_CATEGORY_ICONS,
+  type HomeSectionId,
   type StorefrontNavLink,
   type StorefrontShopCategory,
 } from "@/constants/storefront";
@@ -20,24 +22,13 @@ import { updateCommerceSettingsAction } from "@/features/admin/storefront-action
 import { UnsavedGuard } from "@/features/admin/unsaved-guard";
 import type { StorefrontState } from "@/lib/api/storefront";
 
-const COLLECTION_LABELS: Record<string, string> = {
-  all: "Shop all",
-  new: "New arrivals",
-  serums: "Serums",
-  creams: "Creams",
-  cleansers: "Cleansers",
-  body: "Body care",
-};
-
-const FEATURE_ICONS = ["flask", "leaf", "shield", "truck"] as const;
-
 const TABS = [
-  { id: "colors", label: "Colors" },
-  { id: "homepage", label: "Homepage" },
+  { id: "theme", label: "Theme" },
+  { id: "home", label: "Home" },
+  { id: "collections", label: "Collections" },
+  { id: "pages", label: "Pages" },
+  { id: "navigation", label: "Navigation" },
   { id: "shop", label: "Shop" },
-  { id: "nav", label: "Nav" },
-  { id: "bestsellers", label: "Best sellers" },
-  { id: "copy", label: "Copy" },
   { id: "checkout", label: "Checkout" },
 ] as const;
 
@@ -113,6 +104,117 @@ function SkuSelect({
   );
 }
 
+function MenuEditor({
+  title,
+  prefix,
+  links,
+  setLinks,
+}: {
+  title: string;
+  prefix: string;
+  links: StorefrontNavLink[];
+  setLinks: (next: StorefrontNavLink[] | ((current: StorefrontNavLink[]) => StorefrontNavLink[])) => void;
+}) {
+  return (
+    <section className="admin-product-card">
+      <div className="admin-storefront-row">
+        <h2 className="admin-product-card-title">{title}</h2>
+        <button
+          type="button"
+          className="admin-orders-filter"
+          onClick={() =>
+            setLinks((current) => [
+              ...current,
+              { id: `${prefix}-${Date.now()}`, label: "New link", path: "/", hidden: false },
+            ])
+          }
+        >
+          Add link
+        </button>
+      </div>
+      <input type="hidden" name={`${prefix}Count`} value={links.length} />
+      {links.map((item, index) => (
+        <div key={item.id} className="admin-storefront-inline-card">
+          <input type="hidden" name={`${prefix}Id_${index}`} value={item.id} />
+          <SoftInput
+            label="Label"
+            name={`${prefix}Label_${index}`}
+            defaultValue={item.label}
+            onChange={(event) =>
+              setLinks((current) =>
+                current.map((entry, i) => (i === index ? { ...entry, label: event.target.value } : entry)),
+              )
+            }
+          />
+          <SoftInput
+            label="Path"
+            name={`${prefix}Path_${index}`}
+            defaultValue={item.path}
+            onChange={(event) =>
+              setLinks((current) =>
+                current.map((entry, i) => (i === index ? { ...entry, path: event.target.value } : entry)),
+              )
+            }
+          />
+          <label className="admin-product-check">
+            <input
+              type="checkbox"
+              name={`${prefix}Hidden_${index}`}
+              defaultChecked={item.hidden}
+              onChange={(event) =>
+                setLinks((current) =>
+                  current.map((entry, i) => (i === index ? { ...entry, hidden: event.target.checked } : entry)),
+                )
+              }
+            />
+            Hide
+          </label>
+          <button type="button" className="admin-orders-filter" onClick={() => setLinks((current) => current.filter((_, i) => i !== index))}>
+            Delete
+          </button>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function SectionShell({
+  id,
+  openId,
+  setOpenId,
+  children,
+  onMoveUp,
+  onMoveDown,
+}: {
+  id: HomeSectionId;
+  openId: HomeSectionId | null;
+  setOpenId: (id: HomeSectionId | null) => void;
+  children: ReactNode;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  const open = openId === id;
+  return (
+    <section className="admin-product-card">
+      <div className="admin-storefront-row">
+        <button type="button" className="admin-product-card-title" onClick={() => setOpenId(open ? null : id)}>
+          {HOME_SECTION_LABELS[id]} {open ? "▾" : "▸"}
+        </button>
+        <div className="admin-storefront-row">
+          <button type="button" className="admin-orders-filter" onClick={onMoveUp}>
+            Up
+          </button>
+          <button type="button" className="admin-orders-filter" onClick={onMoveDown}>
+            Down
+          </button>
+        </div>
+      </div>
+      {/* Keep fields mounted so Publish still submits image URLs from collapsed sections */}
+      <div hidden={!open}>{children}</div>
+    </section>
+  );
+}
+
 export function StorefrontEditor({
   storefront,
   catalog,
@@ -123,127 +225,67 @@ export function StorefrontEditor({
   const commerce = resolveCommerceSettings(storefront.commerce);
   const theme = resolveStorefrontTheme(storefront.theme);
   const content = resolveStorefrontContent(storefront.content);
-  const [tab, setTab] = useState<TabId>("colors");
-  const [navLinks, setNavLinks] = useState<StorefrontNavLink[]>(() => content.navLinks.map((item) => ({ ...item })));
+  const [tab, setTab] = useState<TabId>("theme");
+  const [sectionOrder, setSectionOrder] = useState<HomeSectionId[]>(() => [...content.home.sectionOrder]);
+  const [openSection, setOpenSection] = useState<HomeSectionId | null>("hero");
+  const [headerLinks, setHeaderLinks] = useState(() => content.menus.header.map((item) => ({ ...item })));
+  const [footerShop, setFooterShop] = useState(() => content.menus.footerShop.map((item) => ({ ...item })));
+  const [footerHouse, setFooterHouse] = useState(() => content.menus.footerHouse.map((item) => ({ ...item })));
+  const [footerPolicies, setFooterPolicies] = useState(() => content.menus.footerPolicies.map((item) => ({ ...item })));
   const [shopCategories, setShopCategories] = useState<StorefrontShopCategory[]>(() =>
     content.shopCategories.map((item) => ({ ...item })),
   );
+  const [reviews, setReviews] = useState(() => content.home.sections.stories.reviews.map((item) => ({ ...item })));
+  const [homeFaq, setHomeFaq] = useState(() => content.home.sections.faq.items.map((item) => ({ ...item })));
+  const [socialItems, setSocialItems] = useState(() => content.home.sections.social.items.map((item) => ({ ...item })));
+  const [journalItems, setJournalItems] = useState(() => content.home.sections.journal.articles.map((item) => ({ ...item })));
+  const [pageFaq, setPageFaq] = useState(() => content.pageTemplates.faq.items.map((item) => ({ ...item })));
   const [publishState, publishAction] = useActionState(
     async (_prev: { error?: string }, formData: FormData) => updateCommerceSettingsAction(formData),
     {},
   );
-  const homepageImages = [
-    content.heroProductSrc,
-    content.brandStoryPrimarySrc,
-    content.brandStorySecondarySrc,
-    content.brandStoryPortraitSrc,
-    content.productHighlightsImage,
-    content.glowStatsImage,
-  ];
-  const filledHomepage = homepageImages.filter(Boolean).length;
-  const tilePresets = [
-    { label: "Pink", color: theme.blush },
-    { label: "Olive", color: theme.mint },
-  ];
 
-  function addCategory() {
-    setShopCategories((current) => {
-      if (current.length >= 8) {
-        return current;
-      }
-      const id = `category-${crypto.randomUUID().slice(0, 8)}`;
-      return [
-      ...current,
-      {
-        id,
-        title: "New category",
-        description: "",
-        href: "/collections/serums",
-        image: "",
-        alt: "New category",
-        icon: "sparkle",
-        color: theme.blush,
-        hidden: false,
-      },
-    ];
-    });
-  }
+  const home = content.home.sections;
+  const pages = content.pageTemplates;
 
-  function addNavLink() {
-    setNavLinks((current) => {
-      if (current.length >= 12) {
-        return current;
-      }
-      return [
-      ...current,
-      {
-        id: `nav-${crypto.randomUUID().slice(0, 8)}`,
-        label: "New link",
-        path: "/collections/serums",
-        hidden: false,
-      },
-    ];
+  function moveSection(id: HomeSectionId, direction: -1 | 1) {
+    setSectionOrder((current) => {
+      const index = current.indexOf(id);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= current.length) return current;
+      const copy = [...current];
+      const [item] = copy.splice(index, 1);
+      copy.splice(nextIndex, 0, item!);
+      return copy;
     });
   }
 
   return (
-    <UnsavedGuard>
-      <form action={publishAction} noValidate className="admin-product-page admin-product-form">
-        <header className="admin-product-toolbar">
-          <div className="admin-product-toolbar-copy">
-            <h1 className="admin-product-title">
-              <IconStorefront />
-              Storefront
-            </h1>
-            <p className="admin-product-sku">Edit categories, nav, photos, and copy, then publish</p>
-          </div>
-          <div className="admin-product-toolbar-actions">
-            {publishState.error ? (
-              <p className="admin-product-error" role="alert">
-                {publishState.error}
-              </p>
-            ) : null}
-            <PublishButton />
-          </div>
-        </header>
-        <input type="hidden" name="heroProductAlt" value={content.heroProductAlt} />
-        <input type="hidden" name="faqImageAlt" value={content.faqImageAlt} />
+    <div className="admin-page admin-storefront-page">
+      <header className="admin-page-header">
+        <div>
+          <p className="admin-orders-kicker">
+            <IconStorefront /> Online Store
+          </p>
+          <h1 className="admin-page-title">Storefront</h1>
+          <p className="admin-page-lead">
+            Shopify-style customizer — change every logo, picture, menu, and section. Publish to update the live shop.
+          </p>
+        </div>
+      </header>
+
+      <form action={publishAction} className="admin-product-form">
+        <UnsavedGuard />
+        <input type="hidden" name="homeSectionOrder" value={sectionOrder.join(",")} />
+        <input type="hidden" name="homeReviewCount" value={reviews.length} />
+        <input type="hidden" name="homeFaqCount" value={homeFaq.length} />
+        <input type="hidden" name="homeSocialCount" value={socialItems.length} />
+        <input type="hidden" name="homeJournalCount" value={journalItems.length} />
+        <input type="hidden" name="pageFaqCount" value={pageFaq.length} />
         <input type="hidden" name="categoryCount" value={shopCategories.length} />
-        <input type="hidden" name="navCount" value={navLinks.length} />
+        <input type="hidden" name="navCount" value={footerShop.length} />
 
-        <section className="admin-orders-stats" aria-label="Storefront summary">
-          <article className="admin-orders-stat">
-            <p className="admin-orders-stat-label">Homepage images</p>
-            <p className="admin-orders-stat-value">
-              {filledHomepage}
-              <span className="admin-storefront-stat-suffix">/6</span>
-            </p>
-          </article>
-          <article className="admin-orders-stat">
-            <p className="admin-orders-stat-label">Categories</p>
-            <p className="admin-orders-stat-value">
-              {shopCategories.filter((item) => !item.hidden).length}
-              <span className="admin-storefront-stat-suffix">/{shopCategories.length}</span>
-            </p>
-          </article>
-          <article className="admin-orders-stat">
-            <p className="admin-orders-stat-label">Nav links</p>
-            <p className="admin-orders-stat-value">
-              {navLinks.filter((item) => !item.hidden).length}
-              <span className="admin-storefront-stat-suffix">/{navLinks.length}</span>
-            </p>
-          </article>
-          <article className="admin-orders-stat">
-            <p className="admin-orders-stat-label">Free shipping</p>
-            <p className="admin-orders-stat-value admin-storefront-stat-text">
-              {commerce.freeShippingEnabled
-                ? formatMoney(commerce.freeShippingThreshold, commerce.currency)
-                : "Off"}
-            </p>
-          </article>
-        </section>
-
-        <nav className="admin-orders-filters" aria-label="Storefront sections">
+        <div className="admin-orders-filters" role="tablist" aria-label="Storefront sections">
           {TABS.map((item) => (
             <button
               key={item.id}
@@ -255,491 +297,462 @@ export function StorefrontEditor({
               {item.label}
             </button>
           ))}
-        </nav>
+        </div>
 
-        <div className="admin-storefront-stack" hidden={tab !== "colors"}>
-        <section className="admin-product-card" aria-labelledby="storefront-colors-heading">
-          <h2 id="storefront-colors-heading" className="admin-product-card-title">
-            Color scheme
-          </h2>
-          <p className="admin-product-kicker admin-storefront-lead">
-            These colors paint the live shop: background, type, buttons, mint and blush washes.
-          </p>
-          <div className="admin-storefront-colors">
+        {publishState.error ? <p className="admin-product-error">{publishState.error}</p> : null}
+
+        <div className="admin-storefront-stack" hidden={tab !== "theme"}>
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">Brand</h2>
+            <SoftInput label="Site name" name="brandSiteName" defaultValue={content.brand.siteName} />
+            <ImageUrlField name="logoSrc" label="Logo" defaultValue={content.brand.logoSrc} />
+            <ImageUrlField name="logoOnLightSrc" label="Logo on light" defaultValue={content.brand.logoOnLightSrc} />
+          </section>
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">Colors</h2>
             <ColorField name="themeBg" label="Background" defaultValue={theme.bg} />
             <ColorField name="themePrimary" label="Primary" defaultValue={theme.primary} />
             <ColorField name="themeSecondary" label="Secondary" defaultValue={theme.secondary} />
             <ColorField name="themeAccent" label="Accent" defaultValue={theme.accent} />
-            <ColorField name="themeMint" label="Mint" defaultValue={theme.mint} />
+            <ColorField name="themeMint" label="Mint / header" defaultValue={theme.mint} />
             <ColorField name="themeBlush" label="Blush" defaultValue={theme.blush} />
-          </div>
-        </section>
-        <section className="admin-product-card" aria-labelledby="storefront-tiles-heading">
-          <h2 id="storefront-tiles-heading" className="admin-product-card-title">
-            Collection card backdrops
-          </h2>
-          <p className="admin-product-kicker admin-storefront-lead">
-            These three colors rotate behind products on collection, wishlist, and related-product grids.
-          </p>
-          <div className="admin-storefront-colors">
-            <ColorField
-              name="productCardColor1"
-              label="Card 1"
-              defaultValue={content.productCardColors[0] ?? theme.blush}
-              presets={tilePresets}
-            />
-            <ColorField
-              name="productCardColor2"
-              label="Card 2"
-              defaultValue={content.productCardColors[1] ?? theme.mint}
-              presets={tilePresets}
-            />
-            <ColorField
-              name="productCardColor3"
-              label="Card 3"
-              defaultValue={content.productCardColors[2] ?? "#efe4ee"}
-              presets={tilePresets}
-            />
-          </div>
-        </section>
+            <ColorField name="productCardColor1" label="Product tile 1" defaultValue={content.productCardColors[0] ?? theme.blush} />
+            <ColorField name="productCardColor2" label="Product tile 2" defaultValue={content.productCardColors[1] ?? theme.mint} />
+            <ColorField name="productCardColor3" label="Product tile 3" defaultValue={content.productCardColors[2] ?? "#efe4ee"} />
+            <ColorField name="heroStageColor" label="Hero stage" defaultValue={content.heroStageColor} />
+          </section>
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">Auth banners</h2>
+            <ImageUrlField name="authLoginSrc" label="Login" defaultValue={content.authLoginSrc} />
+            <ImageUrlField name="authRegisterSrc" label="Register" defaultValue={content.authRegisterSrc} />
+            <ImageUrlField name="authAdminSrc" label="Admin login" defaultValue={content.authAdminSrc} />
+          </section>
         </div>
 
-        <div className="admin-storefront-stack" hidden={tab !== "homepage"}>
-          <section className="admin-product-card" aria-labelledby="storefront-hero-heading">
-            <h2 id="storefront-hero-heading" className="admin-product-card-title">
-              Homepage hero
-            </h2>
-            <div className="admin-product-fields">
-              <ImageUrlField name="heroProductSrc" label="Hero product" defaultValue={content.heroProductSrc} />
-              <div className="admin-storefront-nested">
-                <SoftInput label="Hero headline" name="heroHeadline" defaultValue={content.heroHeadline} />
-                <SoftArea label="Hero support" name="heroSupport" rows={3} defaultValue={content.heroSupport} />
-                <ColorField
-                  name="heroStageColor"
-                  label="Product backdrop"
-                  defaultValue={content.heroStageColor}
-                  presets={tilePresets}
-                />
-              </div>
-            </div>
+        <div className="admin-storefront-stack" hidden={tab !== "home"}>
+          <p className="admin-product-kicker">Reorder with Up/Down. Hide a section to remove it from the homepage.</p>
+          {sectionOrder.map((id) => (
+            <SectionShell
+              key={id}
+              id={id}
+              openId={openSection}
+              setOpenId={setOpenSection}
+              onMoveUp={() => moveSection(id, -1)}
+              onMoveDown={() => moveSection(id, 1)}
+            >
+              {id === "hero" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeHeroHidden" defaultChecked={home.hero.hidden} /> Hide section
+                  </label>
+                  <ImageUrlField name="heroPosterSrc" label="Hero poster" defaultValue={home.hero.posterSrc} />
+                  <SoftInput label="Line 1" name="homeHeroLine1" defaultValue={home.hero.line1} />
+                  <SoftInput label="Line 2" name="homeHeroLine2" defaultValue={home.hero.line2} />
+                  <SoftArea label="Support" name="homeHeroSupport" rows={3} defaultValue={home.hero.support} />
+                  <SoftInput label="CTA label" name="homeHeroCtaLabel" defaultValue={home.hero.ctaLabel} />
+                  <SoftInput label="CTA href" name="homeHeroCtaHref" defaultValue={home.hero.ctaHref} />
+                  <SoftInput label="Scroll label" name="homeHeroScrollLabel" defaultValue={home.hero.scrollLabel} />
+                </>
+              ) : null}
+              {id === "collection" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeCollectionHidden" defaultChecked={home.collection.hidden} /> Hide section
+                  </label>
+                  <SoftInput label="Eyebrow" name="homeCollectionEyebrow" defaultValue={home.collection.eyebrow} />
+                  <SoftInput label="Line 1" name="homeCollectionLine1" defaultValue={home.collection.line1} />
+                  <SoftInput label="Line 2" name="homeCollectionLine2" defaultValue={home.collection.line2} />
+                  {Array.from({ length: 6 }, (_, index) => (
+                    <ImageUrlField
+                      key={`ct-${index}`}
+                      name={`collectionTile_${index}`}
+                      label={`Tile image override ${index + 1}`}
+                      defaultValue={home.collection.tileImageOverrides[index] ?? ""}
+                      hint="Leave empty to use the product image"
+                    />
+                  ))}
+                </>
+              ) : null}
+              {id === "lifestyle" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeLifestyleHidden" defaultChecked={home.lifestyle.hidden} /> Hide section
+                  </label>
+                  <ImageUrlField name="lifestylePosterSrc" label="Poster" defaultValue={home.lifestyle.posterSrc} />
+                  <SoftInput label="Eyebrow" name="homeLifestyleEyebrow" defaultValue={home.lifestyle.eyebrow} />
+                  <SoftInput label="Heading" name="homeLifestyleHeading" defaultValue={home.lifestyle.heading} />
+                </>
+              ) : null}
+              {id === "mosaic" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeMosaicHidden" defaultChecked={home.mosaic.hidden} /> Hide section
+                  </label>
+                  <SoftInput label="Eyebrow" name="homeMosaicEyebrow" defaultValue={home.mosaic.eyebrow} />
+                  <SoftInput label="Line 1" name="homeMosaicLine1" defaultValue={home.mosaic.line1} />
+                  <SoftInput label="Line 2" name="homeMosaicLine2" defaultValue={home.mosaic.line2} />
+                  <SoftInput label="Panel heading" name="homeMosaicPanelHeading" defaultValue={home.mosaic.panelHeading} />
+                  <SoftArea label="Panel body" name="homeMosaicPanelBody" rows={3} defaultValue={home.mosaic.panelBody} />
+                  <SoftInput label="Upper caption" name="homeMosaicUpperHeading" defaultValue={home.mosaic.upperCaptionHeading} />
+                  <SoftInput label="Upper body" name="homeMosaicUpperBody" defaultValue={home.mosaic.upperCaptionBody} />
+                  <SoftInput label="Lower caption" name="homeMosaicLowerHeading" defaultValue={home.mosaic.lowerCaptionHeading} />
+                  <SoftInput label="Lower body" name="homeMosaicLowerBody" defaultValue={home.mosaic.lowerCaptionBody} />
+                  <ImageUrlField name="mosaicLeftSrc" label="Left image" defaultValue={home.mosaic.leftSrc} />
+                  <ImageUrlField name="mosaicRangeSrc" label="Range image" defaultValue={home.mosaic.rangeSrc} />
+                  <ImageUrlField name="mosaicDetailSrc" label="Detail image" defaultValue={home.mosaic.detailSrc} />
+                </>
+              ) : null}
+              {id === "ritual" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeRitualHidden" defaultChecked={home.ritual.hidden} /> Hide section
+                  </label>
+                  <SoftInput label="Eyebrow" name="homeRitualEyebrow" defaultValue={home.ritual.eyebrow} />
+                  <SoftInput label="Line 1" name="homeRitualLine1" defaultValue={home.ritual.line1} />
+                  <SoftInput label="Line 2" name="homeRitualLine2" defaultValue={home.ritual.line2} />
+                  <SoftArea label="Empty state" name="homeRitualEmpty" rows={2} defaultValue={home.ritual.empty} />
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <ImageUrlField
+                      key={`rt-${index}`}
+                      name={`ritualTile_${index}`}
+                      label={`Ritual tile override ${index + 1}`}
+                      defaultValue={home.ritual.tileImageOverrides[index] ?? ""}
+                    />
+                  ))}
+                </>
+              ) : null}
+              {id === "stories" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeStoriesHidden" defaultChecked={home.stories.hidden} /> Hide section
+                  </label>
+                  <ImageUrlField name="storiesCompositionSrc" label="Composition" defaultValue={home.stories.compositionSrc} />
+                  <SoftInput label="Eyebrow" name="homeStoriesEyebrow" defaultValue={home.stories.eyebrow} />
+                  <SoftInput label="Line 1" name="homeStoriesLine1" defaultValue={home.stories.line1} />
+                  <SoftInput label="Line 2" name="homeStoriesLine2" defaultValue={home.stories.line2} />
+                  <button
+                    type="button"
+                    className="admin-orders-filter"
+                    onClick={() =>
+                      setReviews((current) => [
+                        ...current,
+                        { id: `r-${Date.now()}`, title: "", body: "", name: "", context: "", avatar: "" },
+                      ])
+                    }
+                  >
+                    Add review
+                  </button>
+                  {reviews.map((item, index) => (
+                    <div key={`${item.id}-${index}`} className="admin-storefront-inline-card">
+                      <input type="hidden" name={`homeReviewId_${index}`} value={item.id || `r${index + 1}`} />
+                      <SoftInput label="Title" name={`homeReviewTitle_${index}`} defaultValue={item.title} />
+                      <SoftArea label="Body" name={`homeReviewBody_${index}`} rows={3} defaultValue={item.body} />
+                      <SoftInput label="Name" name={`homeReviewName_${index}`} defaultValue={item.name} />
+                      <SoftInput label="Context" name={`homeReviewContext_${index}`} defaultValue={item.context} />
+                      <ImageUrlField name={`homeReviewAvatar_${index}`} label="Avatar" defaultValue={item.avatar} />
+                      <button type="button" className="admin-orders-filter" onClick={() => setReviews((current) => current.filter((_, i) => i !== index))}>
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </>
+              ) : null}
+              {id === "faq" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeFaqHidden" defaultChecked={home.faq.hidden} /> Hide section
+                  </label>
+                  <SoftInput label="Eyebrow" name="homeFaqEyebrow" defaultValue={home.faq.eyebrow} />
+                  <SoftInput label="Line 1" name="homeFaqLine1" defaultValue={home.faq.line1} />
+                  <SoftInput label="Line 2" name="homeFaqLine2" defaultValue={home.faq.line2} />
+                  <SoftArea label="Intro" name="homeFaqIntro" rows={2} defaultValue={home.faq.intro} />
+                  <button
+                    type="button"
+                    className="admin-orders-filter"
+                    onClick={() => setHomeFaq((current) => [...current, { id: `faq-${Date.now()}`, question: "", answer: "" }])}
+                  >
+                    Add question
+                  </button>
+                  {homeFaq.map((item, index) => (
+                    <div key={item.id} className="admin-storefront-inline-card">
+                      <input type="hidden" name={`homeFaqId_${index}`} value={item.id} />
+                      <SoftInput label="Question" name={`homeFaqQuestion_${index}`} defaultValue={item.question} />
+                      <SoftArea label="Answer" name={`homeFaqAnswer_${index}`} rows={3} defaultValue={item.answer} />
+                      <button type="button" className="admin-orders-filter" onClick={() => setHomeFaq((current) => current.filter((_, i) => i !== index))}>
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </>
+              ) : null}
+              {id === "social" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeSocialHidden" defaultChecked={home.social.hidden} /> Hide section
+                  </label>
+                  <SoftInput label="Eyebrow" name="homeSocialEyebrow" defaultValue={home.social.eyebrow} />
+                  <SoftInput label="Line 1" name="homeSocialLine1" defaultValue={home.social.line1} />
+                  <SoftInput label="Line 2" name="homeSocialLine2" defaultValue={home.social.line2} />
+                  <SoftInput label="Follow label" name="homeSocialFollowLabel" defaultValue={home.social.followLabel} />
+                  <SoftInput label="Follow href" name="homeSocialFollowHref" defaultValue={home.social.followHref} />
+                  <SoftInput label="Handle" name="homeSocialHandle" defaultValue={home.social.handle} />
+                  <button
+                    type="button"
+                    className="admin-orders-filter"
+                    onClick={() =>
+                      setSocialItems((current) => [
+                        ...current,
+                        { id: `social-${Date.now()}`, src: "", href: home.social.followHref, handle: "@zermae", alt: "" },
+                      ])
+                    }
+                  >
+                    Add portrait
+                  </button>
+                  {socialItems.map((item, index) => (
+                    <div key={item.id} className="admin-storefront-inline-card">
+                      <input type="hidden" name={`homeSocialId_${index}`} value={item.id} />
+                      <ImageUrlField name={`homeSocialSrc_${index}`} label="Image" defaultValue={item.src} />
+                      <SoftInput label="Href" name={`homeSocialHref_${index}`} defaultValue={item.href} />
+                      <SoftInput label="Handle" name={`homeSocialItemHandle_${index}`} defaultValue={item.handle} />
+                      <SoftInput label="Alt" name={`homeSocialAlt_${index}`} defaultValue={item.alt} />
+                      <button type="button" className="admin-orders-filter" onClick={() => setSocialItems((current) => current.filter((_, i) => i !== index))}>
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </>
+              ) : null}
+              {id === "journal" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeJournalHidden" defaultChecked={home.journal.hidden} /> Hide section
+                  </label>
+                  <SoftInput label="Eyebrow" name="homeJournalEyebrow" defaultValue={home.journal.eyebrow} />
+                  <SoftInput label="Line 1" name="homeJournalLine1" defaultValue={home.journal.line1} />
+                  <SoftInput label="Line 2" name="homeJournalLine2" defaultValue={home.journal.line2} />
+                  <SoftInput label="CTA label" name="homeJournalCtaLabel" defaultValue={home.journal.ctaLabel} />
+                  <SoftInput label="CTA href" name="homeJournalCtaHref" defaultValue={home.journal.ctaHref} />
+                  <button
+                    type="button"
+                    className="admin-orders-filter"
+                    onClick={() =>
+                      setJournalItems((current) => [
+                        ...current,
+                        { id: `j-${Date.now()}`, title: "", date: "", href: "/about-us", src: "", alt: "" },
+                      ])
+                    }
+                  >
+                    Add article
+                  </button>
+                  {journalItems.map((item, index) => (
+                    <div key={item.id} className="admin-storefront-inline-card">
+                      <input type="hidden" name={`homeJournalId_${index}`} value={item.id} />
+                      <SoftInput label="Title" name={`homeJournalTitle_${index}`} defaultValue={item.title} />
+                      <SoftInput label="Date" name={`homeJournalDate_${index}`} defaultValue={item.date} />
+                      <SoftInput label="Href" name={`homeJournalHref_${index}`} defaultValue={item.href} />
+                      <ImageUrlField name={`homeJournalSrc_${index}`} label="Image" defaultValue={item.src} />
+                      <SoftInput label="Alt" name={`homeJournalAlt_${index}`} defaultValue={item.alt} />
+                      <button type="button" className="admin-orders-filter" onClick={() => setJournalItems((current) => current.filter((_, i) => i !== index))}>
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </>
+              ) : null}
+              {id === "newsletter" ? (
+                <>
+                  <label className="admin-product-check">
+                    <input type="checkbox" name="homeNewsletterHidden" defaultChecked={home.newsletter.hidden} /> Hide section
+                  </label>
+                  <ImageUrlField name="newsletterImageSrc" label="Background" defaultValue={home.newsletter.imageSrc} />
+                  <SoftInput label="Eyebrow" name="homeNewsletterEyebrow" defaultValue={home.newsletter.eyebrow} />
+                  <SoftInput label="Line" name="homeNewsletterLine1" defaultValue={home.newsletter.line1} />
+                  <SoftArea label="Support" name="homeNewsletterSupport" rows={2} defaultValue={home.newsletter.support} />
+                  <SoftInput label="Submit label" name="homeNewsletterSubmit" defaultValue={home.newsletter.submitLabel} />
+                </>
+              ) : null}
+            </SectionShell>
+          ))}
+        </div>
+
+        <div className="admin-storefront-stack" hidden={tab !== "collections"}>
+          {Object.entries(content.collectionPages).map(([key, page]) => (
+            <section key={key} className="admin-product-card">
+              <h2 className="admin-product-card-title">{key}</h2>
+              <ImageUrlField name={`collectionHero_${key}`} label="Hero poster" defaultValue={page.heroSrc} />
+              <SoftInput label="Title first" name={`collectionFirst_${key}`} defaultValue={page.titleFirst} />
+              <SoftInput label="Title second" name={`collectionSecond_${key}`} defaultValue={page.titleSecond} />
+              <ImageUrlField name={`collectionRitual_${key}`} label="Ritual image" defaultValue={page.ritualImage} />
+              <SoftInput label="Ritual title" name={`collectionRitualTitle_${key}`} defaultValue={page.ritualTitle} />
+              <SoftInput label="Ritual mark" name={`collectionRitualMark_${key}`} defaultValue={page.ritualMark} />
+              <SoftInput label="Note 1 title" name={`collectionNote1Title_${key}`} defaultValue={page.ritualNote1Title} />
+              <SoftArea label="Note 1 body" name={`collectionNote1Body_${key}`} rows={2} defaultValue={page.ritualNote1Body} />
+              <SoftInput label="Note 2 title" name={`collectionNote2Title_${key}`} defaultValue={page.ritualNote2Title} />
+              <SoftArea label="Note 2 body" name={`collectionNote2Body_${key}`} rows={2} defaultValue={page.ritualNote2Body} />
+            </section>
+          ))}
+        </div>
+
+        <div className="admin-storefront-stack" hidden={tab !== "pages"}>
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">About</h2>
+            <ImageUrlField name="aboutImageSrc" label="Image" defaultValue={pages.about.imageSrc} />
+            <SoftInput label="Image alt" name="aboutImageAlt" defaultValue={pages.about.imageAlt} />
+            <SoftInput label="Eyebrow" name="aboutEyebrow" defaultValue={pages.about.eyebrow} />
+            <SoftArea label="Copy" name="aboutCopy" rows={5} defaultValue={pages.about.copy} />
+            <SoftInput label="CTA label" name="aboutCtaLabel" defaultValue={pages.about.ctaLabel} />
+            <SoftInput label="CTA href" name="aboutCtaHref" defaultValue={pages.about.ctaHref} />
           </section>
-          <section className="admin-product-card" aria-labelledby="storefront-home-images-heading">
-            <h2 id="storefront-home-images-heading" className="admin-product-card-title">
-              Homepage images
-            </h2>
-            <p className="admin-product-kicker admin-storefront-lead">
-              Upload PNGs for the brand story, highlights, glow stats, and FAQ blocks.
-            </p>
-            <div className="admin-product-fields">
-              <ImageUrlField
-                name="brandStoryPrimarySrc"
-                label="Brand story primary"
-                defaultValue={content.brandStoryPrimarySrc}
-              />
-              <ImageUrlField
-                name="brandStorySecondarySrc"
-                label="Brand story secondary"
-                defaultValue={content.brandStorySecondarySrc}
-              />
-              <ImageUrlField
-                name="brandStoryPortraitSrc"
-                label="Brand story portrait"
-                defaultValue={content.brandStoryPortraitSrc}
-              />
-              <ImageUrlField
-                name="productHighlightsImage"
-                label="Product highlights"
-                defaultValue={content.productHighlightsImage}
-              />
-              <ImageUrlField name="glowStatsImage" label="Glow stats" defaultValue={content.glowStatsImage} />
-              <ImageUrlField
-                name="faqImage"
-                label="FAQ photo"
-                defaultValue={content.faqImage}
-                hint="Shown beside the FAQ list on the homepage. Remove clears it on the live shop after Publish."
-              />
-            </div>
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">Contact</h2>
+            <ImageUrlField name="contactImageSrc" label="Image" defaultValue={pages.contact.imageSrc} />
+            <SoftInput label="Image alt" name="contactImageAlt" defaultValue={pages.contact.imageAlt} />
+            <SoftArea label="Lead" name="contactLead" rows={3} defaultValue={pages.contact.lead} />
+            <SoftInput label="Support phone" name="supportPhone" defaultValue={pages.contact.supportPhone} />
+          </section>
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">FAQ page</h2>
+            <ImageUrlField name="faqPageImageSrc" label="Image" defaultValue={pages.faq.imageSrc} />
+            <SoftInput label="Image alt" name="faqImageAlt" defaultValue={pages.faq.imageAlt} />
+            <button
+              type="button"
+              className="admin-orders-filter"
+              onClick={() => setPageFaq((current) => [...current, { id: `pf-${Date.now()}`, question: "", answer: "" }])}
+            >
+              Add question
+            </button>
+            {pageFaq.map((item, index) => (
+              <div key={item.id} className="admin-storefront-inline-card">
+                <input type="hidden" name={`pageFaqId_${index}`} value={item.id} />
+                <SoftInput label="Question" name={`pageFaqQuestion_${index}`} defaultValue={item.question} />
+                <SoftArea label="Answer" name={`pageFaqAnswer_${index}`} rows={3} defaultValue={item.answer} />
+                <button type="button" className="admin-orders-filter" onClick={() => setPageFaq((current) => current.filter((_, i) => i !== index))}>
+                  Delete
+                </button>
+              </div>
+            ))}
+          </section>
+          {(["privacy", "terms", "shipping", "returns"] as const).map((key) => (
+            <section key={key} className="admin-product-card">
+              <h2 className="admin-product-card-title">{pages[key].title}</h2>
+              <SoftInput label="Title" name={`${key}Title`} defaultValue={pages[key].title} />
+              <SoftArea label="Lead" name={`${key}Lead`} rows={2} defaultValue={pages[key].lead} />
+              <SoftArea label="Body" name={`${key}Body`} rows={8} defaultValue={pages[key].body} />
+            </section>
+          ))}
+        </div>
+
+        <div className="admin-storefront-stack" hidden={tab !== "navigation"}>
+          <MenuEditor title="Header links" prefix="headerNav" links={headerLinks} setLinks={setHeaderLinks} />
+          <MenuEditor title="Footer — Shop" prefix="footerShop" links={footerShop} setLinks={setFooterShop} />
+          <MenuEditor title="Footer — House" prefix="footerHouse" links={footerHouse} setLinks={setFooterHouse} />
+          <MenuEditor title="Footer — Policies" prefix="footerPolicies" links={footerPolicies} setLinks={setFooterPolicies} />
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">Footer statement & social</h2>
+            <SoftInput label="Statement lead" name="footerStatementLead" defaultValue={content.footerStatementLead} />
+            <SoftInput label="Statement end" name="footerStatementEnd" defaultValue={content.footerStatementEnd} />
+            <SoftInput label="Facebook URL" name="socialFacebook" defaultValue={content.socialFacebook} />
+            <SoftInput label="Instagram URL" name="socialInstagram" defaultValue={content.socialInstagram} />
+            <SoftInput label="Pinterest URL" name="socialPinterest" defaultValue={content.socialPinterest} />
           </section>
         </div>
 
         <div className="admin-storefront-stack" hidden={tab !== "shop"}>
-          <section className="admin-product-card" aria-labelledby="storefront-shop-heading">
-            <div className="admin-storefront-head">
-              <div>
-                <h2 id="storefront-shop-heading" className="admin-product-card-title">
-                  Shop by category
-                </h2>
-                <p className="admin-product-kicker admin-storefront-lead">
-                  Edit, hide, or delete homepage tiles. Hidden tiles stay in this list until you delete them.
-                </p>
-              </div>
+          <section className="admin-product-card">
+            <div className="admin-storefront-row">
+              <h2 className="admin-product-card-title">Shop categories</h2>
               <button
                 type="button"
-                className="admin-product-ghost"
-                onClick={addCategory}
-                disabled={shopCategories.length >= 8}
+                className="admin-orders-filter"
+                onClick={() =>
+                  setShopCategories((current) => [
+                    ...current,
+                    {
+                      id: `cat-${Date.now()}`,
+                      title: "New category",
+                      description: "",
+                      href: "/collections/all",
+                      image: "",
+                      alt: "",
+                      icon: "sparkle",
+                      color: theme.blush,
+                      hidden: false,
+                    },
+                  ])
+                }
               >
-                Add category
+                Add
               </button>
             </div>
-            {shopCategories.length === 0 ? (
-              <p className="admin-orders-empty">No homepage categories. Add one to show tiles on the live shop.</p>
-            ) : (
-            <div className="admin-storefront-groups">
-              {shopCategories.map((item, index) => (
-                <div key={item.id} className={`admin-storefront-group${item.hidden ? " is-hidden" : ""}`}>
-                  <input type="hidden" name={`categoryId_${index}`} value={item.id} />
-                  <div className="admin-storefront-head">
-                    <label className="admin-storefront-hide">
-                      <input
-                        type="checkbox"
-                        name={`categoryHidden_${index}`}
-                        checked={item.hidden}
-                        onChange={(event) => {
-                          const hidden = event.target.checked;
-                          setShopCategories((current) =>
-                            current.map((entry) => (entry.id === item.id ? { ...entry, hidden } : entry)),
-                          );
-                        }}
-                      />
-                      Hide
-                    </label>
-                    <button
-                      type="button"
-                      className="admin-product-delete"
-                      onClick={() => setShopCategories((current) => current.filter((entry) => entry.id !== item.id))}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                  <div className="admin-product-fields">
-                    <SoftInput label="Title" name={`categoryTitle_${index}`} defaultValue={item.title} />
-                    <SoftInput
-                      label="Link"
-                      name={`categoryHref_${index}`}
-                      defaultValue={item.href}
-                      hint="Must start with /"
-                    />
-                    <div className="admin-product-field">
-                      <label className="admin-product-label" htmlFor={`categoryIcon_${index}`}>
-                        Icon
-                      </label>
-                      <select
-                        id={`categoryIcon_${index}`}
-                        className="admin-product-soft admin-product-select"
-                        name={`categoryIcon_${index}`}
-                        defaultValue={item.icon}
-                      >
-                        {SHOP_CATEGORY_ICONS.map((icon) => (
-                          <option key={icon} value={icon}>
-                            {icon}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <SoftInput
-                      label="Description"
-                      name={`categoryDescription_${index}`}
-                      defaultValue={item.description}
-                    />
-                  </div>
-                  <ImageUrlField
-                    name={`categoryImage_${index}`}
-                    label="Tile image"
-                    defaultValue={item.image}
-                  />
-                  <ColorField
-                    name={`categoryColor_${index}`}
-                    label="Backdrop"
-                    defaultValue={item.color}
-                    presets={tilePresets}
-                  />
+            {shopCategories.map((item, index) => (
+              <div key={item.id} className="admin-storefront-inline-card">
+                <input type="hidden" name={`categoryId_${index}`} value={item.id} />
+                <SoftInput label="Title" name={`categoryTitle_${index}`} defaultValue={item.title} />
+                <SoftInput label="Href" name={`categoryHref_${index}`} defaultValue={item.href} />
+                <SoftArea label="Description" name={`categoryDescription_${index}`} rows={2} defaultValue={item.description} />
+                <ImageUrlField name={`categoryImage_${index}`} label="Tile image" defaultValue={item.image} />
+                <div className="admin-product-field">
+                  <label className="admin-product-label" htmlFor={`categoryIcon_${index}`}>
+                    Icon
+                  </label>
+                  <select id={`categoryIcon_${index}`} name={`categoryIcon_${index}`} className="admin-product-soft" defaultValue={item.icon}>
+                    {SHOP_CATEGORY_ICONS.map((icon) => (
+                      <option key={icon} value={icon}>
+                        {icon}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              ))}
-            </div>
-            )}
+                <ColorField name={`categoryColor_${index}`} label="Color" defaultValue={item.color} />
+                <label className="admin-product-check">
+                  <input type="checkbox" name={`categoryHidden_${index}`} defaultChecked={item.hidden} /> Hide
+                </label>
+                <button type="button" className="admin-orders-filter" onClick={() => setShopCategories((current) => current.filter((_, i) => i !== index))}>
+                  Delete
+                </button>
+              </div>
+            ))}
           </section>
-          <section className="admin-product-card" aria-labelledby="storefront-collections-heading">
-            <h2 id="storefront-collections-heading" className="admin-product-card-title">
-              Collection heroes
-            </h2>
-            <div className="admin-storefront-groups">
-              {Object.keys(content.collectionImages).map((key) => (
-                <div key={key} className="admin-storefront-group">
-                  <ImageUrlField
-                    name={`collectionImage_${key}`}
-                    label={`${COLLECTION_LABELS[key] ?? key} hero`}
-                    defaultValue={content.collectionImages[key] ?? ""}
-                  />
-                  <div className="admin-product-fields">
-                    <SoftInput
-                      label="First word"
-                      name={`collectionFirst_${key}`}
-                      defaultValue={content.collectionTitles[key]?.first ?? ""}
-                    />
-                    <SoftInput
-                      label="Second word"
-                      name={`collectionSecond_${key}`}
-                      defaultValue={content.collectionTitles[key]?.second ?? ""}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+          <section className="admin-product-card">
+            <h2 className="admin-product-card-title">Best sellers</h2>
+            <SkuSelect label="SKU 1" name="bestSellerSku1" value={content.bestSellerSkus[0] ?? ""} catalog={catalog} />
+            <SkuSelect label="SKU 2" name="bestSellerSku2" value={content.bestSellerSkus[1] ?? ""} catalog={catalog} />
+            <SkuSelect label="SKU 3" name="bestSellerSku3" value={content.bestSellerSkus[2] ?? ""} catalog={catalog} />
+            <ColorField name="bestSellerColor1" label="Color 1" defaultValue={content.bestSellerColors[0] ?? theme.blush} />
+            <ColorField name="bestSellerColor2" label="Color 2" defaultValue={content.bestSellerColors[1] ?? theme.mint} />
+            <ColorField name="bestSellerColor3" label="Color 3" defaultValue={content.bestSellerColors[2] ?? theme.blush} />
           </section>
         </div>
 
-        <div className="admin-storefront-stack" hidden={tab !== "nav"}>
-          <section className="admin-product-card" aria-labelledby="storefront-nav-heading">
-            <div className="admin-storefront-head">
-              <div>
-                <h2 id="storefront-nav-heading" className="admin-product-card-title">
-                  Header and footer links
-                </h2>
-                <p className="admin-product-kicker admin-storefront-lead">
-                  Edit labels and paths, hide a link from the live shop, or delete it. Publish to apply.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="admin-product-ghost"
-                onClick={addNavLink}
-                disabled={navLinks.length >= 12}
-              >
-                Add link
-              </button>
-            </div>
-            {navLinks.length === 0 ? (
-              <p className="admin-orders-empty">No nav links. Add one for the header and footer Shop group.</p>
-            ) : (
-              <div className="admin-storefront-groups">
-                {navLinks.map((item, index) => (
-                  <div key={item.id} className={`admin-storefront-group${item.hidden ? " is-hidden" : ""}`}>
-                    <input type="hidden" name={`navId_${index}`} value={item.id} />
-                    <div className="admin-storefront-head">
-                      <label className="admin-storefront-hide">
-                        <input
-                          type="checkbox"
-                          name={`navHidden_${index}`}
-                          checked={item.hidden}
-                          onChange={(event) => {
-                            const hidden = event.target.checked;
-                            setNavLinks((current) =>
-                              current.map((entry) => (entry.id === item.id ? { ...entry, hidden } : entry)),
-                            );
-                          }}
-                        />
-                        Hide
-                      </label>
-                      <button
-                        type="button"
-                        className="admin-product-delete"
-                        onClick={() => setNavLinks((current) => current.filter((entry) => entry.id !== item.id))}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    <div className="admin-product-fields">
-                      <SoftInput label="Label" name={`navLabel_${index}`} defaultValue={item.label} />
-                      <SoftInput
-                        label="Path"
-                        name={`navPath_${index}`}
-                        defaultValue={item.path}
-                        hint="Must start with /"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-
-        <section className="admin-product-card" hidden={tab !== "bestsellers"} aria-labelledby="storefront-sellers-heading">
-          <h2 id="storefront-sellers-heading" className="admin-product-card-title">
-            Best sellers
-          </h2>
-          <p className="admin-product-kicker admin-storefront-lead">
-            Pick three published products. Title, price, and photo come from inventory.
-          </p>
-          {catalog.length === 0 ? (
-            <>
-              <p className="admin-orders-empty">Publish products in Inventory first.</p>
-              <input type="hidden" name="bestSellerSku1" value={content.bestSellerSkus[0] ?? ""} />
-              <input type="hidden" name="bestSellerSku2" value={content.bestSellerSkus[1] ?? ""} />
-              <input type="hidden" name="bestSellerSku3" value={content.bestSellerSkus[2] ?? ""} />
-              <input type="hidden" name="bestSellerColor1" value={content.bestSellerColors[0] ?? theme.blush} />
-              <input type="hidden" name="bestSellerColor2" value={content.bestSellerColors[1] ?? theme.mint} />
-              <input type="hidden" name="bestSellerColor3" value={content.bestSellerColors[2] ?? theme.blush} />
-            </>
-          ) : (
-            <div className="admin-product-fields">
-              <SkuSelect label="Slot 1" name="bestSellerSku1" value={content.bestSellerSkus[0] ?? ""} catalog={catalog} />
-              <ColorField
-                name="bestSellerColor1"
-                label="Slot 1 backdrop"
-                defaultValue={content.bestSellerColors[0] ?? theme.blush}
-                presets={tilePresets}
-              />
-              <SkuSelect label="Slot 2" name="bestSellerSku2" value={content.bestSellerSkus[1] ?? ""} catalog={catalog} />
-              <ColorField
-                name="bestSellerColor2"
-                label="Slot 2 backdrop"
-                defaultValue={content.bestSellerColors[1] ?? theme.mint}
-                presets={tilePresets}
-              />
-              <SkuSelect label="Slot 3" name="bestSellerSku3" value={content.bestSellerSkus[2] ?? ""} catalog={catalog} />
-              <ColorField
-                name="bestSellerColor3"
-                label="Slot 3 backdrop"
-                defaultValue={content.bestSellerColors[2] ?? theme.blush}
-                presets={tilePresets}
-              />
-            </div>
-          )}
+        <section className="admin-product-card" hidden={tab !== "checkout"}>
+          <h2 className="admin-product-card-title">Checkout</h2>
+          <SoftInput
+            label="Standard shipping fee"
+            name="standardShippingFee"
+            type="number"
+            step="1"
+            defaultValue={commerce.standardShippingFee}
+          />
+          <SoftInput
+            label="Free shipping threshold"
+            name="freeShippingThreshold"
+            type="number"
+            step="1"
+            defaultValue={commerce.freeShippingThreshold}
+          />
+          <label className="admin-product-check">
+            <input type="checkbox" name="freeShippingEnabled" defaultChecked={commerce.freeShippingEnabled} /> Free shipping enabled
+          </label>
+          <label className="admin-product-check">
+            <input type="checkbox" name="taxEnabled" defaultChecked={commerce.taxEnabled} /> Tax enabled
+          </label>
+          <SoftInput label="Tax rate" name="taxRate" type="number" step="0.01" defaultValue={commerce.taxRate} />
         </section>
 
-        <div className="admin-storefront-stack" hidden={tab !== "copy"}>
-          <section className="admin-product-card" aria-labelledby="storefront-story-heading">
-            <h2 id="storefront-story-heading" className="admin-product-card-title">
-              Brand story
-            </h2>
-            <div className="admin-product-fields">
-              <SoftInput label="Story lead" name="brandStoryLead" defaultValue={content.brandStoryLead} />
-              <SoftInput label="Story mid" name="brandStoryMid" defaultValue={content.brandStoryMid} />
-              <SoftArea label="Story end" name="brandStoryEnd" rows={3} defaultValue={content.brandStoryEnd} />
-            </div>
-          </section>
-          <section className="admin-product-card" aria-labelledby="storefront-features-heading">
-            <h2 id="storefront-features-heading" className="admin-product-card-title">
-              Features
-            </h2>
-            <div className="admin-storefront-groups">
-              {content.features.map((feature, index) => {
-                const icons = FEATURE_ICONS.includes(feature.icon as (typeof FEATURE_ICONS)[number])
-                  ? FEATURE_ICONS
-                  : ([feature.icon, ...FEATURE_ICONS] as readonly string[]);
-                return (
-                  <div key={`feature-${index}`} className="admin-storefront-group">
-                    <SoftInput
-                      label={`Feature ${index + 1} title`}
-                      name={`featureTitle_${index}`}
-                      defaultValue={feature.title}
-                    />
-                    <SoftArea
-                      label="Description"
-                      name={`featureDescription_${index}`}
-                      rows={3}
-                      defaultValue={feature.description}
-                    />
-                    <div className="admin-product-field">
-                      <label className="admin-product-label" htmlFor={`featureIcon_${index}`}>
-                        Icon
-                      </label>
-                      <select
-                        id={`featureIcon_${index}`}
-                        name={`featureIcon_${index}`}
-                        className="admin-product-soft admin-product-select"
-                        defaultValue={feature.icon}
-                      >
-                        {icons.map((icon) => (
-                          <option key={icon} value={icon}>
-                            {icon}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-          <section className="admin-product-card" aria-labelledby="storefront-faq-heading">
-            <h2 id="storefront-faq-heading" className="admin-product-card-title">
-              FAQ
-            </h2>
-            <p className="admin-product-kicker admin-storefront-lead">
-              Edit questions and answers here. Change the FAQ photo under Homepage → Homepage images.
-            </p>
-            <div className="admin-storefront-groups admin-storefront-groups--tight">
-              {content.faqItems.map((item, index) => (
-                <div key={item.id} className="admin-storefront-group">
-                  <input type="hidden" name={`faqId_${index}`} value={item.id} />
-                  <SoftInput label={`Question ${index + 1}`} name={`faqQuestion_${index}`} defaultValue={item.question} />
-                  <SoftArea label="Answer" name={`faqAnswer_${index}`} rows={4} defaultValue={item.answer} />
-                </div>
-              ))}
-            </div>
-          </section>
-          <section className="admin-product-card" aria-labelledby="storefront-pages-heading">
-            <h2 id="storefront-pages-heading" className="admin-product-card-title">
-              Pages, footer, social
-            </h2>
-            <div className="admin-product-fields">
-              <SoftArea label="About copy" name="aboutCopy" rows={4} defaultValue={content.aboutCopy} />
-              <SoftArea label="Contact lead" name="contactLead" rows={3} defaultValue={content.contactLead} />
-              <SoftInput
-                label="WhatsApp / shop phone"
-                name="supportPhone"
-                defaultValue={content.supportPhone}
-                hint="e.g. 03117003196"
-              />
-              <SoftInput
-                label="Footer statement lead"
-                name="footerStatementLead"
-                defaultValue={content.footerStatementLead}
-              />
-              <SoftInput
-                label="Footer statement end"
-                name="footerStatementEnd"
-                defaultValue={content.footerStatementEnd}
-              />
-              <SoftInput label="Facebook URL" name="socialFacebook" defaultValue={content.socialFacebook} />
-              <SoftInput label="Instagram URL" name="socialInstagram" defaultValue={content.socialInstagram} />
-              <SoftInput label="Pinterest URL" name="socialPinterest" defaultValue={content.socialPinterest} />
-              <ImageUrlField name="authLoginSrc" label="Login banner" defaultValue={content.authLoginSrc} />
-              <ImageUrlField name="authRegisterSrc" label="Register banner" defaultValue={content.authRegisterSrc} />
-              <ImageUrlField name="authAdminSrc" label="Admin login banner" defaultValue={content.authAdminSrc} />
-            </div>
-          </section>
+        <div className="admin-product-actions">
+          <PublishButton />
         </div>
-
-        <section className="admin-product-card" hidden={tab !== "checkout"} aria-labelledby="storefront-checkout-heading">
-          <h2 id="storefront-checkout-heading" className="admin-product-card-title">
-            Checkout fees
-          </h2>
-          <div className="admin-product-fields">
-            <SoftInput
-              label="Standard shipping fee"
-              name="standardShippingFee"
-              type="number"
-              min="0"
-              defaultValue={commerce.standardShippingFee}
-            />
-            <SoftInput
-              label="Free shipping threshold"
-              name="freeShippingThreshold"
-              type="number"
-              min="0"
-              defaultValue={commerce.freeShippingThreshold}
-            />
-            <SoftInput label="Tax rate" name="taxRate" type="number" min="0" defaultValue={commerce.taxRate} />
-            <fieldset className="admin-product-field admin-product-field--full">
-              <legend className="admin-product-label">Options</legend>
-              <div className="admin-product-radios">
-                <label className="admin-product-radio">
-                  <input type="checkbox" name="freeShippingEnabled" defaultChecked={commerce.freeShippingEnabled} />
-                  Free shipping enabled
-                </label>
-                <label className="admin-product-radio">
-                  <input type="checkbox" name="taxEnabled" defaultChecked={commerce.taxEnabled} />
-                  Tax enabled
-                </label>
-              </div>
-            </fieldset>
-          </div>
-        </section>
       </form>
-    </UnsavedGuard>
+    </div>
   );
 }

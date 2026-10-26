@@ -1,8 +1,10 @@
 import "./globals.css";
+import "./chrome.css";
+import "./hero.css";
 import "./footer.css";
 import "./storefront.css";
 
-import { Cormorant_Garamond, Plus_Jakarta_Sans, Poppins } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans, Inter, Manrope, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { brandDescription, brandName } from "@/constants/brand";
@@ -29,6 +31,25 @@ const cormorant = Cormorant_Garamond({
   weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-cormorant",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-dm-sans",
   display: "swap",
 });
 
@@ -62,7 +83,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   }
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className={`${plusJakarta.variable} ${poppins.variable} ${cormorant.variable} min-h-screen bg-brand-bg antialiased`}>
+      <body
+        className={`${plusJakarta.variable} ${poppins.variable} ${cormorant.variable} ${inter.variable} ${manrope.variable} ${dmSans.variable} min-h-screen bg-brand-bg antialiased`}
+      >
         <ThemeStyle theme={theme} />
         {children}
         <CookieBanner />

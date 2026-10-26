@@ -2,28 +2,30 @@
 @import "./zermae.css";
 
 @theme {
-  --color-brand-bg: #f5f2ee;
-  --color-brand-primary: #3f3734;
-  --color-brand-secondary: #c4b6a6;
-  --color-brand-accent: #96976c;
-  --color-brand-mint: #d5e4cf;
-  --color-brand-blush: #f0c5bf;
+  --color-brand-bg: #ffffff;
+  --color-brand-primary: #303531;
+  --color-brand-secondary: #70766f;
+  --color-brand-accent: #eaa36d;
+  --color-brand-mint: #ecf2f2;
+  --color-brand-blush: #fce9e2;
   --color-brand-white: #ffffff;
   --color-brand-surface: #ffffff;
-  --color-brand-border: rgba(63, 55, 52, 0.08);
-  --color-text-main: #3f3734;
-  --color-text-sub: rgba(63, 55, 52, 0.7);
-  --color-text-muted: rgba(63, 55, 52, 0.4);
-  --font-brand: var(--font-cormorant), "Cormorant Garamond", serif;
-  --font-heading: var(--font-cormorant), "Cormorant Garamond", serif;
-  --font-nav: var(--font-plus-jakarta), "Plus Jakarta Sans", sans-serif;
-  --font-body: var(--font-poppins), "Poppins", sans-serif;
-  --font-ui: var(--font-poppins), "Poppins", sans-serif;
+  --color-brand-border: #ecedea;
+  --color-text-main: #303531;
+  --color-text-sub: #555c56;
+  --color-text-muted: #70766f;
+  --font-brand: var(--font-inter), Inter, Arial, sans-serif;
+  --font-heading: var(--font-inter), Inter, Arial, sans-serif;
+  --font-nav: var(--font-inter), Inter, Arial, sans-serif;
+  --font-body: var(--font-inter), Inter, Arial, sans-serif;
+  --font-ui: var(--font-inter), Inter, Arial, sans-serif;
 }
 
 @layer base {
   html {
     scroll-behavior: auto;
+    overflow-x: clip;
+    max-width: 100%;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -38,18 +40,21 @@
     font-family: var(--font-body);
     font-size: 15px;
     line-height: 1.6;
+    overflow-x: clip;
+    max-width: 100%;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1,
   h2,
   h3,
   h4 {
-    font-family: var(--font-brand);
+    font-family: var(--font-heading);
     color: var(--color-brand-primary);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-brand-accent);
+    outline: 2px solid var(--ink, #303531);
     outline-offset: 3px;
   }
 }
@@ -82,7 +87,7 @@
   margin: 0;
   font-family: var(--font-nav);
   font-size: 0.72rem;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-muted);
 }

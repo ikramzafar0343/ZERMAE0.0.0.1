@@ -2,13 +2,17 @@
   position: relative;
   z-index: 1;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
   margin-top: 0;
   padding: 4.75rem 1.5rem 0;
   clip-path: none;
   text-align: center;
-  color: var(--color-brand-primary);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--color-brand-mint) 52%, white) 0%, var(--color-brand-bg) 46%, color-mix(in srgb, var(--color-brand-blush) 46%, white) 100%);
-  font-family: var(--font-body);
+  color: var(--ink, var(--color-brand-primary));
+  background: var(--soft, #f8f8f8);
+  border-top: 1px solid var(--border, var(--color-brand-border));
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
+  box-sizing: border-box;
 }
 
 .site-footer-inner {
@@ -28,7 +32,7 @@
   justify-content: center;
   width: 7.6rem;
   height: 7.6rem;
-  color: var(--color-brand-primary);
+  color: var(--ink, var(--color-brand-primary));
 }
 
 .site-footer-badge-ring {
@@ -43,29 +47,29 @@
 }
 
 .site-footer-badge-type {
-  font-family: var(--font-nav);
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
   font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  fill: var(--color-brand-primary);
+  letter-spacing: 0.12em;
+  fill: var(--ink, var(--color-brand-primary));
 }
 
 .site-footer-badge-star {
   width: 1.45rem;
   height: 1.45rem;
-  color: var(--color-brand-blush);
+  color: var(--small-accent, var(--color-brand-accent));
 }
 
 .site-footer-statement {
   display: flex;
   flex-direction: column;
   margin: 2.35rem 0 0;
-  font-family: var(--font-heading);
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
   font-size: clamp(1.85rem, 4.2vw, 3.15rem);
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1.18;
-  color: var(--color-brand-primary);
+  color: var(--ink, var(--color-brand-primary));
 }
 
 .site-footer-social {
@@ -74,10 +78,10 @@
 
 .site-footer-social-label {
   margin: 0;
-  font-family: var(--font-body);
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
   font-size: 0.82rem;
   font-weight: 500;
-  color: var(--color-brand-primary);
+  color: var(--ink, var(--color-brand-primary));
 }
 
 .site-footer-social-list {
@@ -97,7 +101,7 @@
   height: 3.1rem;
   align-items: center;
   justify-content: center;
-  color: var(--color-brand-primary);
+  color: var(--ink, var(--color-brand-primary));
 }
 
 .site-footer-social-blob {
@@ -105,7 +109,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  color: color-mix(in srgb, var(--color-brand-mint) 70%, white);
+  color: var(--header, var(--color-brand-mint));
   pointer-events: none;
 }
 
@@ -125,12 +129,12 @@
 }
 
 .site-footer-social-link:hover {
-  color: var(--color-brand-accent);
+  color: var(--button-hover, #414945);
 }
 
 .site-footer-social-link:focus-visible,
 .site-footer-badge:focus-visible {
-  outline: 2px solid var(--color-brand-accent);
+  outline: 2px solid var(--ink, var(--color-brand-primary));
   outline-offset: 4px;
 }
 
@@ -146,11 +150,12 @@
 
 .site-footer-link-title {
   margin: 0 0 0.5rem;
-  font-family: var(--font-nav);
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
   font-size: 0.62rem;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--muted, var(--color-text-muted));
 }
 
 .site-footer-link-list {
@@ -165,11 +170,12 @@
 .site-footer-link {
   font-size: 0.8rem;
   line-height: 1.35;
-  color: var(--color-brand-primary);
+  color: var(--ink, var(--color-brand-primary));
+  text-decoration: none;
 }
 
 .site-footer-link:hover {
-  color: var(--color-brand-accent);
+  color: var(--body, var(--color-text-sub));
 }
 
 .site-footer-mark {
@@ -177,15 +183,17 @@
   z-index: 0;
   display: block;
   width: 100%;
+  max-width: 100%;
   margin: 3.5rem 0 0;
   padding: 0 0 0.06em;
   overflow: hidden;
-  font-family: var(--font-heading);
+  box-sizing: border-box;
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
   font-size: clamp(4.25rem, 18vw, 15rem);
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 0.84;
-  color: color-mix(in srgb, var(--color-brand-primary) 38%, var(--color-brand-mint));
+  color: color-mix(in srgb, var(--ink, var(--color-brand-primary)) 22%, var(--header, var(--color-brand-mint)));
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
@@ -254,23 +262,24 @@
   min-height: 2.75rem;
   padding: 0.7rem 1rem;
   font-size: 0.82rem;
+  border-radius: var(--radius-control, 3px);
 }
 
 .footer-newsletter-input {
-  border: 1px solid var(--color-brand-border);
-  background: color-mix(in srgb, white 70%, transparent);
+  border: 1px solid var(--border, var(--color-brand-border));
+  background: var(--page, #ffffff);
 }
 
 .footer-newsletter-btn {
   border: 0;
-  background: var(--color-brand-primary);
-  color: var(--color-brand-bg);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  background: var(--button, var(--color-brand-primary));
+  color: var(--light-text, #f7faf6);
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 .footer-newsletter-message {
   margin: 0;
   font-size: 0.78rem;
-  color: var(--color-text-sub);
+  color: var(--body, var(--color-text-sub));
 }

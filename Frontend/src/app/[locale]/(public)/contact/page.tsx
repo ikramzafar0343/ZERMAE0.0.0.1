@@ -9,15 +9,15 @@ import { getStorefront } from "@/lib/storefront";
 
 export default async function ContactPage() {
   const storefront = await getStorefront();
+  const contact = storefront.content.pageTemplates.contact;
   return (
     <div className="info-page">
       <div className="mx-auto max-w-[1600px] px-6 md:px-20">
         <div className="info-page-shell">
-          <figure className="ritual-still ritual-still--olive ritual-still--jar">
-            <span className="ritual-still-arch" aria-hidden="true" />
+          <figure className="ritual-still ritual-still--framed ritual-still--jar">
             <Image
-              src={INFO_STILLS.contact.src}
-              alt={INFO_STILLS.contact.alt}
+              src={contact.imageSrc || INFO_STILLS.contact.src}
+              alt={contact.imageAlt || INFO_STILLS.contact.alt}
               width={800}
               height={800}
               sizes="(max-width: 899px) 14rem, 18rem"
@@ -28,10 +28,10 @@ export default async function ContactPage() {
             <header className="section-intro">
               <span className="section-intro-eyebrow">Get in Touch</span>
               <h1 className="section-intro-title">Contact Us</h1>
-              <p className="section-intro-description">{storefront.content.contactLead}</p>
+              <p className="section-intro-description">{contact.lead || storefront.content.contactLead}</p>
             </header>
             <div className="info-page-content">
-              <ContactDetails supportPhone={storefront.content.supportPhone} />
+              <ContactDetails supportPhone={contact.supportPhone || storefront.content.supportPhone} />
               <ContactForm />
               <p className="info-page-note">
                 Our client care team responds within one business day, Monday through Saturday.

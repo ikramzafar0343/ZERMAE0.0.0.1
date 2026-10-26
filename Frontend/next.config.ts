@@ -5,6 +5,9 @@ import type { NextConfig } from "next";
 
 const directoryName = path.dirname(fileURLToPath(import.meta.url));
 
+/** Browser hits Next :3000; proxy CMS media to the API (same contract as prod nginx /api). */
+const apiOrigin = (process.env.API_URL ?? "http://127.0.0.1:5000").replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
@@ -20,6 +23,18 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "localhost" },
       { protocol: "http", hostname: "127.0.0.1" },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/media/:name",
+        destination: `${apiOrigin}/api/v1/media/:name`,
+      },
+      {
+        source: "/uploads/:name",
+        destination: `${apiOrigin}/api/v1/media/:name`,
+      },
+    ];
   },
   experimental: {
     serverActions: {

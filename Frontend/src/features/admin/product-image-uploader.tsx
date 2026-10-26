@@ -6,7 +6,7 @@ import { IconClose, IconPlus } from "@/components/icons/icons";
 import { uploadProductImageAction } from "@/features/admin/catalog-actions";
 
 const MAX_IMAGES = 6;
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPT = "image/png,image/jpeg,image/webp";
 
 export type ProductImageSlot = {
@@ -96,7 +96,7 @@ export function ProductImageUploader({
         continue;
       }
       if (file.size > MAX_BYTES) {
-        problems.push(`${file.name} must be 5MB or smaller.`);
+        problems.push(`${file.name} must be 10MB or smaller.`);
         continue;
       }
       pending.push({
@@ -225,7 +225,7 @@ export function ProductImageUploader({
       ) : uploading ? (
         <p className="admin-product-kicker">Uploading photo…</p>
       ) : (
-        <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 5MB each. First photo is the shop image.</p>
+        <p className="admin-product-kicker">PNG, JPG, or WEBP. Up to 10MB each. First photo is the shop image.</p>
       )}
     </div>
   );

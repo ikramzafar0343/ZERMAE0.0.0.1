@@ -1,0 +1,264 @@
+/* Shared Aurellé page hero (home + collections + other storefront heroes) */
+
+.ha-media-fill {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ha-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--radius-control, 3px);
+  background: var(--button, #2a302e);
+  color: var(--light-text, #f7faf6);
+  font-size: 12px;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
+}
+
+.ha-btn:hover {
+  background: var(--button-hover, #414945);
+}
+
+.ha-btn--light {
+  background: #f3ebe3;
+  color: var(--ink, #303531);
+}
+
+.ha-btn--light:hover {
+  background: #ebe1d6;
+}
+
+.ha-hero {
+  position: relative;
+  width: 100%;
+  min-height: 680px;
+  height: 100svh;
+  overflow: hidden;
+  color: var(--light-text, #f7faf6);
+  background: var(--ink, #303531);
+}
+
+.ha-hero__media {
+  position: absolute;
+  inset: 0;
+}
+
+.ha-hero__media img,
+.ha-hero__media video {
+  width: 100%;
+  height: calc(100% + 48px);
+  object-fit: cover;
+  object-position: 62% 48%;
+  display: block;
+  max-width: none;
+}
+
+.ha-hero__shade {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: min(520px, 55%);
+  height: 55%;
+  background: linear-gradient(to top right, rgba(0, 0, 0, 0.45), transparent 70%);
+  pointer-events: none;
+}
+
+.ha-hero__copy {
+  position: absolute;
+  left: var(--gutter, 60px);
+  bottom: 104px;
+  z-index: 2;
+  max-width: 390px;
+}
+
+.ha-hero__title {
+  margin: 0;
+  font-size: clamp(40px, 4.45vw, 64px);
+  font-weight: 300;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
+  color: var(--light-text, #f7faf6);
+}
+
+.ha-hero__title span {
+  display: block;
+}
+
+.ha-hero__title span:last-child {
+  opacity: 0.72;
+  font-weight: 300;
+}
+
+.ha-hero__support {
+  margin: 24px 0 0;
+  max-width: 355px;
+  font-size: 14px;
+  line-height: 21px;
+  letter-spacing: -0.015em;
+  color: var(--light-text, #f7faf6);
+}
+
+.ha-hero__cta {
+  margin-top: 0;
+  width: 110px;
+  padding-inline: 0;
+}
+
+.ha-mini-tile {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 40px;
+  gap: 14px;
+  align-items: center;
+  width: min(280px, calc(100vw - 48px));
+  min-height: 96px;
+  padding: 12px;
+  background: rgba(248, 247, 245, 0.97);
+  border-radius: 14px;
+  color: #1a1a1a;
+  text-decoration: none;
+  position: relative;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
+}
+
+.ha-mini-tile__thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.ha-mini-tile__thumb img {
+  transition: transform 0.45s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.ha-mini-tile:hover .ha-mini-tile__thumb img,
+.ha-mini-tile:focus-within .ha-mini-tile__thumb img {
+  transform: scale(1.06);
+}
+
+.ha-mini-tile__meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ha-mini-tile__name {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.ha-mini-tile__name:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ha-mini-tile__price {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #6b6b6b;
+  line-height: 1.2;
+}
+
+.ha-mini-tile__add {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ha-mini-tile__add-visual {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2a2a2a;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.ha-mini-tile__add:hover .ha-mini-tile__add-visual,
+.ha-mini-tile__add:focus-visible .ha-mini-tile__add-visual {
+  background: #414141;
+  transform: scale(1.05);
+}
+
+.ha-hero__tile {
+  position: absolute;
+  right: var(--gutter, 60px);
+  bottom: 110px;
+  z-index: 2;
+}
+
+.ha-zoom-clip {
+  overflow: hidden;
+}
+
+.ha-zoom-media {
+  will-change: transform;
+  transform-origin: center center;
+}
+
+@media (max-width: 1023px) {
+  .ha-hero {
+    min-height: 100svh;
+    height: 100svh;
+  }
+
+  .ha-hero__copy {
+    left: 20px;
+    right: auto;
+    bottom: 140px;
+    max-width: none;
+  }
+
+  .ha-hero__tile {
+    left: 20px;
+    right: 20px;
+    bottom: 28px;
+    width: auto;
+  }
+
+  .ha-mini-tile {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 479px) {
+  .ha-hero {
+    min-height: 100svh;
+  }
+}

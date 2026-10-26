@@ -5,8 +5,6 @@ import { IconFacebook, IconInstagram, IconPinterest, IconSparkle } from "@/compo
 import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
 import { FOOTER_NAV, FOOTER_SOCIAL, formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
-import { NewsletterForm } from "@/features/newsletter/newsletter-form";
-
 type IconProps = { className?: string | undefined };
 
 const SOCIAL_ICONS: Record<(typeof FOOTER_SOCIAL)[number]["icon"], ComponentType<IconProps>> = {
@@ -56,10 +54,6 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
           <span>{content.footerStatementLead}</span>
           <span>{content.footerStatementEnd}</span>
         </p>
-        <div className="footer-newsletter">
-          <p className="site-footer-social-label">Stay in the ritual</p>
-          <NewsletterForm />
-        </div>
         <div className="site-footer-social">
           <p className="site-footer-social-label">{footerSocialLabel}</p>
           <ul className="site-footer-social-list">
@@ -83,27 +77,58 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
           </ul>
         </div>
         <nav className="site-footer-links" aria-label="Footer">
-          {FOOTER_NAV.map((group) => {
-            const links =
-              group.id === "shop"
-                ? visibleNavLinks(content).map((item) => ({ label: item.label, href: item.path }))
-                : group.links;
-            if (links.length === 0) {
+          {(
+            [
+              {
+                id: "shop",
+                title: "Shop",
+                links: (content.menus?.footerShop?.length
+                  ? content.menus.footerShop.filter((item) => !item.hidden)
+                  : visibleNavLinks(content)
+                ).map((item) => ({ label: item.label, href: item.path })),
+              },
+              {
+                id: "house",
+                title: "House",
+                links: (content.menus?.footerHouse?.length
+                  ? content.menus.footerHouse.filter((item) => !item.hidden)
+                  : FOOTER_NAV.find((g) => g.id === "house")?.links ?? []
+                ).map((item) =>
+                  "path" in item
+                    ? { label: item.label, href: (item as { path: string }).path }
+                    : { label: item.label, href: item.href },
+                ),
+              },
+              {
+                id: "policies",
+                title: "Policies",
+                links: (content.menus?.footerPolicies?.length
+                  ? content.menus.footerPolicies.filter((item) => !item.hidden)
+                  : FOOTER_NAV.find((g) => g.id === "policies")?.links ?? []
+                ).map((item) =>
+                  "path" in item
+                    ? { label: item.label, href: (item as { path: string }).path }
+                    : { label: item.label, href: item.href },
+                ),
+              },
+            ] as const
+          ).map((group) => {
+            if (group.links.length === 0) {
               return null;
             }
             return (
-            <div key={group.id} className="site-footer-link-group">
-              <p className="site-footer-link-title">{group.title}</p>
-              <ul className="site-footer-link-list">
-                {links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="site-footer-link">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <div key={group.id} className="site-footer-link-group">
+                <p className="site-footer-link-title">{group.title}</p>
+                <ul className="site-footer-link-list">
+                  {group.links.map((link) => (
+                    <li key={`${group.id}-${link.href}`}>
+                      <Link href={link.href} className="site-footer-link">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             );
           })}
         </nav>
