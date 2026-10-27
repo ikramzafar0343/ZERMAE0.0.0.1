@@ -53,13 +53,63 @@
 }
 
 .ha-hero__media img,
-.ha-hero__media video {
+.ha-hero__media video,
+.ha-hero__banner {
   width: 100%;
   height: calc(100% + 48px);
   object-fit: cover;
   object-position: 62% 48%;
   display: block;
   max-width: none;
+}
+
+.ha-hero__banner {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  pointer-events: none;
+}
+
+.ha-hero__banner.is-active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.ha-hero__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  transform: translateY(-50%);
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink, #303531);
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.ha-hero__nav svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.ha-hero__nav--prev {
+  left: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.ha-hero__nav--next {
+  right: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ha-hero__banner {
+    transition: none;
+  }
 }
 
 .ha-hero__shade {

@@ -15,27 +15,23 @@ export function CollectionSection({
   cms?: StorefrontHome["sections"]["collection"];
 }) {
   const display = products.slice(0, 6);
+  const line1 = (cms?.line1 ?? "").trim();
+  const line2 = (cms?.line2 ?? "").trim();
+  const legacyApproach =
+    line1 === "The Zermae Approach." ||
+    line1 === "The Zermae" ||
+    line1 === "Luxury formulated,";
+  const lines =
+    !line1 || legacyApproach
+      ? HOME_COLLECTION.lines
+      : line2
+        ? ([line1, line2] as const)
+        : ([line1] as const);
 
   return (
     <section className="ha-section ha-collection" id="ha-collection">
       <div className="ha-container">
-        <SectionHeading
-          className="ha-collection__heading"
-          eyebrow={(() => {
-            const raw = (cms?.eyebrow ?? HOME_COLLECTION.eyebrow).trim();
-            return !raw || raw.toLowerCase() === "shop the collection" ? "" : raw;
-          })()}
-          lines={(() => {
-            const line1 = (cms?.line1 ?? "").trim();
-            const line2 = (cms?.line2 ?? "").trim();
-            const useDefault =
-              !line1 ||
-              line1 === "Luxury formulated," ||
-              line1 === "The Zermae" ||
-              Boolean(line2);
-            return useDefault ? HOME_COLLECTION.lines : ([line1] as const);
-          })()}
-        />
+        <SectionHeading className="ha-collection__heading" lines={lines} />
         <div className="ha-collection__gap" aria-hidden="true" />
         <div
           className="ha-product-grid ha-collection__grid ha-snap-track"

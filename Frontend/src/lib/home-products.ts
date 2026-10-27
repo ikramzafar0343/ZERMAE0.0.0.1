@@ -2,11 +2,11 @@ import type { MiniProduct } from "@/components/shop/ProductMiniCard";
 import type { QuietProduct } from "@/components/shop/ProductTile";
 import { productImageUrls } from "@/features/catalog/map-product";
 import { productService } from "@/lib/api/products";
-import { type RitualTab,SHOP_CATEGORIES } from "@/lib/content/homepage";
+import { type RitualTab, SHOP_CATEGORIES } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
 import type { SerializedProduct } from "@/types/product";
 
-type ShopCat = { id: string; title: string; href: string; hidden: boolean };
+type ShopCat = { id: string; title: string; href: string; image?: string; hidden: boolean };
 
 type LoadOptions = {
   shopCategories?: ShopCat[];
@@ -51,6 +51,7 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
   const tabs = options.ritualTabs?.length ? options.ritualTabs : categoryTabs(options.shopCategories);
   const collectionOverrides = options.collectionOverrides ?? [];
   const ritualOverrides = options.ritualOverrides ?? [];
+  const catsWithImage = options.shopCategories ?? [];
 
   let products: SerializedProduct[] = [];
   try {
@@ -74,29 +75,25 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
     products = [];
   }
 
-  const collection = tabs.slice(0, 6).map((category, index) => {
-    const product = products[index];
+  const collectionTabs = tabs.filter((tab) => {
+    const href = tab.href.toLowerCase();
+    return tab.id !== "all" && tab.category !== "all" && !href.endsWith("/collections/all") && href !== "/collections/all";
+  });
+
+  const collection = collectionTabs.slice(0, 6).map((category, index) => {
     const override = collectionOverrides[index]?.trim();
+    const catImage = catsWithImage.find((item) => item.id === category.id)?.image?.trim() || "";
     const fallbackImage = MEDIA.collection[index] ?? MEDIA.collection[0];
-    if (product) {
-      const quiet = toQuietProduct(product, fallbackImage);
-      return {
-        ...quiet,
-        title: category.label,
-        image: override || quiet.image,
-        href: category.href,
-      };
-    }
+    const image = override || catImage || fallbackImage;
     return {
-      id: `fallback-${category.id}`,
+      id: `collection-${category.id}`,
       title: category.label,
       price: 0,
-      image: override || fallbackImage,
+      image,
       href: category.href,
     };
   });
 
-  // Real catalog products for the hero tile slider (capped — never dump thousands into the DOM).
   const HERO_FEATURED_LIMIT = 24;
   const featuredPool: SerializedProduct[] = products;
   if (featuredPool.length < HERO_FEATURED_LIMIT) {
@@ -156,13 +153,10 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
     }),
   );
 
-  const journalProducts = featuredProducts.slice(0, 3);
-
   return {
     collection,
     featured,
     featuredProducts,
-    journalProducts,
     lifestyle,
     ritualCatalog,
     panelImage: collection[0]?.image,

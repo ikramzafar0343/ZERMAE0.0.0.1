@@ -105,8 +105,13 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding-bottom: 10px;
-  margin-bottom: -10px;
+}
+
+/* Bridge the label→menu gap so hover does not drop when moving into the dropdown. */
+.ha-float-nav__item .ha-float-dropdown {
+  top: 100%;
+  margin-top: 0;
+  padding-top: calc(16px + 8px);
 }
 
 .ha-float-nav a,
@@ -219,10 +224,36 @@
 }
 
 .ha-float-drawer a,
-.ha-float-drawer p {
+.ha-float-drawer p,
+.ha-float-drawer__toggle {
   font-size: 16px;
   color: var(--ink);
   text-decoration: none;
+}
+
+.ha-float-drawer__toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ha-float-drawer__sub {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 0 0.25rem 0.85rem;
+}
+
+.ha-float-drawer__sub a {
+  font-size: 15px;
+  opacity: 0.88;
 }
 
 @media (max-width: 1023px) {

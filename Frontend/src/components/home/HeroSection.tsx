@@ -14,6 +14,12 @@ type HeroSectionProps = {
 export function HeroSection({ featured, featuredProducts, currency, cms }: HeroSectionProps) {
   const line1 = cms?.line1 ?? HOME_HERO.line1;
   const line2 = cms?.line2 ?? HOME_HERO.line2;
+  const banners =
+    cms?.banners?.map((src) => src.trim()).filter(Boolean).slice(0, 5) ??
+    [];
+  const fallback = cms?.posterSrc?.trim() || MEDIA.heroPoster.src;
+  const mediaSrcs = banners.length > 0 ? banners : [fallback];
+
   return (
     <PageHero
       title={`${line1} ${line2}`}
@@ -22,7 +28,8 @@ export function HeroSection({ featured, featuredProducts, currency, cms }: HeroS
       featured={featured}
       {...(featuredProducts ? { featuredProducts } : {})}
       currency={currency}
-      mediaSrc={cms?.posterSrc || MEDIA.heroPoster.src}
+      mediaSrc={mediaSrcs[0]}
+      mediaSrcs={mediaSrcs}
     />
   );
 }

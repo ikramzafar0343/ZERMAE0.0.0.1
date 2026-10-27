@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HeroBannerSlider } from "@/components/shop/HeroBannerSlider";
 import { HeroProductSlider } from "@/components/shop/HeroProductSlider";
 import { type MiniProduct } from "@/components/shop/ProductMiniCard";
 import { HOME_HERO } from "@/lib/content/homepage";
@@ -16,6 +17,7 @@ export type PageHeroProps = {
   featured?: MiniProduct | null;
   currency?: string;
   mediaSrc?: string;
+  mediaSrcs?: string[];
   mediaPosition?: string;
 };
 
@@ -27,6 +29,7 @@ export function PageHero({
   featured = null,
   currency = "PKR",
   mediaSrc = MEDIA.heroPoster.src,
+  mediaSrcs,
   mediaPosition = MEDIA.heroPoster.objectPosition,
 }: PageHeroProps) {
   const slides =
@@ -35,19 +38,13 @@ export function PageHero({
       : featured
         ? [featured]
         : [];
+  const banners = (mediaSrcs?.length ? mediaSrcs : [mediaSrc])
+    .map((src) => src.trim())
+    .filter(Boolean);
 
   return (
     <section className="ha-hero" aria-label="Hero">
-      <div className="ha-hero__media" data-parallax-shell>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={mediaSrc}
-          alt=""
-          className="ha-media-fill"
-          style={{ objectPosition: mediaPosition }}
-          fetchPriority="high"
-        />
-      </div>
+      <HeroBannerSlider banners={banners.length ? banners : [MEDIA.heroPoster.src]} objectPosition={mediaPosition} />
       <div className="ha-hero__shade" aria-hidden="true" />
 
       <h1 className="sr-only">{title}</h1>

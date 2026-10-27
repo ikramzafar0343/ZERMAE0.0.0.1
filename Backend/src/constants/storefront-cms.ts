@@ -82,6 +82,7 @@ export type StorefrontHomeSections = {
     ctaHref: string;
     scrollLabel: string;
     posterSrc: string;
+    banners: string[];
   };
   collection: {
     hidden: boolean;
@@ -280,11 +281,12 @@ export function buildDefaultHome(): StorefrontHome {
         ctaHref: "/collections/all",
         scrollLabel: "Scroll down",
         posterSrc: "/media/hero/portrait-poster.jpg",
+        banners: ["/media/hero/portrait-poster.jpg"],
       },
       collection: {
         hidden: false,
         eyebrow: "",
-        line1: "The Zermae Approach.",
+        line1: "Shop the Collection.",
         line2: "",
         tileImageOverrides: ["", "", "", "", "", ""],
       },

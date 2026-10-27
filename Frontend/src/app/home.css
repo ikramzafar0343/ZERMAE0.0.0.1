@@ -1504,15 +1504,19 @@
 
 .ha-journal__meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
   margin-top: 16px;
   font-size: 12px;
   letter-spacing: -0.02em;
+  text-align: center;
 }
 
 .ha-journal__title {
-  text-transform: uppercase;
+  text-transform: none;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #1a1a1a;
 }
 
 .ha-journal__date {

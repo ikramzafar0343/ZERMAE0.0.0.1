@@ -13,7 +13,7 @@ export const HOME_HERO = {
 
 export const HOME_COLLECTION = {
   eyebrow: "",
-  lines: ["The Zermae Approach."] as const,
+  lines: ["Shop the Collection."] as const,
 } as const;
 
 export const HOME_LIFESTYLE = {

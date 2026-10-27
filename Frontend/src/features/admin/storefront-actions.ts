@@ -75,10 +75,21 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       collectionKeys.map((key) => [key, live.collectionPages[key]?.ritualImage ?? ""]),
     );
 
+    const existingHeroBanners =
+      home.hero.banners?.filter(Boolean).length
+        ? home.hero.banners.filter(Boolean).slice(0, 5)
+        : home.hero.posterSrc
+          ? [home.hero.posterSrc]
+          : [];
+    const heroBannerCount = Math.min(
+      5,
+      Math.max(1, Number(formData.get("homeHeroBannerCount") ?? existingHeroBanners.length) || 1),
+    );
+
     const [
       logoSrc,
       logoOnLightSrc,
-      heroPosterSrc,
+      heroBanners,
       lifestylePosterSrc,
       lifestyleBeforeSrc,
       lifestyleAfterSrc,
@@ -104,7 +115,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     ] = await Promise.all([
       readImage(formData, "logoSrc", live.brand.logoSrc),
       readImage(formData, "logoOnLightSrc", live.brand.logoOnLightSrc),
-      readImage(formData, "heroPosterSrc", home.hero.posterSrc),
+      readImageList(formData, "heroBanner", heroBannerCount, existingHeroBanners),
       readImage(formData, "lifestylePosterSrc", home.lifestyle.beforeSrc || home.lifestyle.posterSrc),
       readImage(formData, "lifestyleBeforeSrc", home.lifestyle.beforeSrc || home.lifestyle.posterSrc),
       readImage(formData, "lifestyleAfterSrc", home.lifestyle.afterSrc || ""),
@@ -148,10 +159,14 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       ),
     ]);
 
+    const cleanedHeroBanners = heroBanners.map((src) => src.trim()).filter(Boolean).slice(0, 5);
+    const heroPosterSrc = cleanedHeroBanners[0] ?? "";
+
     const published = storefrontPublishFromForm(formData, {
       logoSrc,
       logoOnLightSrc,
       heroPosterSrc,
+      heroBanners: cleanedHeroBanners,
       lifestylePosterSrc,
       lifestyleBeforeSrc,
       lifestyleAfterSrc,
@@ -187,6 +202,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     // Force exact CMS image paths including clears
     published.content.brand.logoSrc = logoSrc;
     published.content.brand.logoOnLightSrc = logoOnLightSrc;
+    published.content.home.sections.hero.banners = cleanedHeroBanners;
     published.content.home.sections.hero.posterSrc = heroPosterSrc;
     published.content.home.sections.lifestyle.beforeSrc = lifestyleBeforeSrc || lifestylePosterSrc;
     published.content.home.sections.lifestyle.afterSrc = lifestyleAfterSrc;

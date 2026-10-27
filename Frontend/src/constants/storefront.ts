@@ -515,6 +515,24 @@ function asHome(value: unknown, faqFallback: StorefrontFaqItem[]): StorefrontHom
   }
 
   const hero = deepMergeSection(fallback.sections.hero as unknown as Record<string, unknown>, sectionsRaw.hero) as unknown as StorefrontHome["sections"]["hero"];
+  {
+    const heroRaw = asRecord(sectionsRaw.hero);
+    const fromBanners = Array.isArray(heroRaw.banners)
+      ? (heroRaw.banners as unknown[])
+          .map((item) => String(item ?? "").trim())
+          .filter(Boolean)
+          .slice(0, 5)
+      : Array.isArray((hero as { banners?: unknown }).banners)
+        ? ((hero as { banners: unknown[] }).banners ?? [])
+            .map((item) => String(item ?? "").trim())
+            .filter(Boolean)
+            .slice(0, 5)
+        : [];
+    const poster = String(hero.posterSrc ?? "").trim();
+    const banners = fromBanners.length > 0 ? fromBanners : poster ? [poster] : [...fallback.sections.hero.banners];
+    hero.banners = banners.length > 0 ? banners : [...fallback.sections.hero.banners];
+    hero.posterSrc = hero.banners[0] ?? fallback.sections.hero.posterSrc;
+  }
   const collection = deepMergeSection(fallback.sections.collection as unknown as Record<string, unknown>, sectionsRaw.collection) as unknown as StorefrontHome["sections"]["collection"];
   const lifestyle = deepMergeSection(fallback.sections.lifestyle as unknown as Record<string, unknown>, sectionsRaw.lifestyle) as unknown as StorefrontHome["sections"]["lifestyle"];
   const mosaic = deepMergeSection(fallback.sections.mosaic as unknown as Record<string, unknown>, sectionsRaw.mosaic) as unknown as StorefrontHome["sections"]["mosaic"];

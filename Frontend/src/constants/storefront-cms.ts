@@ -2,7 +2,7 @@
  * Shopify-style storefront page/section model.
  * Defaults mirror homepage.ts + media-manifest so the live look is unchanged until admin edits.
  */
-import { brandName, brandLogoWordmark, brandLogoWordmarkOnLight } from "@/constants/brand";
+import { brandLogoWordmark, brandLogoWordmarkOnLight,brandName } from "@/constants/brand";
 import { COLLECTION_HEROES, COLLECTION_RITUALS, FOOTER_NAV, INFO_STILLS, NAV_ITEMS, SUPPORT_EMAIL } from "@/constants/site";
 import {
   HOME_COLLECTION,
@@ -99,7 +99,10 @@ export type StorefrontHomeSections = {
     ctaLabel: string;
     ctaHref: string;
     scrollLabel: string;
+    /** First banner; kept in sync with banners[0] for older readers. */
     posterSrc: string;
+    /** 1–5 full-bleed hero banner images in display order. */
+    banners: string[];
   };
   collection: {
     hidden: boolean;
@@ -281,12 +284,13 @@ export function buildDefaultHome(): StorefrontHome {
         ctaHref: HOME_HERO.ctaHref,
         scrollLabel: HOME_HERO.scrollLabel,
         posterSrc: MEDIA.heroPoster.src,
+        banners: [MEDIA.heroPoster.src],
       },
       collection: {
         hidden: false,
         eyebrow: HOME_COLLECTION.eyebrow,
         line1: HOME_COLLECTION.lines[0],
-        line2: "",
+        line2: HOME_COLLECTION.lines[1] ?? "",
         tileImageOverrides: Array.from({ length: 6 }, () => ""),
       },
       lifestyle: {

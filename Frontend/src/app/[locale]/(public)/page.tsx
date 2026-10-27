@@ -22,7 +22,7 @@ export default async function HomePage() {
   const sections = home.sections;
   const ritualTabs = shopCategoriesAsRitualTabs(storefront.content.shopCategories);
 
-  const { collection, featured, featuredProducts, journalProducts, ritualCatalog, panelImage } = await loadHomeProducts(
+  const { collection, featured, featuredProducts, ritualCatalog, panelImage } = await loadHomeProducts(
     storefront.content.bestSellerSkus,
     {
       shopCategories: storefront.content.shopCategories,
@@ -90,9 +90,7 @@ export default async function HomePage() {
         return <SocialSection key={id} cms={sections.social} />;
       case "journal":
         if (sections.journal.hidden) return null;
-        return (
-          <JournalSection key={id} products={journalProducts} currency={currency} cms={sections.journal} />
-        );
+        return <JournalSection key={id} cms={sections.journal} />;
       case "newsletter":
         if (sections.newsletter.hidden) return null;
         return <NewsletterSection key={id} cms={sections.newsletter} />;

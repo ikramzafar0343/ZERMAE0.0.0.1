@@ -35,6 +35,7 @@ export function FloatingHeader({
   headerLinks,
 }: FloatingHeaderProps) {
   const [collectionsOpen, setCollectionsOpen] = useState(false);
+  const [collectionDrawerOpen, setCollectionDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [bagOpen, setBagOpen] = useState(false);
@@ -68,6 +69,7 @@ export function FloatingHeader({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setCollectionsOpen(false);
+        setCollectionDrawerOpen(false);
         setMenuOpen(false);
       }
     };
@@ -101,7 +103,13 @@ export function FloatingHeader({
             className="ha-float-icon ha-float-menu-btn"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((value) => !value)}
+            onClick={() =>
+              setMenuOpen((value) => {
+                const next = !value;
+                if (!next) setCollectionDrawerOpen(false);
+                return next;
+              })
+            }
           >
             {menuOpen ? <IconClose /> : <IconMenu />}
           </button>
@@ -120,7 +128,6 @@ export function FloatingHeader({
                 aria-controls={collectionsId}
                 aria-haspopup="menu"
                 onClick={() => setCollectionsOpen((value) => !value)}
-                onFocus={() => setCollectionsOpen(true)}
               >
                 Collection
               </button>
@@ -195,12 +202,23 @@ export function FloatingHeader({
             <Link href="/collections/new" onClick={() => setMenuOpen(false)}>
               New Arrival
             </Link>
-            <p>Collection</p>
-            {collectionLinks.map((link) => (
-              <Link key={`collection-${link.id}`} href={link.href} onClick={() => setMenuOpen(false)}>
-                {link.label}
-              </Link>
-            ))}
+            <button
+              type="button"
+              className="ha-float-drawer__toggle"
+              aria-expanded={collectionDrawerOpen}
+              onClick={() => setCollectionDrawerOpen((value) => !value)}
+            >
+              Collection <span aria-hidden="true">{collectionDrawerOpen ? "−" : "+"}</span>
+            </button>
+            {collectionDrawerOpen ? (
+              <div className="ha-float-drawer__sub">
+                {collectionLinks.map((link) => (
+                  <Link key={`collection-${link.id}`} href={link.href} onClick={() => setMenuOpen(false)}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
             <Link href={aboutLink.path} onClick={() => setMenuOpen(false)}>
               {aboutLink.label}
             </Link>

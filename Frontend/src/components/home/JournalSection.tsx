@@ -1,24 +1,24 @@
 import Link from "next/link";
 
-import { type MiniProduct } from "@/components/shop/ProductMiniCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { StorefrontHome } from "@/constants/storefront";
-import { HOME_JOURNAL } from "@/lib/content/homepage";
+import { HOME_JOURNAL, HOME_JOURNAL_ITEMS } from "@/lib/content/homepage";
 
 export function JournalSection({
-  products = [],
   cms,
 }: {
-  products?: MiniProduct[];
+  products?: unknown;
   currency?: string;
   cms?: StorefrontHome["sections"]["journal"];
 }) {
-  const previews = products.slice(0, 3);
   const rawCta = cms?.ctaHref?.trim() || "";
   const ctaHref =
     !rawCta || rawCta === "#ha-journal" || rawCta === "/#ha-journal" || rawCta.endsWith("#ha-journal")
       ? HOME_JOURNAL.ctaHref
       : rawCta;
+  const cards = (cms?.articles?.length ? cms.articles : HOME_JOURNAL_ITEMS)
+    .filter((item) => item.src?.trim())
+    .slice(0, 3);
 
   return (
     <section className="ha-journal" id="ha-journal">
@@ -30,22 +30,29 @@ export function JournalSection({
         <Link href={ctaHref} className="ha-btn ha-journal__cta">
           {cms?.ctaLabel ?? HOME_JOURNAL.ctaLabel}
         </Link>
-        {previews.length > 0 ? (
-          <div className="ha-journal__grid ha-snap-track" data-reveal-row aria-label="Featured products">
-            {previews.map((product) => (
-              <Link
-                key={product.id}
-                href={product.href ?? `/product/${product.id}`}
-                className="ha-journal__card"
-                data-reveal-item
-                aria-label={product.title}
-              >
-                <div className="ha-journal__media ha-media-clip">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={product.image} alt={product.title} className="ha-media-fill" loading="lazy" />
-                </div>
-              </Link>
-            ))}
+        {cards.length > 0 ? (
+          <div className="ha-journal__grid ha-snap-track" data-reveal-row aria-label="Beauty insights">
+            {cards.map((item) => {
+              const href = item.href?.trim() || ctaHref;
+              return (
+                <Link key={item.id} href={href} className="ha-journal__card" data-reveal-item>
+                  <div className="ha-journal__media ha-media-clip">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.src}
+                      alt={item.alt || item.title || "Insight"}
+                      className="ha-media-fill"
+                      loading="lazy"
+                    />
+                  </div>
+                  {item.title?.trim() ? (
+                    <div className="ha-journal__meta">
+                      <span className="ha-journal__title">{item.title}</span>
+                    </div>
+                  ) : null}
+                </Link>
+              );
+            })}
           </div>
         ) : null}
       </div>

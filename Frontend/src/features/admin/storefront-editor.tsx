@@ -237,7 +237,29 @@ export function StorefrontEditor({
   const [reviews, setReviews] = useState(() => content.home.sections.stories.reviews.map((item) => ({ ...item })));
   const [homeFaq, setHomeFaq] = useState(() => content.home.sections.faq.items.map((item) => ({ ...item })));
   const [socialItems, setSocialItems] = useState(() => content.home.sections.social.items.map((item) => ({ ...item })));
-  const journalItems = content.home.sections.journal.articles;
+  const [journalItems] = useState(() => {
+    const articles = content.home.sections.journal.articles.map((item) => ({ ...item }));
+    while (articles.length < 3) {
+      articles.push({
+        id: `j-${articles.length + 1}`,
+        title: "",
+        date: "",
+        href: "/collections/all",
+        src: "",
+        alt: "",
+      });
+    }
+    return articles.slice(0, 3);
+  });
+  const [heroBanners, setHeroBanners] = useState(() => {
+    const fromCms = (content.home.sections.hero.banners ?? [])
+      .map((src) => src.trim())
+      .filter(Boolean)
+      .slice(0, 5);
+    if (fromCms.length) return fromCms;
+    const poster = content.home.sections.hero.posterSrc?.trim();
+    return poster ? [poster] : [""];
+  });
   const [pageFaq, setPageFaq] = useState(() => content.pageTemplates.faq.items.map((item) => ({ ...item })));
   const [publishState, publishAction] = useActionState(
     async (_prev: { error?: string }, formData: FormData) => updateCommerceSettingsAction(formData),
@@ -344,7 +366,63 @@ export function StorefrontEditor({
                   <label className="admin-product-check">
                     <input type="checkbox" name="homeHeroHidden" defaultChecked={home.hero.hidden} /> Hide section
                   </label>
-                  <ImageUrlField name="heroPosterSrc" label="Hero poster" defaultValue={home.hero.posterSrc} />
+                  <p className="admin-product-kicker">Hero banners (1–5). Reorder with Up/Down. Multiple banners autoplay with arrows on the site.</p>
+                  <input type="hidden" name="homeHeroBannerCount" value={heroBanners.length} />
+                  {heroBanners.map((src, index) => (
+                    <div key={`hero-banner-${index}-${src || "empty"}`} className="admin-storefront-inline-card">
+                      <ImageUrlField name={`heroBanner_${index}`} label={`Banner ${index + 1}`} defaultValue={src} />
+                      <div className="admin-orders-filters">
+                        <button
+                          type="button"
+                          className="admin-orders-filter"
+                          disabled={index === 0}
+                          onClick={() =>
+                            setHeroBanners((current) => {
+                              const next = [...current];
+                              const swap = next[index - 1]!;
+                              next[index - 1] = next[index]!;
+                              next[index] = swap;
+                              return next;
+                            })
+                          }
+                        >
+                          Up
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-orders-filter"
+                          disabled={index >= heroBanners.length - 1}
+                          onClick={() =>
+                            setHeroBanners((current) => {
+                              const next = [...current];
+                              const swap = next[index + 1]!;
+                              next[index + 1] = next[index]!;
+                              next[index] = swap;
+                              return next;
+                            })
+                          }
+                        >
+                          Down
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-orders-filter"
+                          disabled={heroBanners.length <= 1}
+                          onClick={() => setHeroBanners((current) => current.filter((_, i) => i !== index))}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="admin-orders-filter"
+                    disabled={heroBanners.length >= 5}
+                    onClick={() => setHeroBanners((current) => (current.length >= 5 ? current : [...current, ""]))}
+                  >
+                    Add banner
+                  </button>
                   <SoftInput label="Line 1" name="homeHeroLine1" defaultValue={home.hero.line1} />
                   <SoftInput label="Line 2" name="homeHeroLine2" defaultValue={home.hero.line2} />
                   <SoftArea label="Support" name="homeHeroSupport" rows={3} defaultValue={home.hero.support} />
@@ -358,8 +436,11 @@ export function StorefrontEditor({
                   <label className="admin-product-check">
                     <input type="checkbox" name="homeCollectionHidden" defaultChecked={home.collection.hidden} /> Hide section
                   </label>
+                  <p className="admin-product-kicker">
+                    Heading defaults to Shop the Collection. Card names/images come from Shop categories; optional overrides below.
+                  </p>
                   <SoftInput label="Eyebrow" name="homeCollectionEyebrow" defaultValue={home.collection.eyebrow} />
-                  <SoftInput label="Line 1" name="homeCollectionLine1" defaultValue={home.collection.line1} />
+                  <SoftInput label="Line 1" name="homeCollectionLine1" defaultValue={home.collection.line1 || "Shop the Collection."} />
                   <SoftInput label="Line 2" name="homeCollectionLine2" defaultValue={home.collection.line2} />
                   {Array.from({ length: 6 }, (_, index) => (
                     <ImageUrlField
@@ -367,7 +448,7 @@ export function StorefrontEditor({
                       name={`collectionTile_${index}`}
                       label={`Tile image override ${index + 1}`}
                       defaultValue={home.collection.tileImageOverrides[index] ?? ""}
-                      hint="Leave empty to use the product image"
+                      hint="Leave empty to use the Shop category tile image"
                     />
                   ))}
                 </>
@@ -539,7 +620,7 @@ export function StorefrontEditor({
                     <input type="checkbox" name="homeJournalHidden" defaultChecked={home.journal.hidden} /> Hide section
                   </label>
                   <p className="admin-product-kicker">
-                    Homepage shows three catalog products here. View all should open the shop (e.g. /collections/all).
+                    Three insight cards: image + description under each. View all opens the CTA href (e.g. /collections/all).
                   </p>
                   <SoftInput label="Eyebrow" name="homeJournalEyebrow" defaultValue={home.journal.eyebrow} />
                   <SoftInput label="Line 1" name="homeJournalLine1" defaultValue={home.journal.line1} />
@@ -551,13 +632,13 @@ export function StorefrontEditor({
                     defaultValue={home.journal.ctaHref || "/collections/all"}
                   />
                   {journalItems.map((item, index) => (
-                    <div key={item.id} hidden>
+                    <div key={item.id} className="admin-storefront-inline-card">
                       <input type="hidden" name={`homeJournalId_${index}`} value={item.id} />
-                      <input type="hidden" name={`homeJournalTitle_${index}`} value={item.title} />
                       <input type="hidden" name={`homeJournalDate_${index}`} value={item.date} />
-                      <input type="hidden" name={`homeJournalHref_${index}`} value={item.href} />
-                      <input type="hidden" name={`homeJournalSrc_${index}`} value={item.src} />
-                      <input type="hidden" name={`homeJournalAlt_${index}`} value={item.alt} />
+                      <ImageUrlField name={`homeJournalSrc_${index}`} label={`Card ${index + 1} image`} defaultValue={item.src} />
+                      <SoftInput label="Description" name={`homeJournalTitle_${index}`} defaultValue={item.title} />
+                      <SoftInput label="Href" name={`homeJournalHref_${index}`} defaultValue={item.href} />
+                      <SoftInput label="Alt" name={`homeJournalAlt_${index}`} defaultValue={item.alt} />
                     </div>
                   ))}
                 </>
