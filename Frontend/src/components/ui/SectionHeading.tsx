@@ -36,9 +36,11 @@ export function SectionHeading({
         </p>
       ) : null}
       <Tag className="ha-section-heading__title">
-        {lines.map((line) => (
-          <span key={line}>{line}</span>
-        ))}
+        {lines
+          .filter((line) => line.trim())
+          .map((line) => (
+            <span key={line}>{line}</span>
+          ))}
       </Tag>
     </div>
   );
