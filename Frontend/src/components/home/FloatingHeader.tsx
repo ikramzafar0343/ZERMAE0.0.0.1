@@ -34,14 +34,11 @@ export function FloatingHeader({
   shopCategories,
   headerLinks,
 }: FloatingHeaderProps) {
-  const [shopOpen, setShopOpen] = useState(false);
   const [collectionsOpen, setCollectionsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [bagOpen, setBagOpen] = useState(false);
-  const shopId = useId();
   const collectionsId = useId();
-  const shopRef = useRef<HTMLDivElement>(null);
   const collectionsRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -70,14 +67,12 @@ export function FloatingHeader({
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setShopOpen(false);
         setCollectionsOpen(false);
         setMenuOpen(false);
       }
     };
     const onPointer = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (shopRef.current && !shopRef.current.contains(target)) setShopOpen(false);
       if (collectionsRef.current && !collectionsRef.current.contains(target)) setCollectionsOpen(false);
     };
     document.addEventListener("keydown", onKey);
@@ -111,44 +106,33 @@ export function FloatingHeader({
             {menuOpen ? <IconClose /> : <IconMenu />}
           </button>
           <nav className="ha-float-nav" aria-label="Primary">
-            <div ref={shopRef} style={{ position: "relative" }}>
-              <button
-                type="button"
-                aria-expanded={shopOpen}
-                aria-controls={shopId}
-                onClick={() => {
-                  setShopOpen((value) => !value);
-                  setCollectionsOpen(false);
-                }}
-              >
-                Shop <span aria-hidden="true">+</span>
-              </button>
-              {shopOpen ? (
-                <div id={shopId} className="ha-float-dropdown" role="menu">
-                  {shopLinks.map((link) => (
-                    <Link key={link.id} href={link.href} role="menuitem" onClick={() => setShopOpen(false)}>
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <div ref={collectionsRef} style={{ position: "relative" }}>
+            <Link href="/collections/all">Shop All</Link>
+            <Link href="/collections/new">New Arrival</Link>
+            <div
+              ref={collectionsRef}
+              className="ha-float-nav__item"
+              onMouseEnter={() => setCollectionsOpen(true)}
+              onMouseLeave={() => setCollectionsOpen(false)}
+            >
               <button
                 type="button"
                 aria-expanded={collectionsOpen}
                 aria-controls={collectionsId}
-                onClick={() => {
-                  setCollectionsOpen((value) => !value);
-                  setShopOpen(false);
-                }}
+                aria-haspopup="menu"
+                onClick={() => setCollectionsOpen((value) => !value)}
+                onFocus={() => setCollectionsOpen(true)}
               >
-                Collection <span aria-hidden="true">+</span>
+                Collection
               </button>
               {collectionsOpen ? (
                 <div id={collectionsId} className="ha-float-dropdown" role="menu">
                   {collectionLinks.map((link) => (
-                    <Link key={link.id} href={link.href} role="menuitem" onClick={() => setCollectionsOpen(false)}>
+                    <Link
+                      key={link.id}
+                      href={link.href}
+                      role="menuitem"
+                      onClick={() => setCollectionsOpen(false)}
+                    >
                       {link.label}
                     </Link>
                   ))}
@@ -205,12 +189,12 @@ export function FloatingHeader({
       {menuOpen ? (
         <div className="ha-float-drawer" ref={menuRef} role="dialog" aria-modal="true" aria-label="Menu">
           <nav aria-label="Mobile">
-            <p>Shop</p>
-            {shopLinks.map((link) => (
-              <Link key={`shop-${link.id}`} href={link.href} onClick={() => setMenuOpen(false)}>
-                {link.label}
-              </Link>
-            ))}
+            <Link href="/collections/all" onClick={() => setMenuOpen(false)}>
+              Shop All
+            </Link>
+            <Link href="/collections/new" onClick={() => setMenuOpen(false)}>
+              New Arrival
+            </Link>
             <p>Collection</p>
             {collectionLinks.map((link) => (
               <Link key={`collection-${link.id}`} href={link.href} onClick={() => setMenuOpen(false)}>

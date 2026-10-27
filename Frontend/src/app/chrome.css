@@ -101,6 +101,14 @@
   gap: 20px;
 }
 
+.ha-float-nav__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-bottom: 10px;
+  margin-bottom: -10px;
+}
+
 .ha-float-nav a,
 .ha-float-nav button {
   background: none;
