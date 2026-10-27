@@ -113,6 +113,8 @@ export type StorefrontHomeSections = {
     eyebrow: string;
     heading: string;
     posterSrc: string;
+    beforeSrc: string;
+    afterSrc: string;
   };
   mosaic: {
     hidden: boolean;
@@ -292,6 +294,8 @@ export function buildDefaultHome(): StorefrontHome {
         eyebrow: HOME_LIFESTYLE.eyebrow,
         heading: HOME_LIFESTYLE.heading,
         posterSrc: MEDIA.lifestylePoster.src,
+        beforeSrc: MEDIA.lifestylePoster.src,
+        afterSrc: MEDIA.mosaicLeft.src,
       },
       mosaic: {
         hidden: false,

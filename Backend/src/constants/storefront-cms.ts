@@ -95,6 +95,8 @@ export type StorefrontHomeSections = {
     eyebrow: string;
     heading: string;
     posterSrc: string;
+    beforeSrc: string;
+    afterSrc: string;
   };
   mosaic: {
     hidden: boolean;
@@ -281,9 +283,9 @@ export function buildDefaultHome(): StorefrontHome {
       },
       collection: {
         hidden: false,
-        eyebrow: "Shop the Collection",
-        line1: "Luxury formulated,",
-        line2: "nature inspired.",
+        eyebrow: "",
+        line1: "The Zermae Approach.",
+        line2: "",
         tileImageOverrides: ["", "", "", "", "", ""],
       },
       lifestyle: {
@@ -291,12 +293,14 @@ export function buildDefaultHome(): StorefrontHome {
         eyebrow: "Radiant Skin",
         heading: "Feel the Difference.",
         posterSrc: "/media/lifestyle/skincare-poster.png",
+        beforeSrc: "/media/lifestyle/skincare-poster.png",
+        afterSrc: "/media/editorial/serum-portrait.jpg",
       },
       mosaic: {
         hidden: false,
-        eyebrow: "Shop the Collection",
-        line1: "Luxury formulated,",
-        line2: "nature inspired.",
+        eyebrow: "",
+        line1: "The Zermae Approach.",
+        line2: "",
         panelHeading: "Deep skin nourishment.",
         panelBody: "Formulated to hydrate, repair, and balance your skin for long-lasting radiance.",
         upperCaptionHeading: "Sustainable beauty choices",

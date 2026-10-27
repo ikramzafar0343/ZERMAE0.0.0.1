@@ -6,12 +6,11 @@ import { useFormStatus } from "react-dom";
 
 import { resolveCommerceSettings } from "@/constants/commerce";
 import {
-  HOME_SECTION_IDS,
   HOME_SECTION_LABELS,
+  type HomeSectionId,
   resolveStorefrontContent,
   resolveStorefrontTheme,
   SHOP_CATEGORY_ICONS,
-  type HomeSectionId,
   type StorefrontNavLink,
   type StorefrontShopCategory,
 } from "@/constants/storefront";
@@ -238,7 +237,7 @@ export function StorefrontEditor({
   const [reviews, setReviews] = useState(() => content.home.sections.stories.reviews.map((item) => ({ ...item })));
   const [homeFaq, setHomeFaq] = useState(() => content.home.sections.faq.items.map((item) => ({ ...item })));
   const [socialItems, setSocialItems] = useState(() => content.home.sections.social.items.map((item) => ({ ...item })));
-  const [journalItems, setJournalItems] = useState(() => content.home.sections.journal.articles.map((item) => ({ ...item })));
+  const journalItems = content.home.sections.journal.articles;
   const [pageFaq, setPageFaq] = useState(() => content.pageTemplates.faq.items.map((item) => ({ ...item })));
   const [publishState, publishAction] = useActionState(
     async (_prev: { error?: string }, formData: FormData) => updateCommerceSettingsAction(formData),
@@ -378,7 +377,19 @@ export function StorefrontEditor({
                   <label className="admin-product-check">
                     <input type="checkbox" name="homeLifestyleHidden" defaultChecked={home.lifestyle.hidden} /> Hide section
                   </label>
-                  <ImageUrlField name="lifestylePosterSrc" label="Poster" defaultValue={home.lifestyle.posterSrc} />
+                  <ImageUrlField
+                    name="lifestyleBeforeSrc"
+                    label="Before photo"
+                    defaultValue={home.lifestyle.beforeSrc || home.lifestyle.posterSrc}
+                  />
+                  <ImageUrlField
+                    name="lifestyleAfterSrc"
+                    label="After photo"
+                    defaultValue={home.lifestyle.afterSrc}
+                  />
+                  <p className="admin-product-kicker">
+                    Upload matched Before and After photos (same subject, pose, and crop) so the slider aligns cleanly.
+                  </p>
                   <SoftInput label="Eyebrow" name="homeLifestyleEyebrow" defaultValue={home.lifestyle.eyebrow} />
                   <SoftInput label="Heading" name="homeLifestyleHeading" defaultValue={home.lifestyle.heading} />
                 </>
@@ -527,34 +538,26 @@ export function StorefrontEditor({
                   <label className="admin-product-check">
                     <input type="checkbox" name="homeJournalHidden" defaultChecked={home.journal.hidden} /> Hide section
                   </label>
+                  <p className="admin-product-kicker">
+                    Homepage shows three catalog products here. View all should open the shop (e.g. /collections/all).
+                  </p>
                   <SoftInput label="Eyebrow" name="homeJournalEyebrow" defaultValue={home.journal.eyebrow} />
                   <SoftInput label="Line 1" name="homeJournalLine1" defaultValue={home.journal.line1} />
                   <SoftInput label="Line 2" name="homeJournalLine2" defaultValue={home.journal.line2} />
                   <SoftInput label="CTA label" name="homeJournalCtaLabel" defaultValue={home.journal.ctaLabel} />
-                  <SoftInput label="CTA href" name="homeJournalCtaHref" defaultValue={home.journal.ctaHref} />
-                  <button
-                    type="button"
-                    className="admin-orders-filter"
-                    onClick={() =>
-                      setJournalItems((current) => [
-                        ...current,
-                        { id: `j-${Date.now()}`, title: "", date: "", href: "/about-us", src: "", alt: "" },
-                      ])
-                    }
-                  >
-                    Add article
-                  </button>
+                  <SoftInput
+                    label="CTA href"
+                    name="homeJournalCtaHref"
+                    defaultValue={home.journal.ctaHref || "/collections/all"}
+                  />
                   {journalItems.map((item, index) => (
-                    <div key={item.id} className="admin-storefront-inline-card">
+                    <div key={item.id} hidden>
                       <input type="hidden" name={`homeJournalId_${index}`} value={item.id} />
-                      <SoftInput label="Title" name={`homeJournalTitle_${index}`} defaultValue={item.title} />
-                      <SoftInput label="Date" name={`homeJournalDate_${index}`} defaultValue={item.date} />
-                      <SoftInput label="Href" name={`homeJournalHref_${index}`} defaultValue={item.href} />
-                      <ImageUrlField name={`homeJournalSrc_${index}`} label="Image" defaultValue={item.src} />
-                      <SoftInput label="Alt" name={`homeJournalAlt_${index}`} defaultValue={item.alt} />
-                      <button type="button" className="admin-orders-filter" onClick={() => setJournalItems((current) => current.filter((_, i) => i !== index))}>
-                        Delete
-                      </button>
+                      <input type="hidden" name={`homeJournalTitle_${index}`} value={item.title} />
+                      <input type="hidden" name={`homeJournalDate_${index}`} value={item.date} />
+                      <input type="hidden" name={`homeJournalHref_${index}`} value={item.href} />
+                      <input type="hidden" name={`homeJournalSrc_${index}`} value={item.src} />
+                      <input type="hidden" name={`homeJournalAlt_${index}`} value={item.alt} />
                     </div>
                   ))}
                 </>

@@ -12,8 +12,8 @@ export const HOME_HERO = {
 } as const;
 
 export const HOME_COLLECTION = {
-  eyebrow: "Shop the Collection",
-  lines: ["Luxury formulated,", "nature inspired."] as const,
+  eyebrow: "",
+  lines: ["The Zermae Approach."] as const,
 } as const;
 
 export const HOME_LIFESTYLE = {
@@ -22,8 +22,8 @@ export const HOME_LIFESTYLE = {
 } as const;
 
 export const HOME_MOSAIC = {
-  eyebrow: "Shop the Collection",
-  lines: ["Luxury formulated,", "nature inspired."] as const,
+  eyebrow: "",
+  lines: ["The Zermae Approach."] as const,
   panelHeading: "Deep skin nourishment.",
   panelBody: "Formulated to hydrate, repair, and balance your skin for long-lasting radiance.",
   upperCaptionHeading: "Sustainable beauty choices",
@@ -200,7 +200,7 @@ export const HOME_JOURNAL = {
   eyebrow: "Beauty Insights",
   lines: ["Your source for", "better skin."] as const,
   ctaLabel: "View all",
-  ctaHref: "/#ha-journal",
+  ctaHref: "/collections/all",
 } as const;
 
 export type HomeJournalItem = {

@@ -80,6 +80,8 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       logoOnLightSrc,
       heroPosterSrc,
       lifestylePosterSrc,
+      lifestyleBeforeSrc,
+      lifestyleAfterSrc,
       mosaicLeftSrc,
       mosaicRangeSrc,
       mosaicDetailSrc,
@@ -103,7 +105,9 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       readImage(formData, "logoSrc", live.brand.logoSrc),
       readImage(formData, "logoOnLightSrc", live.brand.logoOnLightSrc),
       readImage(formData, "heroPosterSrc", home.hero.posterSrc),
-      readImage(formData, "lifestylePosterSrc", home.lifestyle.posterSrc),
+      readImage(formData, "lifestylePosterSrc", home.lifestyle.beforeSrc || home.lifestyle.posterSrc),
+      readImage(formData, "lifestyleBeforeSrc", home.lifestyle.beforeSrc || home.lifestyle.posterSrc),
+      readImage(formData, "lifestyleAfterSrc", home.lifestyle.afterSrc || ""),
       readImage(formData, "mosaicLeftSrc", home.mosaic.leftSrc),
       readImage(formData, "mosaicRangeSrc", home.mosaic.rangeSrc),
       readImage(formData, "mosaicDetailSrc", home.mosaic.detailSrc),
@@ -149,6 +153,8 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       logoOnLightSrc,
       heroPosterSrc,
       lifestylePosterSrc,
+      lifestyleBeforeSrc,
+      lifestyleAfterSrc,
       mosaicLeftSrc,
       mosaicRangeSrc,
       mosaicDetailSrc,
@@ -182,7 +188,10 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     published.content.brand.logoSrc = logoSrc;
     published.content.brand.logoOnLightSrc = logoOnLightSrc;
     published.content.home.sections.hero.posterSrc = heroPosterSrc;
-    published.content.home.sections.lifestyle.posterSrc = lifestylePosterSrc;
+    published.content.home.sections.lifestyle.beforeSrc = lifestyleBeforeSrc || lifestylePosterSrc;
+    published.content.home.sections.lifestyle.afterSrc = lifestyleAfterSrc;
+    published.content.home.sections.lifestyle.posterSrc =
+      lifestyleBeforeSrc || lifestylePosterSrc || published.content.home.sections.lifestyle.posterSrc;
     published.content.home.sections.mosaic.leftSrc = mosaicLeftSrc;
     published.content.home.sections.mosaic.rangeSrc = mosaicRangeSrc;
     published.content.home.sections.mosaic.detailSrc = mosaicDetailSrc;

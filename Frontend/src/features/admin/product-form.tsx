@@ -15,9 +15,15 @@ import {
 import { DEFAULT_STOREFRONT_THEME } from "@/constants/storefront";
 import { deleteProductAction, saveProductAction } from "@/features/admin/catalog-actions";
 import { ColorField } from "@/features/admin/color-field";
-import { createImageSlot, type ProductImageSlot,ProductImageUploader } from "@/features/admin/product-image-uploader";
+import { createImageSlot, type ProductImageSlot, ProductImageUploader } from "@/features/admin/product-image-uploader";
 import { cn } from "@/lib/cn";
 import { asHexColor } from "@/lib/hex-color";
+import {
+  findCustomProductSize,
+  formatProductSize,
+  parseProductSize,
+  type ProductSizeUnit,
+} from "@/lib/product-size";
 import type { SerializedProduct } from "@/types/product";
 
 type FieldErrors = Partial<Record<"title" | "detail" | "sizes" | "price" | "stock" | "category" | "images", string>>;
@@ -67,12 +73,17 @@ export function ProductForm({
   mint?: string;
 }) {
   const isNew = !product;
-  const volumeOptions = useMemo(() => {
-    const extra = (product?.sizes ?? []).filter((size) => !(PRODUCT_VOLUME_OPTIONS as readonly string[]).includes(size));
-    return [...PRODUCT_VOLUME_OPTIONS, ...extra];
+  const initialCustom = useMemo(() => {
+    const label = findCustomProductSize(product?.sizes ?? [], PRODUCT_VOLUME_OPTIONS);
+    return label ? parseProductSize(label) : null;
   }, [product]);
   const [sizes, setSizes] = useState<string[]>(product?.sizes?.length ? [...product.sizes] : []);
+  const [customEnabled, setCustomEnabled] = useState(Boolean(initialCustom));
+  const [customValue, setCustomValue] = useState(initialCustom?.value ?? "");
+  const [customUnit, setCustomUnit] = useState<ProductSizeUnit>(initialCustom?.unit ?? "ml");
   const [bestSeller, setBestSeller] = useState(product?.bestSeller ?? false);
+  const customLabel = formatProductSize(customValue, customUnit);
+  const presetSizes = sizes.filter((size) => (PRODUCT_VOLUME_OPTIONS as readonly string[]).includes(size));
   const [discountType, setDiscountType] = useState(product?.discountType || DISCOUNT_TYPES.PERCENTAGE);
   const [slots, setSlots] = useState<ProductImageSlot[]>(() =>
     (product?.images ?? []).filter((image) => image.url).map((image) => createImageSlot(image)),
@@ -98,8 +109,11 @@ export function ProductForm({
     if (!detail) {
       next.detail = "Description is required.";
     }
-    if (sizes.length === 0) {
-      next.sizes = "Pick at least one size.";
+    const resolvedSizes = resolveSizes();
+    if (resolvedSizes.length === 0) {
+      next.sizes = customEnabled && customValue.trim()
+        ? "Enter a valid custom size (e.g. 7.5 ml)."
+        : "Pick at least one size.";
     }
     const price = String((document.getElementById("price") as HTMLInputElement | null)?.value ?? "").trim();
     if (price === "" || Number(price) < 0) {
@@ -131,10 +145,12 @@ export function ProductForm({
       return;
     }
     const readyImages = slots.filter((slot) => slot.url);
+    const resolvedSizes = resolveSizes();
     const formData = new FormData(form);
     formData.set("status", nextIntent === "draft" ? PRODUCT_STATUS.DRAFT : PRODUCT_STATUS.PUBLISHED);
-    formData.set("sizes", sizes.join("\n"));
-    formData.set("includes", sizes[0] ?? "");
+    formData.set("sizes", resolvedSizes.join("\n"));
+    formData.set("includes", resolvedSizes[0] ?? "");
+    setSizes(resolvedSizes);
     formData.set(
       "tileColor",
       asHexColor((form.querySelector('input[name="tileColor"]') as HTMLInputElement | null)?.value, blush),
@@ -167,13 +183,47 @@ export function ProductForm({
     });
   }
 
+  function resolveSizes(): string[] {
+    const next = [...presetSizes];
+    if (customEnabled) {
+      const formatted = formatProductSize(customValue, customUnit);
+      if (formatted && !next.includes(formatted)) {
+        next.push(formatted);
+      }
+    }
+    return next;
+  }
+
   function toggleSize(size: string) {
     setSizes((current) => {
-      const next = current.includes(size) ? current.filter((item) => item !== size) : [...current, size];
+      const withoutCustom = current.filter((item) => (PRODUCT_VOLUME_OPTIONS as readonly string[]).includes(item));
+      const custom = customEnabled ? formatProductSize(customValue, customUnit) : null;
+      const presets = withoutCustom.includes(size)
+        ? withoutCustom.filter((item) => item !== size)
+        : [...withoutCustom, size];
+      const next = custom ? [...presets, custom] : presets;
       if (next.length > 0) {
         setErrors((errorsState) => omitError(errorsState, "sizes"));
       }
       return next;
+    });
+  }
+
+  function syncCustom(nextEnabled: boolean, nextValue: string, nextUnit: ProductSizeUnit) {
+    setCustomEnabled(nextEnabled);
+    setCustomValue(nextValue);
+    setCustomUnit(nextUnit);
+    setSizes((current) => {
+      const presets = current.filter((item) => (PRODUCT_VOLUME_OPTIONS as readonly string[]).includes(item));
+      if (!nextEnabled) {
+        return presets;
+      }
+      const formatted = formatProductSize(nextValue, nextUnit);
+      if (!formatted) {
+        return presets;
+      }
+      setErrors((errorsState) => omitError(errorsState, "sizes"));
+      return [...presets, formatted];
     });
   }
 
@@ -269,7 +319,7 @@ export function ProductForm({
                 <legend className="admin-product-label">Size</legend>
                 <p className="admin-product-kicker">Pick available size</p>
                 <div className="admin-product-sizes">
-                  {volumeOptions.map((size) => {
+                  {PRODUCT_VOLUME_OPTIONS.map((size) => {
                     const selected = sizes.includes(size);
                     return (
                       <button
@@ -284,7 +334,59 @@ export function ProductForm({
                       </button>
                     );
                   })}
+                  <button
+                    type="button"
+                    className={cn("admin-product-size", customEnabled && "is-selected")}
+                    aria-pressed={customEnabled}
+                    aria-label="Custom size"
+                    onClick={() => {
+                      if (customEnabled) {
+                        syncCustom(false, customValue, customUnit);
+                      } else {
+                        syncCustom(true, customValue || "7.5", customUnit);
+                      }
+                    }}
+                  >
+                    Custom
+                  </button>
                 </div>
+                {customEnabled ? (
+                  <div className="admin-product-fields">
+                    <div className="admin-product-field">
+                      <label className="admin-product-label" htmlFor="customSizeValue">
+                        Custom value
+                      </label>
+                      <input
+                        id="customSizeValue"
+                        className="admin-product-soft"
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        inputMode="decimal"
+                        value={customValue}
+                        placeholder="7.5"
+                        onChange={(event) => syncCustom(true, event.target.value, customUnit)}
+                      />
+                    </div>
+                    <div className="admin-product-field">
+                      <label className="admin-product-label" htmlFor="customSizeUnit">
+                        Unit
+                      </label>
+                      <select
+                        id="customSizeUnit"
+                        className="admin-product-soft admin-product-select"
+                        value={customUnit}
+                        onChange={(event) => syncCustom(true, customValue, event.target.value as ProductSizeUnit)}
+                      >
+                        <option value="ml">ml</option>
+                        <option value="g">g</option>
+                      </select>
+                    </div>
+                    <p className="admin-product-kicker">
+                      Preview: {customLabel ?? "—"} | Example: 50 g
+                    </p>
+                  </div>
+                ) : null}
                 {errors.sizes ? (
                   <p className="admin-product-error" role="alert">
                     {errors.sizes}
@@ -295,13 +397,13 @@ export function ProductForm({
                 <legend className="admin-product-label">Placement</legend>
                 <p className="admin-product-kicker">Show in best-seller slots</p>
                 <div className="admin-product-radios">
-                  <label className={cn("admin-product-radio", !bestSeller && "is-selected")}>
-                    <input type="radio" checked={!bestSeller} onChange={() => setBestSeller(false)} />
-                    Standard
-                  </label>
                   <label className={cn("admin-product-radio", bestSeller && "is-selected")}>
-                    <input type="radio" checked={bestSeller} onChange={() => setBestSeller(true)} />
-                    Best seller
+                    <input
+                      type="checkbox"
+                      checked={bestSeller}
+                      onChange={(event) => setBestSeller(event.target.checked)}
+                    />
+                    List this product in Best Sellers
                   </label>
                 </div>
               </fieldset>

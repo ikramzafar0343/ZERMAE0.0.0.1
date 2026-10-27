@@ -21,8 +21,20 @@ export function CollectionSection({
       <div className="ha-container">
         <SectionHeading
           className="ha-collection__heading"
-          eyebrow={cms?.eyebrow ?? HOME_COLLECTION.eyebrow}
-          lines={[cms?.line1 ?? HOME_COLLECTION.lines[0], cms?.line2 ?? HOME_COLLECTION.lines[1]]}
+          eyebrow={(() => {
+            const raw = (cms?.eyebrow ?? HOME_COLLECTION.eyebrow).trim();
+            return !raw || raw.toLowerCase() === "shop the collection" ? "" : raw;
+          })()}
+          lines={(() => {
+            const line1 = (cms?.line1 ?? "").trim();
+            const line2 = (cms?.line2 ?? "").trim();
+            const useDefault =
+              !line1 ||
+              line1 === "Luxury formulated," ||
+              line1 === "The Zermae" ||
+              Boolean(line2);
+            return useDefault ? HOME_COLLECTION.lines : ([line1] as const);
+          })()}
         />
         <div className="ha-collection__gap" aria-hidden="true" />
         <div
@@ -35,8 +47,11 @@ export function CollectionSection({
               key={product.id}
               product={product}
               currency={currency}
-              showQuickAdd
+              showQuickAdd={false}
+              showPrice={false}
               showWishlist
+              viewAllHref={product.href ?? "/collections/all"}
+              viewAllLabel="View all"
               wished={wishlistIds.includes(product.id)}
             />
           ))}

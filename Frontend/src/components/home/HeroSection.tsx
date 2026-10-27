@@ -6,11 +6,12 @@ import { MEDIA } from "@/lib/content/media-manifest";
 
 type HeroSectionProps = {
   featured: MiniProduct | null;
+  featuredProducts?: MiniProduct[];
   currency: string;
   cms?: StorefrontHome["sections"]["hero"];
 };
 
-export function HeroSection({ featured, currency, cms }: HeroSectionProps) {
+export function HeroSection({ featured, featuredProducts, currency, cms }: HeroSectionProps) {
   const line1 = cms?.line1 ?? HOME_HERO.line1;
   const line2 = cms?.line2 ?? HOME_HERO.line2;
   return (
@@ -19,6 +20,7 @@ export function HeroSection({ featured, currency, cms }: HeroSectionProps) {
       ctaLabel={cms?.ctaLabel ?? HOME_HERO.ctaLabel}
       ctaHref={cms?.ctaHref ?? HOME_HERO.ctaHref}
       featured={featured}
+      {...(featuredProducts ? { featuredProducts } : {})}
       currency={currency}
       mediaSrc={cms?.posterSrc || MEDIA.heroPoster.src}
     />

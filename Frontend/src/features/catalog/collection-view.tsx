@@ -1,14 +1,14 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { PageHero } from "@/components/shop/PageHero";
-import type { MiniProduct } from "@/components/shop/ProductMiniCard";
+import { CollectionBanner } from "@/components/shop/CollectionBanner";
 import { normalizeCategoryFilter } from "@/constants/catalog";
 import { COLLECTION_HEROES } from "@/constants/site";
 import { CatalogEmptyState } from "@/features/catalog/catalog-empty-state";
+import { CollectionScrollTop } from "@/features/catalog/collection-scroll-top";
 import { toCatalogProduct } from "@/features/catalog/map-product";
 import { ProductGrid } from "@/features/catalog/product-grid";
 import { RitualFeature } from "@/features/catalog/ritual-feature";
-import { HOME_HERO } from "@/lib/content/homepage";
 import { productService } from "@/lib/api/products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
@@ -55,32 +55,23 @@ export async function CollectionView({
     first: pageCms?.titleFirst || storefront.content.collectionTitles[slug]?.first || hero?.first || "The",
     second: pageCms?.titleSecond || storefront.content.collectionTitles[slug]?.second || hero?.second || "Ritual",
   };
-  const heroPoster = pageCms?.heroSrc || "";
+  const bannerImage = pageCms?.heroSrc?.trim() || heroImage;
 
   if (!hero) {
     return null;
   }
 
-  const lead = products[0];
-  const featured: MiniProduct | null = lead
-    ? {
-        id: lead.id,
-        title: lead.title,
-        price: lead.price,
-        image: lead.images[0] || heroImage,
-        href: `/product/${lead.id}`,
-      }
-    : null;
-
   return (
-    <div className="min-h-screen bg-brand-bg">
-      <PageHero
-        title={`${titles.first} ${titles.second}`}
-        ctaLabel={HOME_HERO.ctaLabel}
-        ctaHref="#collection-catalog"
-        featured={featured}
-        currency={storefront.commerce.currency}
-        {...(heroPoster ? { mediaSrc: heroPoster } : {})}
+    <div className="collection-page min-h-screen bg-brand-bg">
+      <Suspense fallback={null}>
+        <CollectionScrollTop />
+      </Suspense>
+      <CollectionBanner
+        first={titles.first}
+        second={titles.second}
+        imageSrc={bannerImage}
+        alt={hero.alt}
+        category={slug}
       />
       <section id="collection-catalog" className="collection-catalog">
         {products.length > 0 ? (

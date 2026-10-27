@@ -33,7 +33,7 @@ export function ProductBuyBox({ product, currency = "PKR" }: { product: ProductB
   const [quantity, setQuantity] = useState(1);
   const [pending, startTransition] = useTransition();
   const hasSale = Boolean(product.originalPrice && product.originalPrice > product.price);
-  const volumeLabel = size || product.volume;
+  const volumeLabel = (size || product.sizes[0] || product.volume).trim();
   const soldOut = product.stock < 1;
   const maxQty = Math.max(1, Math.min(20, product.stock || 1));
   const lowStock = product.stock > 0 && product.stock <= 8;

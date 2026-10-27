@@ -2,9 +2,9 @@ import { type CommerceSettings, DEFAULT_COMMERCE_SETTINGS, resolveCommerceSettin
 import {
   DEFAULT_STOREFRONT_CONTENT,
   HOME_SECTION_IDS,
+  type HomeSectionId,
   resolveStorefrontContent,
   resolveStorefrontTheme,
-  type HomeSectionId,
   type StorefrontContent,
   type StorefrontTheme,
 } from "@/constants/storefront";
@@ -14,6 +14,8 @@ export type StorefrontFormImages = {
   logoOnLightSrc: string;
   heroPosterSrc: string;
   lifestylePosterSrc: string;
+  lifestyleBeforeSrc: string;
+  lifestyleAfterSrc: string;
   mosaicLeftSrc: string;
   mosaicRangeSrc: string;
   mosaicDetailSrc: string;
@@ -100,7 +102,9 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
         hidden: formData.get("homeLifestyleHidden") === "on",
         eyebrow: String(formData.get("homeLifestyleEyebrow") ?? ""),
         heading: String(formData.get("homeLifestyleHeading") ?? ""),
-        posterSrc: images.lifestylePosterSrc,
+        posterSrc: images.lifestylePosterSrc || images.lifestyleBeforeSrc,
+        beforeSrc: images.lifestyleBeforeSrc || images.lifestylePosterSrc,
+        afterSrc: images.lifestyleAfterSrc,
       },
       mosaic: {
         hidden: formData.get("homeMosaicHidden") === "on",

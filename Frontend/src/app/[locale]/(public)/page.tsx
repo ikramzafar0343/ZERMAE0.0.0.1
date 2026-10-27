@@ -11,7 +11,7 @@ import { LifestyleSection } from "@/components/home/LifestyleSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { RitualSection } from "@/components/home/RitualSection";
 import { SocialSection } from "@/components/home/SocialSection";
-import { shopCategoriesAsRitualTabs, type HomeSectionId } from "@/constants/storefront";
+import { type HomeSectionId,shopCategoriesAsRitualTabs } from "@/constants/storefront";
 import { loadHomeProducts } from "@/lib/home-products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
@@ -22,7 +22,7 @@ export default async function HomePage() {
   const sections = home.sections;
   const ritualTabs = shopCategoriesAsRitualTabs(storefront.content.shopCategories);
 
-  const { collection, featured, lifestyle, ritualCatalog, panelImage } = await loadHomeProducts(
+  const { collection, featured, featuredProducts, journalProducts, ritualCatalog, panelImage } = await loadHomeProducts(
     storefront.content.bestSellerSkus,
     {
       shopCategories: storefront.content.shopCategories,
@@ -43,6 +43,7 @@ export default async function HomePage() {
           <HeroSection
             key={id}
             featured={featured}
+            featuredProducts={featuredProducts}
             currency={currency}
             cms={sections.hero}
           />
@@ -61,7 +62,7 @@ export default async function HomePage() {
       case "lifestyle":
         if (sections.lifestyle.hidden) return null;
         return (
-          <LifestyleSection key={id} products={lifestyle} currency={currency} cms={sections.lifestyle} />
+          <LifestyleSection key={id} cms={sections.lifestyle} />
         );
       case "mosaic":
         if (sections.mosaic.hidden) return null;
@@ -89,7 +90,9 @@ export default async function HomePage() {
         return <SocialSection key={id} cms={sections.social} />;
       case "journal":
         if (sections.journal.hidden) return null;
-        return <JournalSection key={id} cms={sections.journal} />;
+        return (
+          <JournalSection key={id} products={journalProducts} currency={currency} cms={sections.journal} />
+        );
       case "newsletter":
         if (sections.newsletter.hidden) return null;
         return <NewsletterSection key={id} cms={sections.newsletter} />;

@@ -2,7 +2,7 @@ import type { MiniProduct } from "@/components/shop/ProductMiniCard";
 import type { QuietProduct } from "@/components/shop/ProductTile";
 import { productImageUrls } from "@/features/catalog/map-product";
 import { productService } from "@/lib/api/products";
-import { SHOP_CATEGORIES, type RitualTab } from "@/lib/content/homepage";
+import { type RitualTab,SHOP_CATEGORIES } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
 import type { SerializedProduct } from "@/types/product";
 
@@ -54,7 +54,7 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
 
   let products: SerializedProduct[] = [];
   try {
-    const flagged = await productService.list({ bestSeller: true, limit: 12 });
+    const flagged = await productService.list({ bestSeller: true, limit: 24 });
     products = flagged.products;
     if (products.length < 6 && bestSellerSkus.length) {
       const bySku = await productService.getBySkus(bestSellerSkus);
@@ -63,8 +63,8 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
         if (!seen.has(item.id)) products.push(item);
       }
     }
-    if (products.length < 6) {
-      const listed = await productService.list({ limit: 12 });
+    if (products.length < 12) {
+      const listed = await productService.list({ limit: 24 });
       const seen = new Set(products.map((item) => item.id));
       for (const item of listed.products) {
         if (!seen.has(item.id)) products.push(item);
@@ -96,15 +96,24 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
     };
   });
 
-  const featured = collection[0]
-    ? {
-        id: collection[0].id,
-        title: collection[0].title,
-        price: collection[0].price,
-        image: collection[0].image,
-        href: collection[0].href ?? `/product/${collection[0].id}`,
+  // Real catalog products for the hero tile slider (capped — never dump thousands into the DOM).
+  const HERO_FEATURED_LIMIT = 24;
+  const featuredPool: SerializedProduct[] = products;
+  if (featuredPool.length < HERO_FEATURED_LIMIT) {
+    try {
+      const listed = await productService.list({ limit: HERO_FEATURED_LIMIT, sort: "createdAt", order: "desc" });
+      const seen = new Set(featuredPool.map((item) => item.id));
+      for (const item of listed.products) {
+        if (seen.has(item.id)) continue;
+        featuredPool.push(item);
+        if (featuredPool.length >= HERO_FEATURED_LIMIT) break;
       }
-    : null;
+    } catch {
+      // keep whatever we already have
+    }
+  }
+  const featuredProducts = featuredPool.slice(0, HERO_FEATURED_LIMIT).map((product) => toMiniProduct(product));
+  const featured = featuredProducts[0] ?? null;
   const lifestyle = collection.slice(0, 2).map((product) => ({
     id: product.id,
     title: product.title,
@@ -147,5 +156,15 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
     }),
   );
 
-  return { collection, featured, lifestyle, ritualCatalog, panelImage: collection[0]?.image };
+  const journalProducts = featuredProducts.slice(0, 3);
+
+  return {
+    collection,
+    featured,
+    featuredProducts,
+    journalProducts,
+    lifestyle,
+    ritualCatalog,
+    panelImage: collection[0]?.image,
+  };
 }

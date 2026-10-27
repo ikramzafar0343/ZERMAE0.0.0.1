@@ -10,8 +10,19 @@ export function EditorialMosaic({
   panelImage?: string | undefined;
   cms?: StorefrontHome["sections"]["mosaic"];
 }) {
-  const eyebrow = cms?.eyebrow ?? HOME_MOSAIC.eyebrow;
-  const lines = [cms?.line1 ?? HOME_MOSAIC.lines[0], cms?.line2 ?? HOME_MOSAIC.lines[1]] as const;
+  const rawEyebrow = (cms?.eyebrow ?? HOME_MOSAIC.eyebrow).trim();
+  const eyebrow =
+    !rawEyebrow || rawEyebrow.toLowerCase() === "shop the collection" ? "" : rawEyebrow;
+  const line1 = (cms?.line1 ?? "").trim();
+  const line2 = (cms?.line2 ?? "").trim();
+  const useDefaultHeading =
+    !line1 ||
+    line1 === "Luxury formulated," ||
+    line1 === "The Zermae" ||
+    Boolean(line2);
+  const lines = useDefaultHeading
+    ? HOME_MOSAIC.lines
+    : ([line1] as const);
   return (
     <section className="ha-section ha-mosaic" id="ha-mosaic">
       <div className="ha-container-wide">

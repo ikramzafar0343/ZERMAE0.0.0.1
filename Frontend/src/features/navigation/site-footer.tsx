@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 
-import { IconFacebook, IconInstagram, IconPinterest, IconSparkle } from "@/components/icons/icons";
-import { brandName, footerSocialLabel, heroCtaHref, heroExploreLabel } from "@/constants/brand";
+import { IconFacebook, IconInstagram, IconPinterest } from "@/components/icons/icons";
+import { brandName, footerSocialLabel } from "@/constants/brand";
 import { FOOTER_NAV, FOOTER_SOCIAL, formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
 import { type StorefrontContent, visibleNavLinks } from "@/constants/storefront";
 type IconProps = { className?: string | undefined };
@@ -12,8 +12,6 @@ const SOCIAL_ICONS: Record<(typeof FOOTER_SOCIAL)[number]["icon"], ComponentType
   instagram: IconInstagram,
   pinterest: IconPinterest,
 };
-
-const EXPLORE_COPY = Array.from({ length: 3 }, () => `${heroExploreLabel.toUpperCase()} •`).join(" ");
 
 function SocialBlob({ className }: { className: string }) {
   return (
@@ -37,19 +35,6 @@ export function SiteFooter({ content }: { content: StorefrontContent }) {
   return (
     <footer id="site-footer" className="site-footer">
       <div className="site-footer-inner">
-        <Link href={heroCtaHref} className="site-footer-badge" aria-label={heroExploreLabel}>
-          <span className="site-footer-badge-ring">
-            <svg viewBox="0 0 200 200" aria-hidden="true">
-              <defs>
-                <path id="footerExplorePath" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0" />
-              </defs>
-              <text className="site-footer-badge-type">
-                <textPath href="#footerExplorePath">{EXPLORE_COPY}</textPath>
-              </text>
-            </svg>
-          </span>
-          <IconSparkle className="site-footer-badge-star" />
-        </Link>
         <p className="site-footer-statement">
           <span>{content.footerStatementLead}</span>
           <span>{content.footerStatementEnd}</span>

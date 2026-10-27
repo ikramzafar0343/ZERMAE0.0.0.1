@@ -26,6 +26,9 @@ export function ProductTile({
   className,
   showQuickAdd = true,
   showWishlist = true,
+  showPrice = true,
+  viewAllHref,
+  viewAllLabel = "View all",
   wished = false,
 }: {
   product: QuietProduct;
@@ -33,10 +36,14 @@ export function ProductTile({
   className?: string;
   showQuickAdd?: boolean;
   showWishlist?: boolean;
+  showPrice?: boolean;
+  viewAllHref?: string;
+  viewAllLabel?: string;
   wished?: boolean;
 }) {
   const href = product.href ?? (isCatalogProductId(product.id) ? `/product/${product.id}` : "/collections/all");
   const canAct = isCatalogProductId(product.id);
+  const actionHref = viewAllHref ?? href;
 
   return (
     <article className={cn("ha-product-tile", className)} data-reveal-item>
@@ -94,7 +101,14 @@ export function ProductTile({
         <Link href={href} className="ha-product-tile__name">
           {product.title}
         </Link>
-        <span className="ha-product-tile__price">{formatMoney(product.price, currency)}</span>
+        {viewAllHref ? (
+          <Link href={actionHref} className="ha-product-tile__view-all">
+            {viewAllLabel}
+            <span aria-hidden="true"> →</span>
+          </Link>
+        ) : showPrice ? (
+          <span className="ha-product-tile__price">{formatMoney(product.price, currency)}</span>
+        ) : null}
       </div>
     </article>
   );

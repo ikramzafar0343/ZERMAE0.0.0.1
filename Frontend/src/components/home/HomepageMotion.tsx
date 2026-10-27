@@ -115,7 +115,6 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
             ".ha-mosaic__right-tile > img",
             ".ha-social__card > img",
             ".ha-journal__card img",
-            ".ha-lifestyle__tiles img",
             ".ha-review-card img",
             "[data-reveal-item] img",
           ].join(", "),

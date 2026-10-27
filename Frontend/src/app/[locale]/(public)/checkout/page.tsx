@@ -23,6 +23,7 @@ export default async function CheckoutPage() {
     const price = Number(product?.effectivePrice ?? product?.price ?? 0);
     return {
       title: String(product?.title ?? "Product"),
+      size: item.size ?? null,
       quantity: item.quantity,
       lineTotal: price * item.quantity,
     };
@@ -44,9 +45,10 @@ export default async function CheckoutPage() {
             <p className="checkout-summary-title">Order Summary</p>
             <ul className="checkout-summary-items">
               {lines.map((line, index) => (
-                <li key={`${line.title}-${index}`} className="checkout-summary-row">
+                <li key={`${line.title}-${line.size ?? ""}-${index}`} className="checkout-summary-row">
                   <span>
-                    {line.title} × {line.quantity}
+                    {line.title}
+                    {line.size ? ` · ${line.size}` : ""} × {line.quantity}
                   </span>
                   <span>{formatMoney(line.lineTotal, commerce.currency)}</span>
                 </li>

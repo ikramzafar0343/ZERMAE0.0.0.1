@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { type MiniProduct, ProductMiniCard } from "@/components/shop/ProductMiniCard";
+import { HeroProductSlider } from "@/components/shop/HeroProductSlider";
+import { type MiniProduct } from "@/components/shop/ProductMiniCard";
 import { HOME_HERO } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
 
@@ -9,6 +10,9 @@ export type PageHeroProps = {
   title: string;
   ctaLabel?: string;
   ctaHref?: string;
+  /** Prefer this for rotating inventory in the hero tile. */
+  featuredProducts?: MiniProduct[];
+  /** Single product fallback when a list is not provided. */
   featured?: MiniProduct | null;
   currency?: string;
   mediaSrc?: string;
@@ -19,11 +23,19 @@ export function PageHero({
   title,
   ctaLabel = HOME_HERO.ctaLabel,
   ctaHref = HOME_HERO.ctaHref,
+  featuredProducts,
   featured = null,
   currency = "PKR",
   mediaSrc = MEDIA.heroPoster.src,
   mediaPosition = MEDIA.heroPoster.objectPosition,
 }: PageHeroProps) {
+  const slides =
+    featuredProducts && featuredProducts.length > 0
+      ? featuredProducts
+      : featured
+        ? [featured]
+        : [];
+
   return (
     <section className="ha-hero" aria-label="Hero">
       <div className="ha-hero__media" data-parallax-shell>
@@ -46,9 +58,9 @@ export function PageHero({
         </Link>
       </div>
 
-      {featured ? (
+      {slides.length > 0 ? (
         <div className="ha-hero__tile" data-hero-tile>
-          <ProductMiniCard product={featured} currency={currency} />
+          <HeroProductSlider products={slides} currency={currency} />
         </div>
       ) : null}
     </section>

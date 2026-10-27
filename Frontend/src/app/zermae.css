@@ -2646,70 +2646,21 @@
     }
 
     .collection-banner {
-      min-height: 14rem;
-      margin-block: 1.5rem;
-    }
-
-    .collection-banner-img {
-      min-height: 14rem;
-      object-position: center center;
-      transform: scale(1);
+      min-height: 8.75rem;
+      margin-block: 0;
     }
   }
 
   .collection-banner {
-    @apply relative my-10 w-full overflow-hidden md:my-12;
-    min-height: 18rem;
+    @apply relative w-full overflow-hidden;
+    margin-block: 0;
+    min-height: 8.75rem;
   }
 
   @media (min-width: 768px) {
     .collection-banner {
-      min-height: 22rem;
+      min-height: 10rem;
     }
-  }
-
-  .collection-banner-picture {
-    @apply block h-full w-full;
-    min-height: inherit;
-  }
-
-  .collection-banner-img {
-    @apply h-full w-full min-h-[inherit] object-cover;
-    min-height: 18rem;
-    transform: scale(1.03);
-    transform-origin: center center;
-    transition: transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  @media (min-width: 768px) {
-    .collection-banner-img {
-      min-height: 22rem;
-    }
-  }
-
-  .collection-banner:hover .collection-banner-img {
-    transform: scale(1.06);
-  }
-
-  .collection-banner--new .collection-banner-img {
-    object-position: left center;
-  }
-
-  .collection-banner--serums .collection-banner-img {
-    object-position: center center;
-  }
-
-  .collection-banner--creams .collection-banner-img {
-    object-position: right center;
-  }
-
-  .collection-banner--cleansers .collection-banner-img,
-  .collection-banner--body .collection-banner-img {
-    object-position: center center;
-  }
-
-  .collection-banner--all .collection-banner-img {
-    object-position: left center;
   }
 
   .product-detail-page {
@@ -2741,12 +2692,13 @@
     .product-hero {
       grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.9fr);
       gap: clamp(1.5rem, 3vw, 2.75rem);
-      align-items: start;
+      align-items: stretch;
     }
   }
 
   .product-thumbs {
     @apply order-2 flex gap-2.5 overflow-x-auto md:order-0 md:flex-col md:overflow-visible;
+    align-self: start;
   }
 
   .product-thumb {
@@ -2756,7 +2708,7 @@
   }
 
   .product-thumb-image {
-    @apply block h-full w-full object-cover object-center;
+    @apply block h-full w-full object-contain object-center;
   }
 
   .product-thumb-active {
@@ -2771,9 +2723,20 @@
     @apply relative order-1 flex items-center justify-center overflow-hidden bg-brand-bg;
     width: 100%;
     max-width: none;
-    max-height: min(460px, calc(100svh - 9.5rem));
-    aspect-ratio: 1 / 1;
+    min-height: min(28rem, 70svh);
+    max-height: min(640px, calc(100svh - 8rem));
+    aspect-ratio: 4 / 5;
+    height: auto;
     border-radius: 14px;
+  }
+
+  @media (min-width: 900px) {
+    .product-main-image {
+      aspect-ratio: auto;
+      height: 100%;
+      min-height: 28rem;
+      max-height: none;
+    }
   }
 
   .product-main-image--solo {
@@ -2782,7 +2745,7 @@
 
   .product-main-image img {
     @apply block h-full w-full;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center center;
   }
 

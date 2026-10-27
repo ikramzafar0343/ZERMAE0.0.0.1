@@ -86,7 +86,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               sku: product.sku,
               category: CATEGORY_LABELS[category] ?? "Zermae",
               intro: product.description.intro,
-              volume: product.specifications.includes,
+              volume: product.sizes[0]?.trim() || product.specifications.includes,
               price: product.effectivePrice,
               originalPrice: product.originalPrice,
               sizes: [...product.sizes],
