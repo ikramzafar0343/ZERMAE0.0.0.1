@@ -290,7 +290,7 @@ export function buildDefaultHome(): StorefrontHome {
         hidden: false,
         eyebrow: HOME_COLLECTION.eyebrow,
         line1: HOME_COLLECTION.lines[0],
-        line2: HOME_COLLECTION.lines[1] ?? "",
+        line2: "",
         tileImageOverrides: Array.from({ length: 6 }, () => ""),
       },
       lifestyle: {

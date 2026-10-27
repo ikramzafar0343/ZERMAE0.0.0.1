@@ -28,7 +28,7 @@ export function HeroSection({ featured, featuredProducts, currency, cms }: HeroS
       featured={featured}
       {...(featuredProducts ? { featuredProducts } : {})}
       currency={currency}
-      mediaSrc={mediaSrcs[0]}
+      mediaSrc={mediaSrcs[0] ?? MEDIA.heroPoster.src}
       mediaSrcs={mediaSrcs}
     />
   );
