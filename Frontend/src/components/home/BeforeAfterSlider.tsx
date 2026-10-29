@@ -1,6 +1,6 @@
 "use client";
 
-import { type KeyboardEvent, type PointerEvent,useCallback, useRef, useState } from "react";
+import { type KeyboardEvent, type PointerEvent, useCallback, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { resolvePublicImageUrl } from "@/lib/public-image-url";
@@ -84,10 +84,14 @@ export function BeforeAfterSlider({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={after} alt="After" className="ha-ba__image ha-ba__image--after" draggable={false} />
-        <div className="ha-ba__before-clip" style={{ width: `${position}%` }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={before} alt="Before" className="ha-ba__image ha-ba__image--before" draggable={false} />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={before}
+          alt="Before"
+          className="ha-ba__image ha-ba__image--before"
+          draggable={false}
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+        />
         <div className="ha-ba__divider" style={{ left: `${position}%` }} aria-hidden="true">
           <span className="ha-ba__handle">↔</span>
         </div>

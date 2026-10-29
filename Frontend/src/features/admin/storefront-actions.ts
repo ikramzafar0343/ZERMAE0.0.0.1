@@ -76,10 +76,16 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     );
 
     const existingHeroBanners =
-      home.hero.banners?.filter(Boolean).length
-        ? home.hero.banners.filter(Boolean).slice(0, 5)
+      home.hero.banners?.filter((slide) => slide.desktop || slide.mobile).length
+        ? home.hero.banners
+            .filter((slide) => slide.desktop || slide.mobile)
+            .slice(0, 5)
+            .map((slide) => ({
+              desktop: slide.desktop || slide.mobile,
+              mobile: slide.mobile || "",
+            }))
         : home.hero.posterSrc
-          ? [home.hero.posterSrc]
+          ? [{ desktop: home.hero.posterSrc, mobile: "" }]
           : [];
     const heroBannerCount = Math.min(
       5,
@@ -89,7 +95,8 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     const [
       logoSrc,
       logoOnLightSrc,
-      heroBanners,
+      heroBannerDesktops,
+      heroBannerMobiles,
       lifestylePosterSrc,
       lifestyleBeforeSrc,
       lifestyleAfterSrc,
@@ -115,7 +122,18 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     ] = await Promise.all([
       readImage(formData, "logoSrc", live.brand.logoSrc),
       readImage(formData, "logoOnLightSrc", live.brand.logoOnLightSrc),
-      readImageList(formData, "heroBanner", heroBannerCount, existingHeroBanners),
+      readImageList(
+        formData,
+        "heroBannerDesktop",
+        heroBannerCount,
+        existingHeroBanners.map((slide) => slide.desktop),
+      ),
+      readImageList(
+        formData,
+        "heroBannerMobile",
+        heroBannerCount,
+        existingHeroBanners.map((slide) => slide.mobile),
+      ),
       readImage(formData, "lifestylePosterSrc", home.lifestyle.beforeSrc || home.lifestyle.posterSrc),
       readImage(formData, "lifestyleBeforeSrc", home.lifestyle.beforeSrc || home.lifestyle.posterSrc),
       readImage(formData, "lifestyleAfterSrc", home.lifestyle.afterSrc || ""),
@@ -159,8 +177,14 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       ),
     ]);
 
-    const cleanedHeroBanners = heroBanners.map((src) => src.trim()).filter(Boolean).slice(0, 5);
-    const heroPosterSrc = cleanedHeroBanners[0] ?? "";
+    const cleanedHeroBanners = Array.from({ length: heroBannerCount }, (_, index) => {
+      const desktop = (heroBannerDesktops[index] ?? "").trim();
+      const mobile = (heroBannerMobiles[index] ?? "").trim();
+      return { desktop: desktop || mobile, mobile };
+    })
+      .filter((slide) => slide.desktop || slide.mobile)
+      .slice(0, 5);
+    const heroPosterSrc = cleanedHeroBanners[0]?.desktop ?? "";
 
     const published = storefrontPublishFromForm(formData, {
       logoSrc,

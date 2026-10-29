@@ -177,9 +177,9 @@
 .ha-hero__media img,
 .ha-hero__media video {
   width: 100%;
-  height: calc(100% + 48px);
-  object-fit: cover;
-  object-position: 62% 48%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .ha-hero__shade {
@@ -787,7 +787,6 @@
   overflow: hidden;
   border-radius: var(--radius-image, 6px);
   background: #e8e4df;
-  container-type: inline-size;
   touch-action: none;
   cursor: ew-resize;
   user-select: none;
@@ -803,22 +802,8 @@
   pointer-events: none;
 }
 
-.ha-ba__before-clip {
-  position: absolute;
-  inset: 0 auto 0 0;
-  height: 100%;
-  overflow: hidden;
-  z-index: 1;
-}
-
 .ha-ba__image--before {
-  width: 100cqw;
-  max-width: none;
-  height: 100%;
-  left: 0;
-  top: 0;
-  right: auto;
-  bottom: auto;
+  z-index: 1;
 }
 
 .ha-ba__divider {

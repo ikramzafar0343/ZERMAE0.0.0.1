@@ -128,7 +128,8 @@ export function ProductGallery({ images, title }: { images: string[]; title: str
                   key={`${image}-${index}`}
                   src={image}
                   alt={title}
-                  fill
+                  width={1200}
+                  height={1500}
                   priority={index === 0}
                   sizes="(min-width: 1024px) 42vw, 90vw"
                   className={cn("product-main-still product-main-slide", safeActive === index && "is-active")}

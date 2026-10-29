@@ -36,6 +36,7 @@ import {
   buildDefaultMenus,
   buildDefaultPageTemplates,
   HOME_SECTION_IDS,
+  type HeroBannerSlide,
   type HomeSectionId,
   type StorefrontBrand,
   type StorefrontCollectionPage,
@@ -45,6 +46,7 @@ import {
 } from "@/constants/storefront-cms";
 
 export type {
+  HeroBannerSlide,
   HomeSectionId,
   StorefrontBrand,
   StorefrontCollectionPage,
@@ -53,6 +55,28 @@ export type {
   StorefrontPageTemplates,
 } from "@/constants/storefront-cms";
 export { HOME_SECTION_IDS, HOME_SECTION_LABELS, shopCategoriesAsRitualTabs } from "@/constants/storefront-cms";
+
+export function normalizeHeroBannerSlide(item: unknown): HeroBannerSlide | null {
+  if (typeof item === "string") {
+    const desktop = item.trim();
+    return desktop ? { desktop, mobile: "" } : null;
+  }
+  if (item && typeof item === "object") {
+    const record = item as Record<string, unknown>;
+    const desktop = String(record.desktop ?? "").trim();
+    const mobile = String(record.mobile ?? "").trim();
+    if (!desktop && !mobile) return null;
+    return { desktop: desktop || mobile, mobile };
+  }
+  return null;
+}
+
+export function normalizeHeroBannerSlides(items: unknown, fallback: HeroBannerSlide[] = []): HeroBannerSlide[] {
+  const list = Array.isArray(items)
+    ? items.map(normalizeHeroBannerSlide).filter((slide): slide is HeroBannerSlide => Boolean(slide)).slice(0, 5)
+    : [];
+  return list.length > 0 ? list : fallback.map((slide) => ({ ...slide }));
+}
 
 export type StorefrontTheme = {
   bg: string;
@@ -517,21 +541,17 @@ function asHome(value: unknown, faqFallback: StorefrontFaqItem[]): StorefrontHom
   const hero = deepMergeSection(fallback.sections.hero as unknown as Record<string, unknown>, sectionsRaw.hero) as unknown as StorefrontHome["sections"]["hero"];
   {
     const heroRaw = asRecord(sectionsRaw.hero);
-    const fromBanners = Array.isArray(heroRaw.banners)
-      ? (heroRaw.banners as unknown[])
-          .map((item) => String(item ?? "").trim())
-          .filter(Boolean)
-          .slice(0, 5)
+    const rawBanners = Array.isArray(heroRaw.banners)
+      ? heroRaw.banners
       : Array.isArray((hero as { banners?: unknown }).banners)
-        ? ((hero as { banners: unknown[] }).banners ?? [])
-            .map((item) => String(item ?? "").trim())
-            .filter(Boolean)
-            .slice(0, 5)
+        ? (hero as { banners: unknown[] }).banners
         : [];
     const poster = String(hero.posterSrc ?? "").trim();
-    const banners = fromBanners.length > 0 ? fromBanners : poster ? [poster] : [...fallback.sections.hero.banners];
-    hero.banners = banners.length > 0 ? banners : [...fallback.sections.hero.banners];
-    hero.posterSrc = hero.banners[0] ?? fallback.sections.hero.posterSrc;
+    const posterFallback: HeroBannerSlide[] = poster
+      ? [{ desktop: poster, mobile: "" }]
+      : fallback.sections.hero.banners.map((slide) => ({ ...slide }));
+    hero.banners = normalizeHeroBannerSlides(rawBanners, posterFallback);
+    hero.posterSrc = hero.banners[0]?.desktop ?? fallback.sections.hero.posterSrc;
   }
   const collection = deepMergeSection(fallback.sections.collection as unknown as Record<string, unknown>, sectionsRaw.collection) as unknown as StorefrontHome["sections"]["collection"];
   const lifestyle = deepMergeSection(fallback.sections.lifestyle as unknown as Record<string, unknown>, sectionsRaw.lifestyle) as unknown as StorefrontHome["sections"]["lifestyle"];

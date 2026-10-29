@@ -72,6 +72,11 @@ export type StorefrontHomeJournalItem = {
   alt: string;
 };
 
+export type HeroBannerSlide = {
+  desktop: string;
+  mobile: string;
+};
+
 export type StorefrontHomeSections = {
   hero: {
     hidden: boolean;
@@ -82,7 +87,7 @@ export type StorefrontHomeSections = {
     ctaHref: string;
     scrollLabel: string;
     posterSrc: string;
-    banners: string[];
+    banners: HeroBannerSlide[];
   };
   collection: {
     hidden: boolean;
@@ -281,7 +286,7 @@ export function buildDefaultHome(): StorefrontHome {
         ctaHref: "/collections/all",
         scrollLabel: "Scroll down",
         posterSrc: "/media/hero/portrait-poster.jpg",
-        banners: ["/media/hero/portrait-poster.jpg"],
+        banners: [{ desktop: "/media/hero/portrait-poster.jpg", mobile: "" }],
       },
       collection: {
         hidden: false,

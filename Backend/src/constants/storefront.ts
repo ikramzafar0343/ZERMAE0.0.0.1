@@ -33,6 +33,7 @@ import {
   buildDefaultHome,
   buildDefaultMenus,
   buildDefaultPageTemplates,
+  type HeroBannerSlide,
   type StorefrontBrand,
   type StorefrontCollectionPage,
   type StorefrontHome,
@@ -41,12 +42,43 @@ import {
 } from "@/constants/storefront-cms";
 
 export type {
+  HeroBannerSlide,
   StorefrontBrand,
   StorefrontCollectionPage,
   StorefrontHome,
   StorefrontMenus,
   StorefrontPageTemplates,
 } from "@/constants/storefront-cms";
+
+function normalizeHeroBannerSlide(item: unknown): HeroBannerSlide | null {
+  if (typeof item === "string") {
+    const desktop = item.trim();
+    return desktop ? { desktop, mobile: "" } : null;
+  }
+  if (item && typeof item === "object") {
+    const record = item as Record<string, unknown>;
+    const desktop = String(record.desktop ?? "").trim();
+    const mobile = String(record.mobile ?? "").trim();
+    if (!desktop && !mobile) return null;
+    return { desktop: desktop || mobile, mobile };
+  }
+  return null;
+}
+
+function normalizeHomeHeroBanners(home: StorefrontHome): StorefrontHome {
+  const raw = home.sections?.hero?.banners;
+  const poster = String(home.sections?.hero?.posterSrc ?? "").trim();
+  const fallback: HeroBannerSlide[] = poster
+    ? [{ desktop: poster, mobile: "" }]
+    : (DEFAULT_STOREFRONT_CONTENT.home.sections.hero.banners ?? []).map((slide) => ({ ...slide }));
+  const banners = Array.isArray(raw)
+    ? raw.map(normalizeHeroBannerSlide).filter((slide): slide is HeroBannerSlide => Boolean(slide)).slice(0, 5)
+    : [];
+  const nextBanners = banners.length > 0 ? banners : fallback;
+  home.sections.hero.banners = nextBanners;
+  home.sections.hero.posterSrc = nextBanners[0]?.desktop ?? home.sections.hero.posterSrc;
+  return home;
+}
 
 export type StorefrontTheme = {
   bg: string;
@@ -472,7 +504,7 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
     productCardColors: asHexList(record.productCardColors, DEFAULT_STOREFRONT_CONTENT.productCardColors),
     brand: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.brand, record.brand) as StorefrontBrand,
     menus: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.menus, record.menus) as StorefrontMenus,
-    home: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.home, record.home) as StorefrontHome,
+    home: normalizeHomeHeroBanners(mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.home, record.home) as StorefrontHome),
     pageTemplates: mergeCmsObject(DEFAULT_STOREFRONT_CONTENT.pageTemplates, record.pageTemplates) as StorefrontPageTemplates,
     collectionPages: mergeCmsObject(
       DEFAULT_STOREFRONT_CONTENT.collectionPages,

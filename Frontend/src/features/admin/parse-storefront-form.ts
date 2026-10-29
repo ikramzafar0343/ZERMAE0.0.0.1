@@ -13,7 +13,7 @@ export type StorefrontFormImages = {
   logoSrc: string;
   logoOnLightSrc: string;
   heroPosterSrc: string;
-  heroBanners: string[];
+  heroBanners: Array<{ desktop: string; mobile: string }>;
   lifestylePosterSrc: string;
   lifestyleBeforeSrc: string;
   lifestyleAfterSrc: string;
@@ -90,15 +90,22 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
         ctaLabel: String(formData.get("homeHeroCtaLabel") ?? ""),
         ctaHref: String(formData.get("homeHeroCtaHref") ?? "/collections/all"),
         scrollLabel: String(formData.get("homeHeroScrollLabel") ?? "Scroll down"),
-        posterSrc: images.heroBanners[0] || images.heroPosterSrc,
+        posterSrc: images.heroBanners[0]?.desktop || images.heroPosterSrc,
         banners: (images.heroBanners.length
           ? images.heroBanners
           : images.heroPosterSrc
-            ? [images.heroPosterSrc]
+            ? [{ desktop: images.heroPosterSrc, mobile: "" }]
             : []
         )
-          .map((src) => src.trim())
-          .filter(Boolean)
+          .map((slide) => ({
+            desktop: slide.desktop.trim(),
+            mobile: slide.mobile.trim(),
+          }))
+          .filter((slide) => slide.desktop || slide.mobile)
+          .map((slide) => ({
+            desktop: slide.desktop || slide.mobile,
+            mobile: slide.mobile,
+          }))
           .slice(0, 5),
       },
       collection: {

@@ -14,11 +14,19 @@ type HeroSectionProps = {
 export function HeroSection({ featured, featuredProducts, currency, cms }: HeroSectionProps) {
   const line1 = cms?.line1 ?? HOME_HERO.line1;
   const line2 = cms?.line2 ?? HOME_HERO.line2;
-  const banners =
-    cms?.banners?.map((src) => src.trim()).filter(Boolean).slice(0, 5) ??
-    [];
+  const banners = (cms?.banners ?? [])
+    .map((slide) => ({
+      desktop: slide.desktop.trim(),
+      mobile: slide.mobile.trim(),
+    }))
+    .filter((slide) => slide.desktop || slide.mobile)
+    .slice(0, 5)
+    .map((slide) => ({
+      desktop: slide.desktop || slide.mobile,
+      mobile: slide.mobile,
+    }));
   const fallback = cms?.posterSrc?.trim() || MEDIA.heroPoster.src;
-  const mediaSrcs = banners.length > 0 ? banners : [fallback];
+  const resolved = banners.length > 0 ? banners : [{ desktop: fallback, mobile: "" }];
 
   return (
     <PageHero
@@ -28,8 +36,8 @@ export function HeroSection({ featured, featuredProducts, currency, cms }: HeroS
       featured={featured}
       {...(featuredProducts ? { featuredProducts } : {})}
       currency={currency}
-      mediaSrc={mediaSrcs[0] ?? MEDIA.heroPoster.src}
-      mediaSrcs={mediaSrcs}
+      banners={resolved}
+      mediaSrc={resolved[0]?.desktop ?? MEDIA.heroPoster.src}
     />
   );
 }

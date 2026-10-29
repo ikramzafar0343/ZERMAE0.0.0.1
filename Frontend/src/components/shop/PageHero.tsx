@@ -3,6 +3,7 @@ import Link from "next/link";
 import { HeroBannerSlider } from "@/components/shop/HeroBannerSlider";
 import { HeroProductSlider } from "@/components/shop/HeroProductSlider";
 import { type MiniProduct } from "@/components/shop/ProductMiniCard";
+import type { HeroBannerSlide } from "@/constants/storefront";
 import { HOME_HERO } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
 
@@ -18,7 +19,7 @@ export type PageHeroProps = {
   currency?: string;
   mediaSrc?: string;
   mediaSrcs?: string[];
-  mediaPosition?: string;
+  banners?: HeroBannerSlide[];
 };
 
 export function PageHero({
@@ -30,7 +31,7 @@ export function PageHero({
   currency = "PKR",
   mediaSrc = MEDIA.heroPoster.src,
   mediaSrcs,
-  mediaPosition = MEDIA.heroPoster.objectPosition,
+  banners,
 }: PageHeroProps) {
   const slides =
     featuredProducts && featuredProducts.length > 0
@@ -38,13 +39,20 @@ export function PageHero({
       : featured
         ? [featured]
         : [];
-  const banners = (mediaSrcs?.length ? mediaSrcs : [mediaSrc])
+  const fromLegacy = (mediaSrcs?.length ? mediaSrcs : [mediaSrc])
     .map((src) => src.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((desktop) => ({ desktop, mobile: "" }));
+  const resolvedBanners =
+    banners && banners.length > 0
+      ? banners
+      : fromLegacy.length > 0
+        ? fromLegacy
+        : [{ desktop: MEDIA.heroPoster.src, mobile: "" }];
 
   return (
     <section className="ha-hero" aria-label="Hero">
-      <HeroBannerSlider banners={banners.length ? banners : [MEDIA.heroPoster.src]} objectPosition={mediaPosition} />
+      <HeroBannerSlider banners={resolvedBanners} />
       <div className="ha-hero__shade" aria-hidden="true" />
 
       <h1 className="sr-only">{title}</h1>

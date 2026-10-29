@@ -1042,7 +1042,7 @@
   .product-hero {
     grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.9fr);
     gap: clamp(1.5rem, 3vw, 2.75rem);
-    align-items: stretch;
+    align-items: start;
   }
 }
 
@@ -1052,9 +1052,9 @@
   gap: 0.65rem;
   width: 100%;
   min-width: 0;
-  align-self: stretch;
+  align-self: start;
   min-height: 0;
-  height: 100%;
+  height: auto;
 }
 
 @media (min-width: 768px) {
@@ -1129,34 +1129,20 @@
   order: 1;
   width: 100%;
   max-width: none;
-  min-height: min(28rem, 70svh);
-  max-height: min(640px, calc(100svh - 8rem));
-  aspect-ratio: 4 / 5;
+  min-height: 0;
+  max-height: none;
   height: auto;
   overflow: hidden;
   border-radius: 14px;
   border: 0;
   background: var(--soft, #f8f8f8);
   justify-self: stretch;
-}
-
-@media (min-width: 900px) {
-  .product-main-image {
-    width: 100%;
-    aspect-ratio: auto;
-    height: 100%;
-    min-height: 28rem;
-    max-height: none;
-  }
+  align-self: start;
 }
 
 @media (max-width: 639px) {
   .product-main-image {
     width: min(100%, 320px);
-    min-height: 0;
-    max-height: min(420px, 58svh);
-    aspect-ratio: 4 / 5;
-    height: auto;
     margin-inline: auto;
     justify-self: center;
   }
@@ -1167,28 +1153,41 @@
 }
 
 .product-main-still {
+  display: block;
+  width: 100%;
+  height: auto;
   object-fit: contain;
   object-position: center;
   padding: 0;
 }
 
 .product-main-stage {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  width: 100%;
   touch-action: pan-y;
   cursor: zoom-in;
   user-select: none;
 }
 
 .product-main-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   opacity: 0;
   transition: opacity 650ms ease;
   pointer-events: none;
 }
 
 .product-main-slide.is-active {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: auto;
   opacity: 1;
   z-index: 1;
+  pointer-events: auto;
 }
 
 .product-gallery-nav {

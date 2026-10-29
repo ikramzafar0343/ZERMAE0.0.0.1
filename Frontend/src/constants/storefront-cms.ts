@@ -90,6 +90,11 @@ export type StorefrontHomeJournalItem = {
   alt: string;
 };
 
+export type HeroBannerSlide = {
+  desktop: string;
+  mobile: string;
+};
+
 export type StorefrontHomeSections = {
   hero: {
     hidden: boolean;
@@ -99,10 +104,10 @@ export type StorefrontHomeSections = {
     ctaLabel: string;
     ctaHref: string;
     scrollLabel: string;
-    /** First banner; kept in sync with banners[0] for older readers. */
+    /** First banner; kept in sync with banners[0].desktop for older readers. */
     posterSrc: string;
-    /** 1–5 full-bleed hero banner images in display order. */
-    banners: string[];
+    /** 1–5 hero banner slides (desktop + optional mobile) in display order. */
+    banners: HeroBannerSlide[];
   };
   collection: {
     hidden: boolean;
@@ -284,7 +289,7 @@ export function buildDefaultHome(): StorefrontHome {
         ctaHref: HOME_HERO.ctaHref,
         scrollLabel: HOME_HERO.scrollLabel,
         posterSrc: MEDIA.heroPoster.src,
-        banners: [MEDIA.heroPoster.src],
+        banners: [{ desktop: MEDIA.heroPoster.src, mobile: "" }],
       },
       collection: {
         hidden: false,

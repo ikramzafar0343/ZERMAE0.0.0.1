@@ -253,12 +253,15 @@ export function StorefrontEditor({
   });
   const [heroBanners, setHeroBanners] = useState(() => {
     const fromCms = (content.home.sections.hero.banners ?? [])
-      .map((src) => src.trim())
-      .filter(Boolean)
+      .map((slide) => ({
+        desktop: slide.desktop.trim(),
+        mobile: slide.mobile.trim(),
+      }))
+      .filter((slide) => slide.desktop || slide.mobile)
       .slice(0, 5);
     if (fromCms.length) return fromCms;
     const poster = content.home.sections.hero.posterSrc?.trim();
-    return poster ? [poster] : [""];
+    return poster ? [{ desktop: poster, mobile: "" }] : [{ desktop: "", mobile: "" }];
   });
   const [pageFaq, setPageFaq] = useState(() => content.pageTemplates.faq.items.map((item) => ({ ...item })));
   const [publishState, publishAction] = useActionState(
@@ -366,11 +369,22 @@ export function StorefrontEditor({
                   <label className="admin-product-check">
                     <input type="checkbox" name="homeHeroHidden" defaultChecked={home.hero.hidden} /> Hide section
                   </label>
-                  <p className="admin-product-kicker">Hero banners (1–5). Reorder with Up/Down. Multiple banners autoplay with arrows on the site.</p>
+                  <p className="admin-product-kicker">
+                    Hero banners (1–5). Desktop export 1920×1080 (16:9), optional 2× 3840×2160. Mobile export 1080×1920 (9:16). Keep subject in the central ~90%; top ~68px may sit under the header. Reorder with Up/Down. Multiple banners autoplay with arrows on the site.
+                  </p>
                   <input type="hidden" name="homeHeroBannerCount" value={heroBanners.length} />
-                  {heroBanners.map((src, index) => (
-                    <div key={`hero-banner-${index}-${src || "empty"}`} className="admin-storefront-inline-card">
-                      <ImageUrlField name={`heroBanner_${index}`} label={`Banner ${index + 1}`} defaultValue={src} />
+                  {heroBanners.map((slide, index) => (
+                    <div key={`hero-banner-${index}-${slide.desktop || "empty"}-${slide.mobile || "m"}`} className="admin-storefront-inline-card">
+                      <ImageUrlField
+                        name={`heroBannerDesktop_${index}`}
+                        label={`Banner ${index + 1} · Desktop`}
+                        defaultValue={slide.desktop}
+                      />
+                      <ImageUrlField
+                        name={`heroBannerMobile_${index}`}
+                        label={`Banner ${index + 1} · Mobile`}
+                        defaultValue={slide.mobile}
+                      />
                       <div className="admin-orders-filters">
                         <button
                           type="button"
@@ -419,7 +433,11 @@ export function StorefrontEditor({
                     type="button"
                     className="admin-orders-filter"
                     disabled={heroBanners.length >= 5}
-                    onClick={() => setHeroBanners((current) => (current.length >= 5 ? current : [...current, ""]))}
+                    onClick={() =>
+                      setHeroBanners((current) =>
+                        current.length >= 5 ? current : [...current, { desktop: "", mobile: "" }],
+                      )
+                    }
                   >
                     Add banner
                   </button>

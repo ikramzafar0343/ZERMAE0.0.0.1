@@ -3,17 +3,25 @@
 import { useCallback, useState } from "react";
 
 import { IconChevronLeft, IconChevronRight } from "@/components/icons/icons";
+import type { HeroBannerSlide } from "@/constants/storefront";
 import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autoplay";
 import { cn } from "@/lib/cn";
 
 export function HeroBannerSlider({
   banners,
-  objectPosition = "62% 48%",
 }: {
-  banners: string[];
-  objectPosition?: string;
+  banners: HeroBannerSlide[];
 }) {
-  const unique = banners.map((src) => src.trim()).filter(Boolean);
+  const unique = banners
+    .map((slide) => ({
+      desktop: slide.desktop.trim(),
+      mobile: slide.mobile.trim(),
+    }))
+    .filter((slide) => slide.desktop || slide.mobile)
+    .map((slide) => ({
+      desktop: slide.desktop || slide.mobile,
+      mobile: slide.mobile,
+    }));
   const count = unique.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -42,21 +50,27 @@ export function HeroBannerSlider({
   return (
     <div
       className="ha-hero__media"
-      data-parallax-shell
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {unique.map((src, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={`${src}-${i}`}
-          src={src}
-          alt=""
-          className={cn("ha-hero__banner", safe === i && "is-active")}
-          style={{ objectPosition }}
-          fetchPriority={i === 0 ? "high" : "auto"}
-        />
-      ))}
+      {unique.map((slide, i) => {
+        const mobileSrc = slide.mobile || slide.desktop;
+        return (
+          <picture
+            key={`${slide.desktop}-${slide.mobile}-${i}`}
+            className={cn("ha-hero__banner-picture", safe === i && "is-active")}
+          >
+            <source media="(max-width: 1023px)" srcSet={mobileSrc} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={slide.desktop}
+              alt=""
+              className="ha-hero__banner"
+              fetchPriority={i === 0 ? "high" : "auto"}
+            />
+          </picture>
+        );
+      })}
       {hasMany ? (
         <>
           <button
