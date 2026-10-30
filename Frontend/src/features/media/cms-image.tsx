@@ -3,7 +3,13 @@ import Image, { type ImageProps } from "next/image";
 import { resolvePublicImageUrl } from "@/lib/public-image-url";
 
 function shouldSkipOptimizer(src: string): boolean {
-  return src.startsWith("blob:") || src.startsWith("data:");
+  // Uploads go through API media (?w= WebP) — Next optimizer 400s on those URLs
+  return (
+    src.startsWith("blob:") ||
+    src.startsWith("data:") ||
+    src.startsWith("/uploads/") ||
+    src.startsWith("/api/v1/media/")
+  );
 }
 
 export function CmsImage({
