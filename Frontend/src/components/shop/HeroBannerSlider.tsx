@@ -8,7 +8,7 @@ import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autopl
 import { cn } from "@/lib/cn";
 import { resolvePublicImageUrl, withMediaWidth } from "@/lib/public-image-url";
 
-function heroSrc(src: string, width: 750 | 1080 | 1920): string {
+function heroSrc(src: string, width: 1080 | 1920): string {
   return withMediaWidth(resolvePublicImageUrl(src), width);
 }
 
@@ -26,9 +26,9 @@ export function HeroBannerSlider({
       return {
         desktopRaw: desktop,
         mobileRaw: mobile,
-        // Mobile LCP: 750px WebP (~phone*2x). Empty mobile still uses desktop file at w=750.
+        // Mobile LCP: 1080px WebP (retina + crisp banner type). Empty mobile → same file at w=1080.
         desktop: heroSrc(desktop, 1920),
-        mobile: heroSrc(mobile, 750),
+        mobile: heroSrc(mobile, 1080),
       };
     })
     .filter((slide) => slide.desktopRaw || slide.mobileRaw);

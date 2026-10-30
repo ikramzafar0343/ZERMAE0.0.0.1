@@ -15,7 +15,7 @@ function heroPreloadUrls(banners: HeroBannerSlide[]) {
   const mobileRaw = first.mobile.trim() || first.desktop.trim();
   if (!desktopRaw && !mobileRaw) return null;
   return {
-    mobile: withMediaWidth(resolvePublicImageUrl(mobileRaw || desktopRaw), 750),
+    mobile: withMediaWidth(resolvePublicImageUrl(mobileRaw || desktopRaw), 1080),
     desktop: withMediaWidth(resolvePublicImageUrl(desktopRaw || mobileRaw), 1920),
   };
 }

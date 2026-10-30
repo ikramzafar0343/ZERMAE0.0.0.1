@@ -7,6 +7,7 @@ import { describe, it } from "node:test";
 import sharp from "sharp";
 
 import {
+  derivativeQuality,
   getOrCreateDerivative,
   parseMediaWidth,
   preferAvif,
@@ -18,6 +19,13 @@ describe("media-derivative", () => {
     assert.equal(parseMediaWidth("1920"), 1920);
     assert.equal(parseMediaWidth("999"), null);
     assert.equal(parseMediaWidth(undefined), null);
+  });
+
+  it("uses higher encode quality for hero widths", () => {
+    assert.deepEqual(derivativeQuality(640), { webp: 78, avif: 70 });
+    assert.deepEqual(derivativeQuality(750), { webp: 78, avif: 70 });
+    assert.deepEqual(derivativeQuality(1080), { webp: 86, avif: 78 });
+    assert.deepEqual(derivativeQuality(1920), { webp: 86, avif: 78 });
   });
 
   it("detects AVIF preference from Accept", () => {

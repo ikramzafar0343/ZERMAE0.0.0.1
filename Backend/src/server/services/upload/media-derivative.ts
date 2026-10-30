@@ -7,6 +7,9 @@ import sharp from "sharp";
 export const MEDIA_WIDTHS = [640, 750, 1080, 1920] as const;
 export type MediaWidth = (typeof MEDIA_WIDTHS)[number];
 
+/** Bump when encode settings change so on-disk .cache entries are not reused soft. */
+const DERIVATIVE_CACHE_VERSION = "q2";
+
 const MAX_PIXELS = 40_000_000;
 
 export function parseMediaWidth(raw: string | undefined): MediaWidth | null {
@@ -21,6 +24,14 @@ export function preferAvif(accept: string | undefined): boolean {
   return Boolean(accept?.includes("image/avif"));
 }
 
+/** Hero/LCP widths need sharper text; thumbs stay lighter. */
+export function derivativeQuality(width: MediaWidth): { webp: number; avif: number } {
+  if (width >= 1080) {
+    return { webp: 86, avif: 78 };
+  }
+  return { webp: 78, avif: 70 };
+}
+
 /**
  * Resize+encode a derivative; cache under UPLOAD_DIR/.cache/
  */
@@ -31,7 +42,15 @@ export async function getOrCreateDerivative(input: {
   preferAvif: boolean;
 }): Promise<{ buffer: Buffer; mimeType: string; cachePath: string }> {
   const source = await readFile(input.sourcePath);
-  const hash = createHash("sha1").update(source).update(`w${input.width}`).digest("hex").slice(0, 16);
+  const quality = derivativeQuality(input.width);
+  const hash = createHash("sha1")
+    .update(source)
+    .update(`w${input.width}`)
+    .update(DERIVATIVE_CACHE_VERSION)
+    .update(`webp${quality.webp}`)
+    .update(`avif${quality.avif}`)
+    .digest("hex")
+    .slice(0, 16);
   const ext = input.preferAvif ? "avif" : "webp";
   const mimeType = input.preferAvif ? "image/avif" : "image/webp";
   const cacheDir = path.join(input.uploadDir, ".cache");
@@ -57,8 +76,8 @@ export async function getOrCreateDerivative(input: {
     });
 
   const buffer = input.preferAvif
-    ? await pipeline.avif({ quality: 70, effort: 4 }).toBuffer()
-    : await pipeline.webp({ quality: 78, effort: 4 }).toBuffer();
+    ? await pipeline.avif({ quality: quality.avif, effort: 4 }).toBuffer()
+    : await pipeline.webp({ quality: quality.webp, effort: 4 }).toBuffer();
 
   await writeFile(cachePath, buffer);
   return { buffer, mimeType, cachePath };
