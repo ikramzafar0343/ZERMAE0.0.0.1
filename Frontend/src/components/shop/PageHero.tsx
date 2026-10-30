@@ -79,7 +79,6 @@ export function PageHero({
         </>
       ) : null}
       <HeroBannerSlider banners={resolvedBanners} />
-      <div className="ha-hero__shade" aria-hidden="true" />
 
       <h1 className="sr-only">{title}</h1>
 

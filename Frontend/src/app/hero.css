@@ -135,16 +135,6 @@
   }
 }
 
-.ha-hero__shade {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: min(520px, 55%);
-  height: 55%;
-  background: linear-gradient(to top right, rgba(0, 0, 0, 0.45), transparent 70%);
-  pointer-events: none;
-}
-
 .ha-hero__copy {
   position: absolute;
   left: calc(var(--gutter, 60px) + 28px);
