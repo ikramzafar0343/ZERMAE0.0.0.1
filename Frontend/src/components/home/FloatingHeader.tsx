@@ -153,7 +153,7 @@ export function FloatingHeader({
 
         <Link href="/" className="ha-float-header__brand" aria-label={homeLabel}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoSrc} alt="" height={26} />
+          <img src={logoSrc} alt="" height={26} width={140} decoding="async" fetchPriority="low" />
         </Link>
 
         <div className="ha-float-header__right">

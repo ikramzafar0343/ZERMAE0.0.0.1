@@ -4,8 +4,8 @@ import "./hero.css";
 import "./footer.css";
 import "./storefront.css";
 
-import { Cormorant_Garamond, DM_Sans, Inter, Manrope, Plus_Jakarta_Sans, Poppins } from "next/font/google";
-import type { ReactNode } from "react";
+import { Inter } from "next/font/google";
+import type { CSSProperties, ReactNode } from "react";
 
 import { brandDescription, brandName } from "@/constants/brand";
 import { DEFAULT_STOREFRONT_THEME } from "@/constants/storefront";
@@ -13,44 +13,13 @@ import { CookieBanner } from "@/features/consent/cookie-banner";
 import { ThemeStyle } from "@/features/theme/theme-style";
 import { getStorefront } from "@/lib/storefront";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
-});
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-poppins",
-  display: "swap",
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
+/** Single family for storefront — cuts ~5 render-blocking font files from LCP. */
 const inter = Inter({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-inter",
   display: "swap",
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-dm-sans",
-  display: "swap",
+  preload: true,
 });
 
 export const metadata = {
@@ -84,7 +53,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body
-        className={`${plusJakarta.variable} ${poppins.variable} ${cormorant.variable} ${inter.variable} ${manrope.variable} ${dmSans.variable} min-h-screen bg-brand-bg antialiased`}
+        className={`${inter.variable} min-h-screen bg-brand-bg antialiased`}
+        style={
+          {
+            // Alias legacy font CSS vars so unused families do not 404 / block
+            ["--font-plus-jakarta"]: "var(--font-inter)",
+            ["--font-poppins"]: "var(--font-inter)",
+            ["--font-cormorant"]: "var(--font-inter)",
+            ["--font-manrope"]: "var(--font-inter)",
+            ["--font-dm-sans"]: "var(--font-inter)",
+          } as CSSProperties
+        }
       >
         <ThemeStyle theme={theme} />
         {children}

@@ -72,15 +72,19 @@ export function HeroProductSlider({
         aria-label="Featured products"
         {...swipe}
       >
-        {slides.map((product, index) => (
-          <div
-            key={`${product.id}-${index}`}
-            className={cn("ha-hero-slider__slide", safeActive === index && "is-active")}
-            aria-hidden={safeActive !== index}
-          >
-            <ProductMiniCard product={product} currency={currency} />
-          </div>
-        ))}
+        {slides.map((product, index) => {
+          const isActive = safeActive === index;
+          return (
+            <div
+              key={`${product.id}-${index}`}
+              className={cn("ha-hero-slider__slide", isActive && "is-active")}
+              aria-hidden={!isActive}
+            >
+              {/* Only mount the visible card so inactive slides do not fetch images */}
+              {isActive ? <ProductMiniCard product={product} currency={currency} /> : null}
+            </div>
+          );
+        })}
       </div>
       {count <= 8 ? (
         <div className="ha-hero-slider__dots" role="tablist" aria-label="Featured product slides">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DeferredHeroTile } from "@/components/shop/DeferredHeroTile";
 import { HeroBannerSlider } from "@/components/shop/HeroBannerSlider";
 import { HeroProductSlider } from "@/components/shop/HeroProductSlider";
 import { type MiniProduct } from "@/components/shop/ProductMiniCard";
@@ -89,9 +90,11 @@ export function PageHero({
       </div>
 
       {slides.length > 0 ? (
-        <div className="ha-hero__tile" data-hero-tile>
-          <HeroProductSlider products={slides} currency={currency} />
-        </div>
+        <DeferredHeroTile>
+          <div className="ha-hero__tile" data-hero-tile>
+            <HeroProductSlider products={slides} currency={currency} />
+          </div>
+        </DeferredHeroTile>
       ) : null}
     </section>
   );
