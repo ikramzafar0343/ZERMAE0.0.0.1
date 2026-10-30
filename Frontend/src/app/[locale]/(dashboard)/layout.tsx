@@ -1,3 +1,5 @@
+import "@/app/zermae.css";
+
 import type { ReactNode } from "react";
 
 import { FloatingHeader } from "@/components/home/FloatingHeader";

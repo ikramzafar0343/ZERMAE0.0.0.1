@@ -23,7 +23,7 @@ describe("media-derivative", () => {
 
   it("uses higher encode quality for hero widths", () => {
     assert.deepEqual(derivativeQuality(640), { webp: 78, avif: 70 });
-    assert.deepEqual(derivativeQuality(750), { webp: 78, avif: 70 });
+    assert.deepEqual(derivativeQuality(750), { webp: 84, avif: 76 });
     assert.deepEqual(derivativeQuality(1080), { webp: 86, avif: 78 });
     assert.deepEqual(derivativeQuality(1920), { webp: 86, avif: 78 });
   });

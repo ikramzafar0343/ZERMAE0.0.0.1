@@ -15,8 +15,10 @@ function heroPreloadUrls(banners: HeroBannerSlide[]) {
   const desktopRaw = first.desktop.trim() || first.mobile.trim();
   const mobileRaw = first.mobile.trim() || first.desktop.trim();
   if (!desktopRaw && !mobileRaw) return null;
+  const mobileBase = resolvePublicImageUrl(mobileRaw || desktopRaw);
   return {
-    mobile: withMediaWidth(resolvePublicImageUrl(mobileRaw || desktopRaw), 1080),
+    mobile750: withMediaWidth(mobileBase, 750),
+    mobile1080: withMediaWidth(mobileBase, 1080),
     desktop: withMediaWidth(resolvePublicImageUrl(desktopRaw || mobileRaw), 1920),
   };
 }
@@ -72,9 +74,12 @@ export function PageHero({
           <link
             rel="preload"
             as="image"
-            href={preload.mobile}
             media="(max-width: 1023px)"
-            {...{ fetchPriority: "high" }}
+            {...{
+              imageSrcSet: `${preload.mobile750} 750w, ${preload.mobile1080} 1080w`,
+              imageSizes: "100vw",
+              fetchPriority: "high" as const,
+            }}
           />
           <link rel="preload" as="image" href={preload.desktop} media="(min-width: 1024px)" />
         </>

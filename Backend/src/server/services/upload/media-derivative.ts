@@ -8,7 +8,7 @@ export const MEDIA_WIDTHS = [640, 750, 1080, 1920] as const;
 export type MediaWidth = (typeof MEDIA_WIDTHS)[number];
 
 /** Bump when encode settings change so on-disk .cache entries are not reused soft. */
-const DERIVATIVE_CACHE_VERSION = "q3";
+const DERIVATIVE_CACHE_VERSION = "q4";
 
 const MAX_PIXELS = 40_000_000;
 
@@ -28,6 +28,10 @@ export function preferAvif(accept: string | undefined): boolean {
 export function derivativeQuality(width: MediaWidth): { webp: number; avif: number } {
   if (width >= 1080) {
     return { webp: 86, avif: 78 };
+  }
+  // 750 is used for small-phone hero srcSet — keep it sharper than tiles
+  if (width >= 750) {
+    return { webp: 84, avif: 76 };
   }
   return { webp: 78, avif: 70 };
 }

@@ -1,3 +1,5 @@
+import "@/app/zermae.css";
+
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 

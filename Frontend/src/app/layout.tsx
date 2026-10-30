@@ -9,17 +9,17 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { brandDescription, brandName } from "@/constants/brand";
 import { DEFAULT_STOREFRONT_THEME } from "@/constants/storefront";
-import { CookieBanner } from "@/features/consent/cookie-banner";
+import { CookieBannerLazy } from "@/features/consent/cookie-banner-lazy";
 import { ThemeStyle } from "@/features/theme/theme-style";
 import { getStorefront } from "@/lib/storefront";
 
-/** Single family for storefront — cuts ~5 render-blocking font files from LCP. */
+/** Single variable Inter file — fewer font bytes on the critical path. */
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-inter",
   display: "swap",
   preload: true,
+  adjustFontFallback: true,
 });
 
 export const metadata = {
@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       >
         <ThemeStyle theme={theme} />
         {children}
-        <CookieBanner />
+        <CookieBannerLazy />
       </body>
     </html>
   );

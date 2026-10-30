@@ -8,7 +8,7 @@ import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autopl
 import { cn } from "@/lib/cn";
 import { resolvePublicImageUrl, withMediaWidth } from "@/lib/public-image-url";
 
-function heroSrc(src: string, width: 1080 | 1920): string {
+function heroSrc(src: string, width: 750 | 1080 | 1920): string {
   return withMediaWidth(resolvePublicImageUrl(src), width);
 }
 
@@ -26,9 +26,10 @@ export function HeroBannerSlider({
       return {
         desktopRaw: desktop,
         mobileRaw: mobile,
-        // Mobile LCP: 1080px WebP (retina + crisp banner type). Empty mobile → same file at w=1080.
         desktop: heroSrc(desktop, 1920),
-        mobile: heroSrc(mobile, 1080),
+        // Responsive mobile: 750 for small phones, 1080 for retina — browser picks via srcSet
+        mobile750: heroSrc(mobile, 750),
+        mobile1080: heroSrc(mobile, 1080),
       };
     })
     .filter((slide) => slide.desktopRaw || slide.mobileRaw);
@@ -70,7 +71,11 @@ export function HeroBannerSlider({
           <source media="(min-width: 1024px)" srcSet={activeSlide.desktop} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={activeSlide.mobile}
+            src={activeSlide.mobile1080}
+            srcSet={`${activeSlide.mobile750} 750w, ${activeSlide.mobile1080} 1080w`}
+            sizes="100vw"
+            width={1080}
+            height={1920}
             alt=""
             className="ha-hero__banner"
             fetchPriority="high"

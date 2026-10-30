@@ -1,3 +1,5 @@
+import "@/app/zermae.css";
+
 import type { ReactNode } from "react";
 
 import { PublicSiteGate } from "@/features/site/public-site-gate";

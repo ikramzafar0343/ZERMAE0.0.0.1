@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "./zermae.css";
+/* zermae.css is route-scoped (admin/auth/legacy) — keep it off the homepage LCP path */
 
 @theme {
   --color-brand-bg: #ffffff;
