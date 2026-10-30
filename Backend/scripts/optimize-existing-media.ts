@@ -32,7 +32,7 @@ async function walk(dir: string): Promise<string[]> {
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (entry.name === "originals" || entry.name === ".git") continue;
+      if (entry.name === "originals" || entry.name === ".git" || entry.name === ".cache") continue;
       files.push(...(await walk(full)));
     } else if (IMAGE_EXT.has(path.extname(entry.name).toLowerCase())) {
       files.push(full);

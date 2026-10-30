@@ -1,13 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useState } from "react";
 
 import { IconChevronLeft, IconChevronRight } from "@/components/icons/icons";
 import type { HeroBannerSlide } from "@/constants/storefront";
 import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autoplay";
 import { cn } from "@/lib/cn";
-import { resolvePublicImageUrl } from "@/lib/public-image-url";
+import { resolvePublicImageUrl, withMediaWidth } from "@/lib/public-image-url";
+
+function heroSrc(src: string, width: 1080 | 1920): string {
+  return withMediaWidth(resolvePublicImageUrl(src), width);
+}
 
 export function HeroBannerSlider({
   banners,
@@ -15,15 +18,20 @@ export function HeroBannerSlider({
   banners: HeroBannerSlide[];
 }) {
   const unique = banners
-    .map((slide) => ({
-      desktop: resolvePublicImageUrl(slide.desktop.trim()),
-      mobile: resolvePublicImageUrl(slide.mobile.trim()),
-    }))
-    .filter((slide) => slide.desktop || slide.mobile)
-    .map((slide) => ({
-      desktop: slide.desktop || slide.mobile,
-      mobile: slide.mobile,
-    }));
+    .map((slide) => {
+      const desktopRaw = slide.desktop.trim();
+      const mobileRaw = slide.mobile.trim();
+      const desktop = desktopRaw || mobileRaw;
+      const mobile = mobileRaw || desktopRaw;
+      return {
+        desktopRaw: desktop,
+        mobileRaw: mobile,
+        // Distinct mobile art uses 1080; empty mobile falls back to desktop file at w=1080
+        desktop: heroSrc(desktop, 1920),
+        mobile: heroSrc(mobile, 1080),
+      };
+    })
+    .filter((slide) => slide.desktopRaw || slide.mobileRaw);
   const count = unique.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -49,38 +57,32 @@ export function HeroBannerSlider({
     return null;
   }
 
+  const activeSlide = unique[safe];
+
   return (
     <div
       className="ha-hero__media"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {unique.map((slide, i) => {
-        const active = safe === i;
-        if (!active) {
-          return null;
-        }
-        const mobileSrc = slide.mobile || slide.desktop;
-        return (
-          <picture
-            key={`${slide.desktop}-${slide.mobile}-${i}`}
-            className={cn("ha-hero__banner-picture", "is-active")}
-          >
-            <source media="(max-width: 1023px)" srcSet={mobileSrc} />
-            {/* unoptimized so <source media> can select mobile without Next rewriting srcset */}
-            <Image
-              src={slide.desktop}
+      {activeSlide ? (
+        <>
+          {/* Media-scoped preloads — avoid Next Image priority which always preloads desktop src */}
+          <link rel="preload" as="image" href={activeSlide.mobile} media="(max-width: 1023px)" />
+          <link rel="preload" as="image" href={activeSlide.desktop} media="(min-width: 1024px)" />
+          <picture className={cn("ha-hero__banner-picture", "is-active")}>
+            <source media="(min-width: 1024px)" srcSet={activeSlide.desktop} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={activeSlide.mobile}
               alt=""
-              fill
-              unoptimized
               className="ha-hero__banner"
-              sizes="100vw"
-              priority={i === 0}
-              fetchPriority={i === 0 ? "high" : "auto"}
+              fetchPriority="high"
+              decoding="async"
             />
           </picture>
-        );
-      })}
+        </>
+      ) : null}
       {hasMany ? (
         <>
           <button

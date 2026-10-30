@@ -2,11 +2,17 @@ import { createReadStream } from "node:fs";
 import { access, constants, stat } from "node:fs/promises";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
+import { Readable } from "node:stream";
 
 import { AppError } from "@/lib/app-error";
 import { getEnv } from "@/lib/env";
 import type { RouteDefinition } from "@/server/http/load-routes";
 import type { RequestContext } from "@/server/http/respond";
+import {
+  getOrCreateDerivative,
+  parseMediaWidth,
+  preferAvif,
+} from "@/server/services/upload/media-derivative";
 
 const MIME: Record<string, string> = {
   png: "image/png",
@@ -45,6 +51,31 @@ export async function handler(ctx: RequestContext): Promise<unknown> {
   if (!info.isFile()) {
     throw AppError.notFound("File not found");
   }
+
+  const width = parseMediaWidth(ctx.query.w);
+  if (width) {
+    const accept = String(ctx.req.headers.accept ?? "");
+    try {
+      const derivative = await getOrCreateDerivative({
+        sourcePath: target,
+        uploadDir: directory,
+        width,
+        preferAvif: preferAvif(accept),
+      });
+      ctx.res.writeHead(200, {
+        "Content-Type": derivative.mimeType,
+        "Content-Length": String(derivative.buffer.length),
+        "Cache-Control": "public, max-age=2592000, immutable",
+        "X-Content-Type-Options": "nosniff",
+        Vary: "Accept",
+      });
+      await pipeline(Readable.from(derivative.buffer), ctx.res);
+      return null;
+    } catch {
+      // Fall through to original file if sharp fails
+    }
+  }
+
   ctx.res.writeHead(200, {
     "Content-Type": mime,
     "Content-Length": String(info.size),
