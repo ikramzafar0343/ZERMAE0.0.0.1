@@ -2,6 +2,11 @@
 
 import { type ReactNode, useEffect, useState } from "react";
 
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (id: number) => void;
+};
+
 /**
  * Mount hero product chrome after idle so it cannot steal bandwidth from LCP banner.
  */
@@ -14,18 +19,19 @@ export function DeferredHeroTile({ children }: { children: ReactNode }) {
       if (!cancelled) setReady(true);
     };
 
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(enable, { timeout: 1800 });
+    const w = window as IdleWindow;
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(enable, { timeout: 1800 });
       return () => {
         cancelled = true;
-        window.cancelIdleCallback(id);
+        w.cancelIdleCallback?.(id);
       };
     }
 
-    const timer = window.setTimeout(enable, 900);
+    const timer = globalThis.setTimeout(enable, 900);
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
+      globalThis.clearTimeout(timer);
     };
   }, []);
 
