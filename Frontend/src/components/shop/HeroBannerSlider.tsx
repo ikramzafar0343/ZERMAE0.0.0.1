@@ -1,15 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { IconChevronLeft, IconChevronRight } from "@/components/icons/icons";
 import type { HeroBannerSlide } from "@/constants/storefront";
 import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autoplay";
 import { cn } from "@/lib/cn";
 import { resolvePublicImageUrl } from "@/lib/public-image-url";
-
-const MOBILE_MQ = "(max-width: 1023px)";
 
 export function HeroBannerSlider({
   banners,
@@ -29,17 +27,8 @@ export function HeroBannerSlider({
   const count = unique.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const safe = wrapIndex(index, count);
   const hasMany = count > 1;
-
-  useEffect(() => {
-    const mq = window.matchMedia(MOBILE_MQ);
-    const sync = () => setIsMobile(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
 
   useImageAutoplay(count, {
     index: safe,
@@ -71,24 +60,25 @@ export function HeroBannerSlider({
         if (!active) {
           return null;
         }
-        const src = isMobile ? slide.mobile || slide.desktop : slide.desktop;
+        const mobileSrc = slide.mobile || slide.desktop;
         return (
-          <div
+          <picture
             key={`${slide.desktop}-${slide.mobile}-${i}`}
             className={cn("ha-hero__banner-picture", "is-active")}
           >
+            <source media="(max-width: 1023px)" srcSet={mobileSrc} />
+            {/* unoptimized so <source media> can select mobile without Next rewriting srcset */}
             <Image
-              src={src}
+              src={slide.desktop}
               alt=""
-              width={1920}
-              height={1080}
+              fill
+              unoptimized
               className="ha-hero__banner"
               sizes="100vw"
-              quality={80}
               priority={i === 0}
               fetchPriority={i === 0 ? "high" : "auto"}
             />
-          </div>
+          </picture>
         );
       })}
       {hasMany ? (

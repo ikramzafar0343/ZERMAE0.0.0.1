@@ -20,12 +20,18 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
       const mm = gsap.matchMedia();
       let disposed = false;
       let refreshFrame = 0;
+      let refreshTimer = 0;
       let storiesCleanup: (() => void) | undefined;
 
       const refreshLayout = () => {
         if (disposed) return;
-        cancelAnimationFrame(refreshFrame);
-        refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+        // Debounce image-load refreshes so pin-spacing does not amplify hero CLS
+        window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(() => {
+          if (disposed) return;
+          cancelAnimationFrame(refreshFrame);
+          refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+        }, 180);
       };
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -257,6 +263,7 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
 
       return () => {
         disposed = true;
+        window.clearTimeout(refreshTimer);
         cancelAnimationFrame(refreshFrame);
         storiesCleanup?.();
         pendingImages.forEach((image) => {

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { StorefrontHome } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 import { HOME_REVIEWS, HOME_STORIES, type HomeReview } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
 
@@ -13,8 +14,15 @@ function ReviewCard({ review }: { review: HomeReview }) {
       <h3 className="ha-review-card__title">{review.title}</h3>
       <p className="ha-review-card__body">{review.body}</p>
       <div className="ha-review-card__footer">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={review.avatar} alt="" className="ha-review-card__avatar" />
+        <CmsImage
+          src={review.avatar}
+          alt=""
+          width={80}
+          height={80}
+          className="ha-review-card__avatar"
+          sizes="40px"
+          loading="lazy"
+        />
         <div>
           <p className="ha-review-card__name">{review.name}</p>
           <p className="ha-review-card__context">{review.context}</p>
@@ -72,8 +80,14 @@ export function CustomerStories({ cms }: { cms?: StorefrontHome["sections"]["sto
           />
         </div>
         <div className="ha-stories-stage__product" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={cms?.compositionSrc || MEDIA.storiesComposition.src} alt="" />
+          <CmsImage
+            src={cms?.compositionSrc || MEDIA.storiesComposition.src}
+            alt=""
+            width={480}
+            height={640}
+            sizes="(max-width: 767px) 40vw, 280px"
+            loading="lazy"
+          />
         </div>
         <div className="ha-stories-lanes">
           {lanes.map((lane) => (

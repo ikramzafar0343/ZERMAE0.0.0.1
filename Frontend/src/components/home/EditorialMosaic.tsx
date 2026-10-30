@@ -1,5 +1,6 @@
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { StorefrontHome } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 import { HOME_MOSAIC } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
 
@@ -30,17 +31,24 @@ export function EditorialMosaic({
         <div className="ha-mosaic__gap" aria-hidden="true" />
         <div className="ha-mosaic-grid" data-reveal-row aria-label="Shop the collection mosaic">
           <div className="ha-mosaic__left" data-reveal-item>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <CmsImage
               src={cms?.leftSrc || MEDIA.mosaicLeft.src}
               alt="Serum drop applied near the face"
+              fill
               className="ha-media-fill"
               style={{ objectPosition: MEDIA.mosaicLeft.objectPosition }}
+              sizes="(max-width: 1023px) 100vw, 50vw"
               loading="lazy"
             />
             <div className="ha-mosaic__panel">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={panelImage || MEDIA.collection[0]} alt="" />
+              <CmsImage
+                src={panelImage || MEDIA.collection[0]}
+                alt=""
+                width={160}
+                height={200}
+                sizes="120px"
+                loading="lazy"
+              />
               <div>
                 <h3>{cms?.panelHeading ?? HOME_MOSAIC.panelHeading}</h3>
                 <p>{cms?.panelBody ?? HOME_MOSAIC.panelBody}</p>
@@ -49,12 +57,13 @@ export function EditorialMosaic({
           </div>
           <div className="ha-mosaic__right">
             <div className="ha-mosaic__right-tile" data-reveal-item>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <CmsImage
                 src={cms?.rangeSrc || MEDIA.mosaicRange.src}
                 alt="Skincare range on a cool surface"
+                fill
                 className="ha-media-fill"
                 style={{ objectPosition: MEDIA.mosaicRange.objectPosition }}
+                sizes="(max-width: 1023px) 100vw, 40vw"
                 loading="lazy"
               />
               <div className="ha-mosaic__caption">
@@ -67,12 +76,13 @@ export function EditorialMosaic({
               </div>
             </div>
             <div className="ha-mosaic__right-tile" data-reveal-item>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <CmsImage
                 src={cms?.detailSrc || MEDIA.mosaicDetail.src}
                 alt="Close portrait with serum pipette"
+                fill
                 className="ha-media-fill"
                 style={{ objectPosition: MEDIA.mosaicDetail.objectPosition }}
+                sizes="(max-width: 1023px) 100vw, 40vw"
                 loading="lazy"
               />
               <div className="ha-mosaic__caption">
@@ -81,6 +91,7 @@ export function EditorialMosaic({
                   <br />
                   {(cms?.lowerCaptionHeading ?? HOME_MOSAIC.lowerCaptionHeading).split(" ").slice(2).join(" ")}
                 </h3>
+                <p>{cms?.lowerCaptionBody ?? HOME_MOSAIC.lowerCaptionBody}</p>
               </div>
             </div>
           </div>

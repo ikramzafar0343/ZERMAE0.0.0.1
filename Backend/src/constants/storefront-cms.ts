@@ -301,7 +301,7 @@ export function buildDefaultHome(): StorefrontHome {
         heading: "Feel the Difference.",
         posterSrc: "/media/lifestyle/skincare-poster.webp",
         beforeSrc: "/media/lifestyle/skincare-poster.webp",
-        afterSrc: "/media/editorial/serum-portrait.jpg",
+        afterSrc: "/media/editorial/serum-portrait.webp",
       },
       mosaic: {
         hidden: false,
@@ -314,7 +314,7 @@ export function buildDefaultHome(): StorefrontHome {
         upperCaptionBody: "Nourishes skin for a radiant, lasting glow.",
         lowerCaptionHeading: "Feel the visible difference",
         lowerCaptionBody: "",
-        leftSrc: "/media/editorial/serum-portrait.jpg",
+        leftSrc: "/media/editorial/serum-portrait.webp",
         rangeSrc: "/media/editorial/product-range.webp",
         detailSrc: "/media/editorial/skin-detail.webp",
       },

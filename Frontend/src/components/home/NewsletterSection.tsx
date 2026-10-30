@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { StorefrontHome } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 import { subscribeNewsletterAction } from "@/features/newsletter/actions";
 import { HOME_NEWSLETTER } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
@@ -18,12 +19,13 @@ export function NewsletterSection({ cms }: { cms?: StorefrontHome["sections"]["n
   return (
     <section className="ha-newsletter">
       <div className="ha-newsletter__media" data-parallax-shell>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <CmsImage
           src={cms?.imageSrc || MEDIA.newsletter.src}
           alt=""
+          fill
           className="ha-media-fill"
           style={{ objectPosition: MEDIA.newsletter.objectPosition }}
+          sizes="100vw"
           loading="lazy"
         />
       </div>

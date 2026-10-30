@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { StorefrontHome } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 import { HOME_JOURNAL, HOME_JOURNAL_ITEMS } from "@/lib/content/homepage";
 
 export function JournalSection({
@@ -37,11 +38,12 @@ export function JournalSection({
               return (
                 <Link key={item.id} href={href} className="ha-journal__card" data-reveal-item>
                   <div className="ha-journal__media ha-media-clip">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <CmsImage
                       src={item.src}
                       alt={item.alt || item.title || "Insight"}
+                      fill
                       className="ha-media-fill"
+                      sizes="(max-width: 1023px) 80vw, 28vw"
                       loading="lazy"
                     />
                   </div>

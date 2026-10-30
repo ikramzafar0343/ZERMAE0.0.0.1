@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { StorefrontHome } from "@/constants/storefront";
+import { CmsImage } from "@/features/media/cms-image";
 import { HOME_SOCIAL, HOME_SOCIAL_ITEMS } from "@/lib/content/homepage";
 
 export function SocialSection({ cms }: { cms?: StorefrontHome["sections"]["social"] }) {
@@ -38,8 +39,14 @@ export function SocialSection({ cms }: { cms?: StorefrontHome["sections"]["socia
         <div className="ha-social__row">
           {items.map((item) => (
             <figure key={item.id} className="ha-social__card" data-reveal-item>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.src} alt={item.alt} className="ha-media-fill" width={236} height={236} loading="lazy" />
+              <CmsImage
+                src={item.src}
+                alt={item.alt}
+                fill
+                className="ha-media-fill"
+                sizes="236px"
+                loading="lazy"
+              />
               <figcaption className="ha-social__overlay">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="currentColor" strokeWidth="1.5" />

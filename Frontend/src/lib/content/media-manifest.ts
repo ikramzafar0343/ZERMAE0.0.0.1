@@ -47,7 +47,7 @@ export const MEDIA = {
   },
   mosaicLeft: {
     role: "mosaic-left",
-    src: "/media/editorial/serum-portrait.jpg",
+    src: "/media/editorial/serum-portrait.webp",
     objectPosition: "55% 35%",
     status: "ready",
   },

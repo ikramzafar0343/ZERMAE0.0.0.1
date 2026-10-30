@@ -16,6 +16,7 @@ export function CmsImage({
   sizes,
   priority,
   loading,
+  style,
 }: {
   src: string;
   alt: string;
@@ -26,6 +27,7 @@ export function CmsImage({
   sizes?: string;
   priority?: boolean;
   loading?: "lazy" | "eager";
+  style?: ImageProps["style"];
 }) {
   const resolved = resolvePublicImageUrl(src);
   const props: ImageProps = {
@@ -38,6 +40,9 @@ export function CmsImage({
   }
   if (sizes) {
     props.sizes = sizes;
+  }
+  if (style) {
+    props.style = style;
   }
   if (priority) {
     props.priority = true;
