@@ -1,3 +1,6 @@
+/* Route-scoped sheet still needs Tailwind theme/utilities for @apply */
+@reference "./globals.css";
+
 @layer components {
   .font-brand {
     font-family: var(--font-brand);
