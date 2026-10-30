@@ -10,12 +10,29 @@ const MAX_EDGE: Record<Exclude<ImagePurpose, "auto">, number> = {
   content: 1600,
 };
 
+/** Soft targets only — never force quality below PURPOSE_MIN_QUALITY just to hit these. */
 const SOFT_BUDGET_BYTES: Record<Exclude<ImagePurpose, "auto">, number> = {
-  hero: 350_000,
-  heroMobile: 300_000,
-  product: 150_000,
-  thumb: 80_000,
-  content: 200_000,
+  hero: 550_000,
+  heroMobile: 450_000,
+  product: 280_000,
+  thumb: 100_000,
+  content: 380_000,
+};
+
+const PURPOSE_MIN_QUALITY: Record<Exclude<ImagePurpose, "auto">, number> = {
+  hero: 82,
+  heroMobile: 82,
+  product: 78,
+  thumb: 72,
+  content: 80,
+};
+
+const PURPOSE_MAX_QUALITY: Record<Exclude<ImagePurpose, "auto">, number> = {
+  hero: 90,
+  heroMobile: 90,
+  product: 88,
+  thumb: 84,
+  content: 88,
 };
 
 const MAX_PIXELS = 40_000_000;
@@ -47,9 +64,11 @@ async function encodeAvif(pipeline: sharp.Sharp, quality: number): Promise<Buffe
 async function searchQuality(
   encode: (quality: number) => Promise<Buffer>,
   budget: number,
+  minQuality: number,
+  maxQuality: number,
 ): Promise<Buffer> {
-  let lo = 55;
-  let hi = 86;
+  let lo = minQuality;
+  let hi = maxQuality;
   let best = await encode(hi);
   if (best.length <= budget) return best;
   for (let step = 0; step < 6; step += 1) {
@@ -63,6 +82,11 @@ async function searchQuality(
       if (candidate.length < best.length) best = candidate;
     }
     if (lo > hi) break;
+  }
+  // Prefer the min-quality encode over a softer mid if the search undershot
+  if (lo <= minQuality) {
+    const floorBuf = await encode(minQuality);
+    if (floorBuf.length <= best.length * 1.15) return floorBuf;
   }
   return best;
 }
@@ -116,13 +140,15 @@ export async function optimizeImageBuffer(
     };
   }
 
-  const webp = await searchQuality((q) => encodeWebp(pipeline, q), budget);
+  const minQ = PURPOSE_MIN_QUALITY[purpose];
+  const maxQ = PURPOSE_MAX_QUALITY[purpose];
+  const webp = await searchQuality((q) => encodeWebp(pipeline, q), budget, minQ, maxQ);
   let bestBuffer = webp;
   let bestExt: OptimizedImage["ext"] = "webp";
   let bestMime = "image/webp";
 
   try {
-    const avif = await searchQuality((q) => encodeAvif(pipeline, q), budget);
+    const avif = await searchQuality((q) => encodeAvif(pipeline, q), budget, minQ, maxQ);
     if (avif.length + 1024 < bestBuffer.length) {
       bestBuffer = avif;
       bestExt = "avif";

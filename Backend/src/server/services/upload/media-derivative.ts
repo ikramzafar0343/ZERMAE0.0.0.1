@@ -8,7 +8,7 @@ export const MEDIA_WIDTHS = [640, 750, 1080, 1920] as const;
 export type MediaWidth = (typeof MEDIA_WIDTHS)[number];
 
 /** Bump when encode settings change so on-disk .cache entries are not reused soft. */
-const DERIVATIVE_CACHE_VERSION = "q2";
+const DERIVATIVE_CACHE_VERSION = "q3";
 
 const MAX_PIXELS = 40_000_000;
 
@@ -66,14 +66,29 @@ export async function getOrCreateDerivative(input: {
   }
 
   await mkdir(cacheDir, { recursive: true });
-  const pipeline = sharp(source, { failOn: "none", limitInputPixels: MAX_PIXELS })
-    .rotate()
-    .resize({
-      width: input.width,
-      height: input.width,
-      fit: "inside",
-      withoutEnlargement: true,
-    });
+  const image = sharp(source, { failOn: "none", limitInputPixels: MAX_PIXELS }).rotate();
+  const meta = await image.metadata();
+  const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
+  const alreadyFits = longest > 0 && longest <= input.width;
+  const alreadyWebp = meta.format === "webp";
+  const alreadyAvif = meta.format === "avif";
+
+  // Avoid a second lossy encode when upload already produced a fitting WebP/AVIF master.
+  if (alreadyFits && !input.preferAvif && alreadyWebp) {
+    await writeFile(cachePath, source);
+    return { buffer: source, mimeType: "image/webp", cachePath };
+  }
+  if (alreadyFits && input.preferAvif && alreadyAvif) {
+    await writeFile(cachePath, source);
+    return { buffer: source, mimeType: "image/avif", cachePath };
+  }
+
+  const pipeline = image.resize({
+    width: input.width,
+    height: input.width,
+    fit: "inside",
+    withoutEnlargement: true,
+  });
 
   const buffer = input.preferAvif
     ? await pipeline.avif({ quality: quality.avif, effort: 4 }).toBuffer()
