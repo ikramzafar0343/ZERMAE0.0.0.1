@@ -3,7 +3,7 @@
 import { type KeyboardEvent, type PointerEvent, useCallback, useRef, useState } from "react";
 
 import { cn } from "@/lib/cn";
-import { resolvePublicImageUrl } from "@/lib/public-image-url";
+import { resolvePublicImageUrl, withMediaWidth } from "@/lib/public-image-url";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -18,8 +18,8 @@ export function BeforeAfterSlider({
   afterSrc: string;
   className?: string;
 }) {
-  const before = resolvePublicImageUrl(beforeSrc);
-  const after = resolvePublicImageUrl(afterSrc);
+  const before = withMediaWidth(resolvePublicImageUrl(beforeSrc), 1080);
+  const after = withMediaWidth(resolvePublicImageUrl(afterSrc), 1080);
   const frameRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const [position, setPosition] = useState(50);

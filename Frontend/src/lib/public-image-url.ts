@@ -58,13 +58,28 @@ export function resolvePublicImageUrl(src: string): string {
 
 const MEDIA_API_PREFIX = "/api/v1/media/";
 
+export type MediaWidth = 640 | 750 | 1080 | 1920;
+
+export function isApiMediaUrl(src: string): boolean {
+  return src.startsWith(MEDIA_API_PREFIX) || src.includes("/api/v1/media/");
+}
+
+/** Pick allowlisted `?w=` from CSS display size (assumes ~2x DPR). */
+export function pickMediaWidth(displayCssPx: number): MediaWidth {
+  const need = Math.max(1, Math.ceil(displayCssPx * 2));
+  if (need <= 640) return 640;
+  if (need <= 750) return 750;
+  if (need <= 1080) return 1080;
+  return 1920;
+}
+
 /**
  * Append on-demand resize for CMS uploads (`?w=`). Static `/media/...` public assets are unchanged.
  */
-export function withMediaWidth(src: string, width: 640 | 750 | 1080 | 1920): string {
+export function withMediaWidth(src: string, width: MediaWidth): string {
   const value = src.trim();
   if (!value) return value;
-  if (!value.startsWith(MEDIA_API_PREFIX) && !value.includes("/api/v1/media/")) {
+  if (!isApiMediaUrl(value)) {
     return value;
   }
   try {

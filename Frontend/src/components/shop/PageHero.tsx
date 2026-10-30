@@ -6,6 +6,19 @@ import { type MiniProduct } from "@/components/shop/ProductMiniCard";
 import type { HeroBannerSlide } from "@/constants/storefront";
 import { HOME_HERO } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
+import { resolvePublicImageUrl, withMediaWidth } from "@/lib/public-image-url";
+
+function heroPreloadUrls(banners: HeroBannerSlide[]) {
+  const first = banners[0];
+  if (!first) return null;
+  const desktopRaw = first.desktop.trim() || first.mobile.trim();
+  const mobileRaw = first.mobile.trim() || first.desktop.trim();
+  if (!desktopRaw && !mobileRaw) return null;
+  return {
+    mobile: withMediaWidth(resolvePublicImageUrl(mobileRaw || desktopRaw), 750),
+    desktop: withMediaWidth(resolvePublicImageUrl(desktopRaw || mobileRaw), 1920),
+  };
+}
 
 export type PageHeroProps = {
   /** Accessible page title (visually hidden like home). */
@@ -49,9 +62,22 @@ export function PageHero({
       : fromLegacy.length > 0
         ? fromLegacy
         : [{ desktop: MEDIA.heroPoster.src, mobile: "" }];
+  const preload = heroPreloadUrls(resolvedBanners);
 
   return (
     <section className="ha-hero" aria-label="Hero">
+      {preload ? (
+        <>
+          <link
+            rel="preload"
+            as="image"
+            href={preload.mobile}
+            media="(max-width: 1023px)"
+            {...{ fetchPriority: "high" }}
+          />
+          <link rel="preload" as="image" href={preload.desktop} media="(min-width: 1024px)" />
+        </>
+      ) : null}
       <HeroBannerSlider banners={resolvedBanners} />
       <div className="ha-hero__shade" aria-hidden="true" />
 

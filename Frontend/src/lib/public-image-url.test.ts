@@ -42,3 +42,13 @@ describe("withMediaWidth", () => {
     assert.equal(withMediaWidth("/media/editorial/skin-detail.webp", 1080), "/media/editorial/skin-detail.webp");
   });
 });
+
+describe("pickMediaWidth", () => {
+  it("maps display CSS px to allowlisted widths", async () => {
+    const { pickMediaWidth } = await import("./public-image-url");
+    assert.equal(pickMediaWidth(72), 640);
+    assert.equal(pickMediaWidth(375), 750);
+    assert.equal(pickMediaWidth(540), 1080);
+    assert.equal(pickMediaWidth(1200), 1920);
+  });
+});

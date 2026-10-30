@@ -8,7 +8,7 @@ import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autopl
 import { cn } from "@/lib/cn";
 import { resolvePublicImageUrl, withMediaWidth } from "@/lib/public-image-url";
 
-function heroSrc(src: string, width: 1080 | 1920): string {
+function heroSrc(src: string, width: 750 | 1080 | 1920): string {
   return withMediaWidth(resolvePublicImageUrl(src), width);
 }
 
@@ -26,9 +26,9 @@ export function HeroBannerSlider({
       return {
         desktopRaw: desktop,
         mobileRaw: mobile,
-        // Distinct mobile art uses 1080; empty mobile falls back to desktop file at w=1080
+        // Mobile LCP: 750px WebP (~phone*2x). Empty mobile still uses desktop file at w=750.
         desktop: heroSrc(desktop, 1920),
-        mobile: heroSrc(mobile, 1080),
+        mobile: heroSrc(mobile, 750),
       };
     })
     .filter((slide) => slide.desktopRaw || slide.mobileRaw);
@@ -66,22 +66,17 @@ export function HeroBannerSlider({
       onMouseLeave={() => setPaused(false)}
     >
       {activeSlide ? (
-        <>
-          {/* Media-scoped preloads — avoid Next Image priority which always preloads desktop src */}
-          <link rel="preload" as="image" href={activeSlide.mobile} media="(max-width: 1023px)" />
-          <link rel="preload" as="image" href={activeSlide.desktop} media="(min-width: 1024px)" />
-          <picture className={cn("ha-hero__banner-picture", "is-active")}>
-            <source media="(min-width: 1024px)" srcSet={activeSlide.desktop} />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={activeSlide.mobile}
-              alt=""
-              className="ha-hero__banner"
-              fetchPriority="high"
-              decoding="async"
-            />
-          </picture>
-        </>
+        <picture className={cn("ha-hero__banner-picture", "is-active")}>
+          <source media="(min-width: 1024px)" srcSet={activeSlide.desktop} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={activeSlide.mobile}
+            alt=""
+            className="ha-hero__banner"
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
       ) : null}
       {hasMany ? (
         <>

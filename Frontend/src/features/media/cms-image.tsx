@@ -1,6 +1,11 @@
 import Image, { type ImageProps } from "next/image";
 
-import { resolvePublicImageUrl } from "@/lib/public-image-url";
+import {
+  isApiMediaUrl,
+  pickMediaWidth,
+  resolvePublicImageUrl,
+  withMediaWidth,
+} from "@/lib/public-image-url";
 
 function shouldSkipOptimizer(src: string): boolean {
   // Uploads go through API media (?w= WebP) — Next optimizer 400s on those URLs
@@ -8,7 +13,7 @@ function shouldSkipOptimizer(src: string): boolean {
     src.startsWith("blob:") ||
     src.startsWith("data:") ||
     src.startsWith("/uploads/") ||
-    src.startsWith("/api/v1/media/")
+    isApiMediaUrl(src)
   );
 }
 
@@ -35,7 +40,11 @@ export function CmsImage({
   loading?: "lazy" | "eager";
   style?: ImageProps["style"];
 }) {
-  const resolved = resolvePublicImageUrl(src);
+  const displayCssPx = width ?? (fill ? 900 : 304);
+  let resolved = resolvePublicImageUrl(src);
+  if (isApiMediaUrl(resolved)) {
+    resolved = withMediaWidth(resolved, pickMediaWidth(displayCssPx));
+  }
   const props: ImageProps = {
     src: resolved,
     alt,

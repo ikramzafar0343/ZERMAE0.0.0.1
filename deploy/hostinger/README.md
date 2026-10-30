@@ -38,8 +38,10 @@ New admin uploads are compressed by sharp automatically. Legacy multi-MB files a
 cd /var/www/zermae
 docker compose exec api npx tsx scripts/optimize-existing-media.ts --dry-run --dir /app/uploads --purpose hero
 docker compose exec api npx tsx scripts/optimize-existing-media.ts --apply --dir /app/uploads --purpose hero
+# Pre-build ?w= WebP so the first Slow-4G Lighthouse run is not a cold sharp resize:
+docker compose exec api npx tsx scripts/warm-media-derivatives.ts --dir /app/uploads
 ```
 
 If the script writes `.webp` siblings, remap hero banner URLs in Admin → Storefront (or re-upload Desktop + Mobile banners). Prefer a real **9:16 mobile** art for Banner · Mobile.
 
-Runtime LCP also requests `/api/v1/media/{file}?w=1080` (mobile) and `?w=1920` (desktop); derivatives cache under `/app/uploads/.cache/`.
+Runtime LCP requests `/api/v1/media/{file}?w=750` (mobile) and `?w=1920` (desktop); all `CmsImage` upload URLs also get a `?w=` cap. Derivatives cache under `/app/uploads/.cache/`.
