@@ -1,1 +1,1 @@
-export { saveUpload } from "@/lib/api/uploads";
+export { saveUpload, type UploadPurpose } from "@/lib/api/uploads";

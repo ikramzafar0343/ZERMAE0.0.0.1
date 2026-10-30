@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { formatMoney } from "@/constants/storefront";
 import { AddToBagForm } from "@/features/cart/add-to-bag-form";
+import { CmsImage } from "@/features/media/cms-image";
 import { cn } from "@/lib/cn";
 
 export type MiniProduct = {
@@ -29,14 +30,19 @@ export function ProductMiniCard({
 
   return (
     <article className={cn("ha-mini-tile", className)}>
-      <Link href={href} className="ha-mini-tile__thumb ha-zoom-clip" aria-label={product.title}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={product.image} alt="" className="ha-media-fill ha-zoom-media" loading="lazy" />
+      <Link href={href} className="ha-mini-tile__thumb ha-zoom-clip" aria-label={`${product.title}, ${formatMoney(product.price, currency)}`}>
+        <CmsImage
+          src={product.image}
+          alt=""
+          width={144}
+          height={144}
+          className="ha-media-fill ha-zoom-media"
+          sizes="72px"
+          loading="lazy"
+        />
       </Link>
       <div className="ha-mini-tile__meta">
-        <Link href={href} className="ha-mini-tile__name">
-          {product.title}
-        </Link>
+        <p className="ha-mini-tile__name">{product.title}</p>
         <p className="ha-mini-tile__price">{formatMoney(product.price, currency)}</p>
       </div>
       {showAdd ? (

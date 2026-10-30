@@ -83,12 +83,21 @@ export function BeforeAfterSlider({
         onKeyDown={onKeyDown}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={after} alt="After" className="ha-ba__image ha-ba__image--after" draggable={false} />
+        <img
+          src={after}
+          alt="After"
+          className="ha-ba__image ha-ba__image--after"
+          width={1600}
+          height={1000}
+          draggable={false}
+        />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={before}
           alt="Before"
           className="ha-ba__image ha-ba__image--before"
+          width={1600}
+          height={1000}
           draggable={false}
           style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
         />

@@ -18,8 +18,13 @@ export async function handler(ctx: RequestContext) {
     z.object({
       mimeType: z.string().min(1),
       data: z.string().min(1),
+      purpose: z.enum(["hero", "heroMobile", "product", "thumb", "content", "auto"]).optional(),
     }),
     ctx.body,
   );
-  return uploadService.saveImage(body);
+  return uploadService.saveImage({
+    mimeType: body.mimeType,
+    data: body.data,
+    ...(body.purpose ? { purpose: body.purpose } : {}),
+  });
 }

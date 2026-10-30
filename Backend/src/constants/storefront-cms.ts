@@ -285,8 +285,8 @@ export function buildDefaultHome(): StorefrontHome {
         ctaLabel: "Shop now",
         ctaHref: "/collections/all",
         scrollLabel: "Scroll down",
-        posterSrc: "/media/hero/portrait-poster.jpg",
-        banners: [{ desktop: "/media/hero/portrait-poster.jpg", mobile: "" }],
+        posterSrc: "/media/hero/portrait-poster.webp",
+        banners: [{ desktop: "/media/hero/portrait-poster.webp", mobile: "" }],
       },
       collection: {
         hidden: false,
@@ -299,8 +299,8 @@ export function buildDefaultHome(): StorefrontHome {
         hidden: false,
         eyebrow: "Radiant Skin",
         heading: "Feel the Difference.",
-        posterSrc: "/media/lifestyle/skincare-poster.png",
-        beforeSrc: "/media/lifestyle/skincare-poster.png",
+        posterSrc: "/media/lifestyle/skincare-poster.webp",
+        beforeSrc: "/media/lifestyle/skincare-poster.webp",
         afterSrc: "/media/editorial/serum-portrait.jpg",
       },
       mosaic: {
@@ -315,8 +315,8 @@ export function buildDefaultHome(): StorefrontHome {
         lowerCaptionHeading: "Feel the visible difference",
         lowerCaptionBody: "",
         leftSrc: "/media/editorial/serum-portrait.jpg",
-        rangeSrc: "/media/editorial/product-range.png",
-        detailSrc: "/media/editorial/skin-detail.png",
+        rangeSrc: "/media/editorial/product-range.webp",
+        detailSrc: "/media/editorial/skin-detail.webp",
       },
       ritual: {
         hidden: false,
@@ -331,7 +331,7 @@ export function buildDefaultHome(): StorefrontHome {
         eyebrow: "Customer Stories",
         line1: "Results that make",
         line2: "a difference.",
-        compositionSrc: "/media/stories/product-composition.png",
+        compositionSrc: "/media/stories/product-composition.webp",
         reviews: [
           {
             id: "r1",
@@ -339,7 +339,7 @@ export function buildDefaultHome(): StorefrontHome {
             body: "I swapped in the cleanser and a light serum. Skin feels calm by midday.",
             name: "Ayesha K.",
             context: "Cleanser + serum routine",
-            avatar: "/media/stories/avatar-01.png",
+            avatar: "/media/stories/avatar-01.webp",
           },
         ],
       },
@@ -382,7 +382,7 @@ export function buildDefaultHome(): StorefrontHome {
             title: "5 signs your skin needs more hydration",
             date: "1. 02. 2025",
             href: "/about-us",
-            src: "/media/journal/article-01.jpg",
+            src: "/media/journal/article-01.webp",
             alt: "Journal article",
           },
         ],
@@ -393,7 +393,7 @@ export function buildDefaultHome(): StorefrontHome {
         line1: "Beauty starts in your inbox.",
         support: "Sign up and receive exclusive skincare tips, product launches, and special discounts.",
         submitLabel: "Join waitlist",
-        imageSrc: "/media/newsletter/skincare-wide.jpg",
+        imageSrc: "/media/newsletter/skincare-wide.webp",
       },
     },
   };
@@ -403,7 +403,7 @@ export function buildDefaultCollectionPages(): Record<string, StorefrontCollecti
   const next: Record<string, StorefrontCollectionPage> = {};
   for (const [key, hero] of Object.entries(COLLECTION_HEROES)) {
     next[key] = {
-      heroSrc: "/media/hero/portrait-poster.jpg",
+      heroSrc: "/media/hero/portrait-poster.webp",
       titleFirst: hero.first,
       titleSecond: hero.second,
       ritualImage: hero.image,

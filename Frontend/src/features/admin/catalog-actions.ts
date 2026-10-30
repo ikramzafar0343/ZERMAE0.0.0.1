@@ -26,7 +26,7 @@ async function collectImages(formData: FormData, title: string) {
   for (let index = 0; index < 8; index += 1) {
     const file = formData.get(`imageFile${index + 1}`);
     const hasFile = file instanceof File && file.size > 0;
-    const uploaded = hasFile ? await saveUpload(file) : null;
+    const uploaded = hasFile ? await saveUpload(file, "product") : null;
     if (hasFile && !uploaded) {
       throw new Error("A product photo could not be uploaded. Try again.");
     }
@@ -47,7 +47,7 @@ export async function uploadProductImageAction(
     if (!(file instanceof File) || file.size < 1) {
       return { error: "Choose an image to upload." };
     }
-    const url = await saveUpload(file);
+    const url = await saveUpload(file, "product");
     if (!url) {
       return { error: "Image could not be uploaded." };
     }

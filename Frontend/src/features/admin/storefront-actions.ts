@@ -7,14 +7,22 @@ import { DEFAULT_STOREFRONT_CONTENT, resolveStorefrontContent } from "@/constant
 import { storefrontPublishFromForm } from "@/features/admin/parse-storefront-form";
 import { storefrontService } from "@/lib/api/storefront";
 import { revalidateStorefront } from "@/lib/revalidate-storefront";
-import { saveUpload } from "@/lib/save-upload";
+import { type UploadPurpose, saveUpload } from "@/lib/save-upload";
 import { getSessionUser } from "@/lib/session";
+
+function purposeForField(field: string): UploadPurpose {
+  if (field.startsWith("heroBannerMobile")) return "heroMobile";
+  if (field.startsWith("heroBannerDesktop") || field.startsWith("heroBanner")) return "hero";
+  if (field.includes("Avatar") || field.includes("avatar")) return "thumb";
+  if (field.includes("Tile") || field.includes("category") || field.includes("Category")) return "product";
+  return "content";
+}
 
 async function readImage(formData: FormData, field: string, existing = ""): Promise<string> {
   if (String(formData.get(`${field}Cleared`) ?? "") === "1") {
     return "";
   }
-  const uploaded = await saveUpload(formData.get(`${field}File`) as File | null);
+  const uploaded = await saveUpload(formData.get(`${field}File`) as File | null, purposeForField(field));
   if (uploaded) {
     return uploaded;
   }

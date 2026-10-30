@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 
 import { IconChevronLeft, IconChevronRight } from "@/components/icons/icons";
 import type { HeroBannerSlide } from "@/constants/storefront";
 import { useImageAutoplay, wrapIndex } from "@/features/catalog/use-image-autoplay";
 import { cn } from "@/lib/cn";
+import { resolvePublicImageUrl } from "@/lib/public-image-url";
+
+const MOBILE_MQ = "(max-width: 1023px)";
 
 export function HeroBannerSlider({
   banners,
@@ -14,8 +18,8 @@ export function HeroBannerSlider({
 }) {
   const unique = banners
     .map((slide) => ({
-      desktop: slide.desktop.trim(),
-      mobile: slide.mobile.trim(),
+      desktop: resolvePublicImageUrl(slide.desktop.trim()),
+      mobile: resolvePublicImageUrl(slide.mobile.trim()),
     }))
     .filter((slide) => slide.desktop || slide.mobile)
     .map((slide) => ({
@@ -25,8 +29,17 @@ export function HeroBannerSlider({
   const count = unique.length;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const safe = wrapIndex(index, count);
   const hasMany = count > 1;
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ);
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useImageAutoplay(count, {
     index: safe,
@@ -54,21 +67,28 @@ export function HeroBannerSlider({
       onMouseLeave={() => setPaused(false)}
     >
       {unique.map((slide, i) => {
-        const mobileSrc = slide.mobile || slide.desktop;
+        const active = safe === i;
+        if (!active) {
+          return null;
+        }
+        const src = isMobile ? slide.mobile || slide.desktop : slide.desktop;
         return (
-          <picture
+          <div
             key={`${slide.desktop}-${slide.mobile}-${i}`}
-            className={cn("ha-hero__banner-picture", safe === i && "is-active")}
+            className={cn("ha-hero__banner-picture", "is-active")}
           >
-            <source media="(max-width: 1023px)" srcSet={mobileSrc} />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={slide.desktop}
+            <Image
+              src={src}
               alt=""
+              width={1920}
+              height={1080}
               className="ha-hero__banner"
+              sizes="100vw"
+              quality={80}
+              priority={i === 0}
               fetchPriority={i === 0 ? "high" : "auto"}
             />
-          </picture>
+          </div>
         );
       })}
       {hasMany ? (

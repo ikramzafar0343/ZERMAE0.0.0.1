@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IconHeart, IconPlus } from "@/components/icons/icons";
 import { formatMoney } from "@/constants/storefront";
 import { AddToBagForm } from "@/features/cart/add-to-bag-form";
+import { CmsImage } from "@/features/media/cms-image";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { cn } from "@/lib/cn";
 
@@ -49,12 +50,12 @@ export function ProductTile({
     <article className={cn("ha-product-tile", className)} data-reveal-item>
       <div className="ha-product-tile__media">
         <Link href={href} className="ha-product-tile__shot" aria-label={product.title}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <CmsImage
             src={product.image}
             alt=""
-            className="ha-media-fill ha-product-tile__img"
-            data-hover-image
+            fill
+            className="ha-product-tile__img"
+            sizes="(max-width: 767px) 80vw, 28vw"
             loading="lazy"
           />
         </Link>
@@ -98,9 +99,7 @@ export function ProductTile({
         ) : null}
       </div>
       <div className="ha-product-tile__meta">
-        <Link href={href} className="ha-product-tile__name">
-          {product.title}
-        </Link>
+        <p className="ha-product-tile__name">{product.title}</p>
         {viewAllHref ? (
           <Link href={actionHref} className="ha-product-tile__view-all">
             {viewAllLabel}

@@ -163,21 +163,25 @@
 .ha-hero {
   position: relative;
   width: 100%;
-  min-height: 680px;
-  height: 100svh;
+  min-height: 0;
+  height: auto;
   overflow: hidden;
   color: var(--light-text);
+  background: var(--ink, #303531);
 }
 
 .ha-hero__media {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  display: block;
+  line-height: 0;
 }
 
 .ha-hero__media img,
 .ha-hero__media video {
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-width: 100%;
   object-fit: contain;
   object-position: center center;
 }
@@ -421,17 +425,30 @@
 }
 
 .ha-hero-slider__dot {
-  width: 6px;
-  height: 6px;
+  position: relative;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.45);
+  background: transparent;
   cursor: pointer;
+}
+
+.ha-hero-slider__dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
   transition: background 180ms ease, transform 180ms ease;
 }
 
-.ha-hero-slider__dot.is-active {
+.ha-hero-slider__dot.is-active::after {
   background: #fff;
   transform: scale(1.2);
 }
@@ -1401,7 +1418,8 @@
   width: max-content;
   max-width: none;
   box-sizing: content-box;
-  padding-inline: max(var(--gutter), calc((100% - (236px * 5 + 16px * 4)) / 2));
+  padding-inline: var(--gutter);
+  scroll-padding-inline: var(--gutter);
 }
 
 .ha-social__card {
@@ -1412,7 +1430,7 @@
   border-radius: 0;
   border: 0;
   overflow: hidden;
-  scroll-snap-align: center;
+  scroll-snap-align: start;
   background: transparent;
   color: #fff;
   text-decoration: none;
@@ -1536,7 +1554,7 @@
 .ha-newsletter__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .ha-newsletter__content {
@@ -1846,8 +1864,8 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 10px;
-    margin-inline: calc(-1 * var(--gutter));
-    padding-inline: var(--gutter);
+    margin-inline: 0;
+    padding-inline: 0;
     padding-bottom: 6px;
   }
 
@@ -1867,7 +1885,8 @@
   .ha-journal__grid.ha-snap-track {
     display: flex;
     grid-template-columns: none;
-    width: calc(100% + 2 * var(--gutter));
+    /* Stay left-aligned with container gutter; extend right to peek next card */
+    width: calc(100% + var(--gutter));
     max-width: none;
     overflow-x: auto;
     overflow-y: hidden;
@@ -1876,8 +1895,8 @@
     scrollbar-width: none;
     gap: 14px;
     row-gap: 0;
-    margin-inline: calc(-1 * var(--gutter));
-    padding-inline: var(--gutter);
+    margin-inline: 0 calc(-1 * var(--gutter));
+    padding-inline: 0 var(--gutter);
     padding-bottom: 10px;
   }
 
@@ -1920,14 +1939,14 @@
   }
 
   .ha-hero {
-    min-height: 100svh;
-    height: 100svh;
+    min-height: 0;
+    height: auto;
   }
 
   .ha-hero__copy {
     left: 28px;
     right: auto;
-    bottom: 168px;
+    bottom: clamp(88px, 18%, 168px);
     max-width: none;
   }
 
@@ -1953,7 +1972,7 @@
   .ha-mosaic__heading .ha-section-heading__title,
   .ha-social__heading .ha-section-heading__title {
     font-size: clamp(28px, 8vw, 40px);
-    padding-inline: 4px;
+    padding-inline: 0;
   }
 
   .ha-collection__gap,
@@ -2158,7 +2177,8 @@
   }
 
   .ha-hero {
-    min-height: 100svh;
+    min-height: 0;
+    height: auto;
   }
 
   .ha-collection__grid.ha-snap-track .ha-product-tile,

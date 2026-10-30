@@ -11,5 +11,8 @@ export const definition: RouteDefinition = {
 
 export async function handler(ctx: RequestContext) {
   const body = parseSchema(forgotPasswordSchema, ctx.body);
-  return authService.requestPasswordReset(body.email, { forAdmin: body.forAdmin });
+  return authService.requestPasswordReset(
+    body.email,
+    body.forAdmin === undefined ? undefined : { forAdmin: body.forAdmin },
+  );
 }

@@ -3,12 +3,7 @@ import Image, { type ImageProps } from "next/image";
 import { resolvePublicImageUrl } from "@/lib/public-image-url";
 
 function shouldSkipOptimizer(src: string): boolean {
-  return (
-    src.startsWith("blob:") ||
-    src.startsWith("data:") ||
-    src.startsWith("/uploads/") ||
-    src.startsWith("/api/v1/media/")
-  );
+  return src.startsWith("blob:") || src.startsWith("data:");
 }
 
 export function CmsImage({
@@ -20,6 +15,7 @@ export function CmsImage({
   height,
   sizes,
   priority,
+  loading,
 }: {
   src: string;
   alt: string;
@@ -29,6 +25,7 @@ export function CmsImage({
   height?: number;
   sizes?: string;
   priority?: boolean;
+  loading?: "lazy" | "eager";
 }) {
   const resolved = resolvePublicImageUrl(src);
   const props: ImageProps = {
@@ -44,6 +41,8 @@ export function CmsImage({
   }
   if (priority) {
     props.priority = true;
+  } else if (loading) {
+    props.loading = loading;
   }
   if (fill) {
     props.fill = true;
