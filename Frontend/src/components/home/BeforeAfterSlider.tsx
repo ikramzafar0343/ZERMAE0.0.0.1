@@ -89,6 +89,8 @@ export function BeforeAfterSlider({
           className="ha-ba__image ha-ba__image--after"
           width={1600}
           height={1000}
+          loading="lazy"
+          decoding="async"
           draggable={false}
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -98,6 +100,8 @@ export function BeforeAfterSlider({
           className="ha-ba__image ha-ba__image--before"
           width={1600}
           height={1000}
+          loading="lazy"
+          decoding="async"
           draggable={false}
           style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
         />

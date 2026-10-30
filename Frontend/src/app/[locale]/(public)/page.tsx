@@ -1,11 +1,12 @@
 import "@/app/home.css";
 
+import dynamic from "next/dynamic";
+
 import { CollectionSection } from "@/components/home/CollectionSection";
 import { CustomerStories } from "@/components/home/CustomerStories";
 import { EditorialMosaic } from "@/components/home/EditorialMosaic";
 import { FaqSection } from "@/components/home/FaqSection";
 import { HeroSection } from "@/components/home/HeroSection";
-import { HomepageMotion } from "@/components/home/HomepageMotion";
 import { JournalSection } from "@/components/home/JournalSection";
 import { LifestyleSection } from "@/components/home/LifestyleSection";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
@@ -15,6 +16,11 @@ import { type HomeSectionId,shopCategoriesAsRitualTabs } from "@/constants/store
 import { loadHomeProducts } from "@/lib/home-products";
 import { getStorefront } from "@/lib/storefront";
 import { readWishlist } from "@/lib/wishlist-cookie";
+
+const HomepageMotion = dynamic(
+  () => import("@/components/home/HomepageMotion").then((mod) => mod.HomepageMotion),
+  { ssr: true },
+);
 
 export default async function HomePage() {
   const [storefront, wishlist] = await Promise.all([getStorefront(), readWishlist()]);

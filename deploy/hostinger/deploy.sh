@@ -28,6 +28,10 @@ docker compose up -d
 # File bind-mounts keep the old inode after git pull unless nginx is recreated
 docker compose up -d --force-recreate nginx
 
+echo "== Warming media derivatives (LCP cache) =="
+# Non-TTY safe; warm failure must not undo a successful deploy
+docker compose exec -T api npx tsx scripts/warm-media-derivatives.ts --dir /app/uploads || true
+
 echo "== Status =="
 docker compose ps
 echo "Done. Open https://zermae.com after DNS A record points to this VPS."
