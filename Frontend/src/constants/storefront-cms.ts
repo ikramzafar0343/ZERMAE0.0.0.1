@@ -3,7 +3,15 @@
  * Defaults mirror homepage.ts + media-manifest so the live look is unchanged until admin edits.
  */
 import { brandLogoWordmark, brandLogoWordmarkOnLight,brandName } from "@/constants/brand";
-import { COLLECTION_HEROES, COLLECTION_RITUALS, FOOTER_NAV, INFO_STILLS, NAV_ITEMS, SUPPORT_EMAIL } from "@/constants/site";
+import {
+  COLLECTION_HEROES,
+  COLLECTION_RITUALS,
+  FOOTER_NAV,
+  INFO_STILLS,
+  NAV_ITEMS,
+  SUPPORT_ADDRESS,
+  SUPPORT_EMAIL,
+} from "@/constants/site";
 import {
   HOME_COLLECTION,
   HOME_FAQ,
@@ -224,6 +232,8 @@ export type StorefrontPageTemplates = {
     imageAlt: string;
     lead: string;
     supportPhone: string;
+    officeAddress: string;
+    showAddress: boolean;
   };
   faq: {
     imageSrc: string;
@@ -413,6 +423,8 @@ export function buildDefaultPageTemplates(aboutCopy: string, contactLead: string
       imageAlt: INFO_STILLS.contact.alt,
       lead: contactLead,
       supportPhone,
+      officeAddress: SUPPORT_ADDRESS,
+      showAddress: false,
     },
     faq: {
       imageSrc: "/assets/images/women.jpg",

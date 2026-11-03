@@ -230,6 +230,8 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
       imageAlt: String(formData.get("contactImageAlt") ?? ""),
       lead: String(formData.get("contactLead") ?? ""),
       supportPhone: String(formData.get("supportPhone") ?? ""),
+      officeAddress: String(formData.get("officeAddress") ?? ""),
+      showAddress: formData.get("showAddress") === "1" || formData.get("showAddress") === "on",
     },
     faq: {
       imageSrc: images.faqPageImageSrc || images.faqImage,

@@ -18,6 +18,7 @@ export type ProductFormPayload = {
   stock: number;
   status: string;
   bestSeller: boolean;
+  showInNewArrivals: boolean;
   returnPolicy: string;
   sizes: string[];
   tileColor: string | null;
@@ -97,6 +98,7 @@ export function productPayloadFromForm(
     stock: Number(formData.get("stock") ?? 0),
     status: String(formData.get("status") ?? PRODUCT_STATUS.PUBLISHED),
     bestSeller: formData.get("bestSeller") === "on",
+    showInNewArrivals: formData.get("showInNewArrivals") === "on",
     returnPolicy: returnField == null ? DEFAULT_RETURN_POLICY : String(returnField),
     sizes: sizes.length > 0 ? sizes : includes ? [includes] : [],
     tileColor: asHexColorOrNull(formData.get("tileColor")),

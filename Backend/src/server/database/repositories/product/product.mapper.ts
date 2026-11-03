@@ -21,6 +21,7 @@ export type ProductSqlRow = {
   sizes: string[];
   tile_color: string | null;
   best_seller: boolean;
+  show_in_new_arrivals: boolean;
   stock: number;
   low_stock_threshold: number;
   rating: string;
@@ -46,8 +47,8 @@ export type ProductColorRow = {
 
 export const PRODUCT_COLUMNS = `id, title, slug, sku, category, price, original_price, discount, discount_type,
   description_intro, description_detail, description_highlights, spec_composition, spec_care, spec_includes,
-  return_policy, sizes, tile_color, best_seller, stock, low_stock_threshold, rating, review_count, status, version,
-  created_at, updated_at`;
+  return_policy, sizes, tile_color, best_seller, show_in_new_arrivals, stock, low_stock_threshold, rating, review_count,
+  status, version, created_at, updated_at`;
 
 function money(value: string | number | null): number {
   return value === null ? 0 : Number(value);
@@ -55,12 +56,12 @@ function money(value: string | number | null): number {
 
 function effectivePrice(price: number, discount: number, discountType: string): number {
   if (discount <= 0) {
-    return price;
+    return Math.round(price);
   }
   if (discountType === DISCOUNT_TYPES.FIXED) {
-    return Math.max(0, price - discount);
+    return Math.round(Math.max(0, price - discount));
   }
-  return Math.max(0, price - (price * discount) / 100);
+  return Math.round(Math.max(0, price - (price * discount) / 100));
 }
 
 export function toProductRecord(
@@ -97,6 +98,7 @@ export function toProductRecord(
     images,
     variants: [],
     bestSeller: row.best_seller,
+    showInNewArrivals: row.show_in_new_arrivals,
     stock: Number(row.stock),
     lowStockThreshold: Number(row.low_stock_threshold),
     rating: money(row.rating),
@@ -144,6 +146,7 @@ export function serializeProductCard(product: ProductRecord): SerializedProduct 
     images: primary ? [{ url: primary.url, alt: primary.alt, order: 0 }] : [],
     variants: [],
     bestSeller: product.bestSeller,
+    showInNewArrivals: product.showInNewArrivals,
     stock: product.stock,
     lowStockThreshold: product.lowStockThreshold,
     rating: product.rating,

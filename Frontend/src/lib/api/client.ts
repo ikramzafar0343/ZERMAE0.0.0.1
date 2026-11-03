@@ -8,6 +8,11 @@ import { type ApiErrorBody, type ApiSuccessBody, ERROR_CODES } from "@/types/api
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 const FETCH_TIMEOUT_MS = 15_000;
+const UPLOAD_TIMEOUT_MS = 120_000;
+
+function timeoutForRoute(routePath: string): number {
+  return routePath.startsWith("/admin/uploads") ? UPLOAD_TIMEOUT_MS : FETCH_TIMEOUT_MS;
+}
 
 function cookieHeader(store: Awaited<ReturnType<typeof cookies>>): string {
   return store
@@ -105,7 +110,7 @@ export async function apiRequestPublic<T>(method: Method, route: string, body?: 
         ...(rawBody ? { "Content-Type": "application/json" } : {}),
       },
       ...(rawBody ? { body: rawBody } : {}),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutForRoute(routePath)),
       cache: "no-store",
     });
     return parseApiResponse<T>(response);
@@ -168,7 +173,7 @@ export async function apiRequest<T>(
       method,
       headers: requestHeaders,
       ...(rawBody ? { body: rawBody } : {}),
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutForRoute(routePath)),
       ...(cacheable ? { next: { revalidate: 60 } } : { cache: "no-store" as const }),
     });
     const setCookies = typeof response.headers.getSetCookie === "function" ? response.headers.getSetCookie() : [];

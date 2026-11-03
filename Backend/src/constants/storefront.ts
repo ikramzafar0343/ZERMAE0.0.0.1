@@ -556,7 +556,7 @@ export function themeToCss(theme: StorefrontTheme): string {
 }
 
 export function formatMoney(amount: number, currency = "PKR"): string {
-  return `${currency} ${amount.toLocaleString()}`;
+  return `${currency} ${Math.round(amount).toLocaleString()}`;
 }
 
 export function resolveNavImages(content: StorefrontContent): Record<string, { src: string; tone: "blush" | "mint" }> {

@@ -51,6 +51,7 @@ export type ProductWrite = {
   sizes: string[];
   tileColor: string | null;
   bestSeller: boolean;
+  showInNewArrivals: boolean;
   stock: number;
   status: string;
   images: readonly ProductImage[];
@@ -164,7 +165,11 @@ export class ProductRepository {
     }
     if (params.category) {
       values.push(params.category);
-      where.push(`category = $${values.length}`);
+      if (params.category === "new-arrivals") {
+        where.push(`(category = $${values.length} OR show_in_new_arrivals = TRUE)`);
+      } else {
+        where.push(`category = $${values.length}`);
+      }
     }
     if (typeof params.bestSeller === "boolean") {
       values.push(params.bestSeller);
@@ -227,9 +232,9 @@ export class ProductRepository {
          title, slug, sku, category, price, original_price, discount, discount_type,
          description_intro, description_detail, description_highlights,
          spec_composition, spec_care, spec_includes, return_policy, sizes, tile_color,
-         best_seller, stock, status
+         best_seller, show_in_new_arrivals, stock, status
        ) VALUES (
-         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
        ) RETURNING ${PRODUCT_COLUMNS}`,
       [
         input.title,
@@ -250,6 +255,7 @@ export class ProductRepository {
         input.sizes,
         input.tileColor,
         input.bestSeller,
+        input.showInNewArrivals,
         input.stock,
         input.status,
       ],
@@ -273,9 +279,10 @@ export class ProductRepository {
          title = $2, slug = $3, sku = $4, category = $5, price = $6, original_price = $7,
          discount = $8, discount_type = $9, description_intro = $10, description_detail = $11,
          description_highlights = $12, spec_composition = $13, spec_care = $14, spec_includes = $15,
-         return_policy = $16, sizes = $17, tile_color = $18, best_seller = $19, stock = $20, status = $21,
+         return_policy = $16, sizes = $17, tile_color = $18, best_seller = $19,
+         show_in_new_arrivals = $20, stock = $21, status = $22,
          version = version + 1
-       WHERE id = $1 AND deleted_at IS NULL AND version = $22
+       WHERE id = $1 AND deleted_at IS NULL AND version = $23
        RETURNING ${PRODUCT_COLUMNS}`,
       [
         id,
@@ -297,6 +304,7 @@ export class ProductRepository {
         input.sizes,
         input.tileColor,
         input.bestSeller,
+        input.showInNewArrivals,
         input.stock,
         input.status,
         version,

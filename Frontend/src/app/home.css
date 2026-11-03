@@ -1526,8 +1526,11 @@
 .ha-newsletter {
   position: relative;
   width: 100%;
-  min-height: 100svh;
-  height: 100svh;
+  max-width: none;
+  margin-inline: 0;
+  min-height: min(100svh, 56rem);
+  height: auto;
+  aspect-ratio: 16 / 9;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -1537,12 +1540,19 @@
 .ha-newsletter__media {
   position: absolute;
   inset: 0;
-}
-
-.ha-newsletter__media img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+}
+
+.ha-newsletter__media img,
+.ha-newsletter__media .ha-media-fill,
+.ha-newsletter__media span {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
   object-position: 50% 45%;
 }
 
@@ -2131,8 +2141,9 @@
   }
 
   .ha-newsletter {
-    min-height: 100svh;
-    height: 100svh;
+    min-height: min(100svh, 42rem);
+    aspect-ratio: 9 / 16;
+    height: auto;
   }
 
   .ha-newsletter__content {

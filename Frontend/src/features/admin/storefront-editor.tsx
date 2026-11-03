@@ -710,7 +710,17 @@ export function StorefrontEditor({
             <ImageUrlField name="contactImageSrc" label="Image" defaultValue={pages.contact.imageSrc} />
             <SoftInput label="Image alt" name="contactImageAlt" defaultValue={pages.contact.imageAlt} />
             <SoftArea label="Lead" name="contactLead" rows={3} defaultValue={pages.contact.lead} />
-            <SoftInput label="Support phone" name="supportPhone" defaultValue={pages.contact.supportPhone} />
+            <SoftInput label="Support phone (WhatsApp)" name="supportPhone" defaultValue={pages.contact.supportPhone} />
+            <SoftArea
+              label="Office address"
+              name="officeAddress"
+              rows={2}
+              defaultValue={pages.contact.officeAddress}
+            />
+            <label className="admin-soft-check">
+              <input type="checkbox" name="showAddress" value="1" defaultChecked={pages.contact.showAddress} />
+              <span>Show address on Contact page</span>
+            </label>
           </section>
           <section className="admin-product-card">
             <h2 className="admin-product-card-title">FAQ page</h2>

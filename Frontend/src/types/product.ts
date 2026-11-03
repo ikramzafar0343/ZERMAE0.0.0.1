@@ -36,6 +36,7 @@ export type ProductRecord = {
   readonly images: readonly ProductImage[];
   readonly variants: readonly unknown[];
   readonly bestSeller: boolean;
+  readonly showInNewArrivals: boolean;
   readonly stock: number;
   readonly lowStockThreshold: number;
   readonly rating: number;

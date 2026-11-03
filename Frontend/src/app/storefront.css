@@ -1477,12 +1477,18 @@
 }
 
 .product-tabs-nav {
-  gap: 1.75rem;
+  gap: 1.25rem 2.25rem;
 }
 
 .product-tab-btn {
+  min-height: 2.75rem;
+  padding-block: 0.65rem 0.85rem;
   font-family: var(--font-nav);
   letter-spacing: 0.16em;
+}
+
+.product-tab-panel {
+  padding-top: 1.85rem;
 }
 
 .product-feature-grid {
@@ -1675,15 +1681,16 @@
 .info-page-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  align-items: center;
-  gap: 2.5rem;
+  align-items: start;
+  gap: 1.75rem;
+  padding-top: 0.25rem;
 }
 
 @media (min-width: 900px) {
   .info-page-shell {
     grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
     align-items: start;
-    gap: 4rem;
+    gap: 3rem;
   }
 }
 

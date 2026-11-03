@@ -3,7 +3,15 @@
  * Paths match Frontend media-manifest / homepage defaults.
  */
 import { brandLogoWordmark, brandLogoWordmarkOnLight, brandName } from "@/constants/brand";
-import { COLLECTION_HEROES, FOOTER_NAV, INFO_STILLS, NAV_ITEMS, SUPPORT_EMAIL, SUPPORT_PHONE_LOCAL } from "@/constants/site";
+import {
+  COLLECTION_HEROES,
+  FOOTER_NAV,
+  INFO_STILLS,
+  NAV_ITEMS,
+  SUPPORT_ADDRESS,
+  SUPPORT_EMAIL,
+  SUPPORT_PHONE_LOCAL,
+} from "@/constants/site";
 
 export const HOME_SECTION_IDS = [
   "hero",
@@ -204,6 +212,8 @@ export type StorefrontPageTemplates = {
     imageAlt: string;
     lead: string;
     supportPhone: string;
+    officeAddress: string;
+    showAddress: boolean;
   };
   faq: {
     imageSrc: string;
@@ -438,6 +448,8 @@ export function buildDefaultPageTemplates(
       imageAlt: INFO_STILLS.contact.alt,
       lead: contactLead,
       supportPhone,
+      officeAddress: SUPPORT_ADDRESS,
+      showAddress: false,
     },
     faq: {
       imageSrc: "/assets/images/women.jpg",

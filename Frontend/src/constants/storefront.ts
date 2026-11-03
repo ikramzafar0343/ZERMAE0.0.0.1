@@ -783,7 +783,7 @@ export function themeToCss(theme: StorefrontTheme): string {
 }
 
 export function formatMoney(amount: number, currency = "PKR"): string {
-  return `${currency} ${amount.toLocaleString()}`;
+  return `${currency} ${Math.round(amount).toLocaleString()}`;
 }
 
 export function tileStyle(color: string): CSSProperties {

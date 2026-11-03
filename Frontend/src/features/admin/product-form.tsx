@@ -82,6 +82,7 @@ export function ProductForm({
   const [customValue, setCustomValue] = useState(initialCustom?.value ?? "");
   const [customUnit, setCustomUnit] = useState<ProductSizeUnit>(initialCustom?.unit ?? "ml");
   const [bestSeller, setBestSeller] = useState(product?.bestSeller ?? false);
+  const [showInNewArrivals, setShowInNewArrivals] = useState(product?.showInNewArrivals ?? false);
   const customLabel = formatProductSize(customValue, customUnit);
   const presetSizes = sizes.filter((size) => (PRODUCT_VOLUME_OPTIONS as readonly string[]).includes(size));
   const [discountType, setDiscountType] = useState(product?.discountType || DISCOUNT_TYPES.PERCENTAGE);
@@ -159,6 +160,11 @@ export function ProductForm({
       formData.set("bestSeller", "on");
     } else {
       formData.delete("bestSeller");
+    }
+    if (showInNewArrivals) {
+      formData.set("showInNewArrivals", "on");
+    } else {
+      formData.delete("showInNewArrivals");
     }
     formData.set("imageCount", String(readyImages.length));
     formData.set("imagesCleared", readyImages.length === 0 ? "1" : "0");
@@ -395,7 +401,7 @@ export function ProductForm({
               </fieldset>
               <fieldset className="admin-product-field">
                 <legend className="admin-product-label">Placement</legend>
-                <p className="admin-product-kicker">Show in best-seller slots</p>
+                <p className="admin-product-kicker">Feature on collection pages without changing category</p>
                 <div className="admin-product-radios">
                   <label className={cn("admin-product-radio", bestSeller && "is-selected")}>
                     <input
@@ -404,6 +410,14 @@ export function ProductForm({
                       onChange={(event) => setBestSeller(event.target.checked)}
                     />
                     List this product in Best Sellers
+                  </label>
+                  <label className={cn("admin-product-radio", showInNewArrivals && "is-selected")}>
+                    <input
+                      type="checkbox"
+                      checked={showInNewArrivals}
+                      onChange={(event) => setShowInNewArrivals(event.target.checked)}
+                    />
+                    Also show in New Arrivals
                   </label>
                 </div>
               </fieldset>

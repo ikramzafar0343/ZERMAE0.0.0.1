@@ -70,6 +70,7 @@ function toWrite(payload: Record<string, unknown>, slug: string, sku: string, ex
     })(),
     tileColor: asTileColor(payload.tileColor, existing?.tileColor ?? null),
     bestSeller: Boolean(payload.bestSeller ?? existing?.bestSeller ?? false),
+    showInNewArrivals: Boolean(payload.showInNewArrivals ?? existing?.showInNewArrivals ?? false),
     stock: Number(payload.stock ?? existing?.stock ?? 0),
     status: String(payload.status ?? existing?.status ?? PRODUCT_STATUS.DRAFT),
     images: imagesRaw.map((image, index) => ({
@@ -217,6 +218,7 @@ export class ProductService {
                 sizes: active.sizes,
                 tileColor: active.tileColor,
                 bestSeller: true,
+                showInNewArrivals: active.showInNewArrivals,
                 stock: active.stock,
                 status: active.status,
                 images: gallery,
@@ -258,6 +260,7 @@ export class ProductService {
         sizes: [],
         tileColor: null,
         bestSeller: true,
+        showInNewArrivals: false,
         stock: 80,
         status: PRODUCT_STATUS.PUBLISHED,
         images: gallery,

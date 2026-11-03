@@ -2991,15 +2991,17 @@
   }
 
   .product-tabs-nav {
-    @apply mb-6 flex flex-wrap gap-x-8 gap-y-3 border-b border-brand-border pb-0 md:gap-x-10;
+    @apply mb-7 flex flex-wrap items-stretch gap-x-6 gap-y-4 border-b border-brand-border pb-0 md:mb-8 md:gap-x-12 md:gap-y-3;
   }
 
   .product-tab-btn {
-    @apply relative pb-3 whitespace-nowrap uppercase transition-colors duration-300;
+    @apply relative whitespace-nowrap uppercase transition-colors duration-300;
+    min-height: 2.75rem;
+    padding: 0.65rem 0.15rem 0.85rem;
     font-family: var(--font-brand);
-    font-size: clamp(0.58rem, 0.68vw, 0.64rem);
+    font-size: clamp(0.62rem, 0.75vw, 0.72rem);
     font-weight: 500;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
   }
 
   .product-tab-btn-active {
@@ -3011,12 +3013,12 @@
   }
 
   .product-tab-indicator {
-    @apply absolute bottom-0 left-0 h-px w-full bg-brand-primary;
+    @apply absolute bottom-0 left-0 h-0.5 w-full bg-brand-primary;
   }
 
   .product-tab-panel {
-    min-height: 10rem;
-    padding-top: 1.5rem;
+    min-height: 11rem;
+    padding-top: 1.85rem;
   }
 
   .product-tab-content {
@@ -3907,7 +3909,7 @@
   }
 
   .info-page {
-    @apply bg-brand-bg pb-20 pt-32 md:pb-24 md:pt-36;
+    @apply bg-brand-bg pb-16 pt-24 md:pb-24 md:pt-28;
   }
 
   .info-page-content {

@@ -50,6 +50,7 @@ export const createProductSchema = z.object({
   sizes: z.array(z.string().trim().min(1)).optional(),
   stock: z.coerce.number().int().min(0).optional(),
   bestSeller: z.boolean().optional(),
+  showInNewArrivals: z.boolean().optional(),
   status: z.enum(Object.values(PRODUCT_STATUS) as [string, ...string[]]).optional(),
   specifications: z
     .object({
