@@ -124,7 +124,7 @@ export async function loadHomeProducts(bestSellerSkus: string[], options: LoadOp
     tabs.map(async (tab) => {
       try {
         const result =
-          tab.category === "all" || tab.category === "new"
+          tab.category === "all"
             ? await productService.list({ limit: 3 })
             : await productService.list({ category: tab.category, limit: 3 });
         const mapped = result.products.slice(0, 3).map((product, index) => {

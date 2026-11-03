@@ -28,7 +28,6 @@ export function ContactDetails({
       <li className="info-page-contact-item">
         <IconPhone className="info-page-contact-icon" />
         <div>
-          <p className="info-page-contact-label">WhatsApp</p>
           <p className="info-page-contact-value">
             <a href={whatsapp} target="_blank" rel="noreferrer" className="info-page-link">
               Chat on WhatsApp
