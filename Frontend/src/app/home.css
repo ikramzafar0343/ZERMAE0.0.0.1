@@ -175,19 +175,19 @@
   width: 100%;
   display: block;
   line-height: 0;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: auto;
   background: #fff;
   overflow: hidden;
 }
 
 .ha-hero__media img,
 .ha-hero__media video {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
   width: 100%;
-  height: 100%;
+  height: auto;
   max-width: none;
-  object-fit: cover;
+  object-fit: unset;
   object-position: center center;
 }
 
@@ -1954,7 +1954,7 @@
   }
 
   .ha-hero__media {
-    aspect-ratio: 9 / 16;
+    aspect-ratio: auto;
   }
 
   .ha-hero__copy {
