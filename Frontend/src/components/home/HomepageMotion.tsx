@@ -10,7 +10,9 @@ import { MOTION } from "@/lib/motion/motionTokens";
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const DESKTOP_MOTION = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
+const STORIES_MOTION = "(prefers-reduced-motion: no-preference)";
 const ANY_MOTION = "(prefers-reduced-motion: no-preference)";
+const MOBILE_STORIES_MAX = 1023;
 
 export function HomepageMotion({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
@@ -197,7 +199,8 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
         });
       });
 
-      mm.add(DESKTOP_MOTION, () => {
+      // Stories pin on all motion-OK viewports (mobile-tuned scrub); parallax stays desktop-only.
+      mm.add(STORIES_MOTION, () => {
         const section = element.querySelector<HTMLElement>(".stories-section");
         const stage = element.querySelector<HTMLElement>(".stories-stage");
         if (!section || !stage) return;
@@ -205,14 +208,17 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
         const enablePinned = () => {
           section.dataset.storiesMode = "pinned";
           const lanes = stage.querySelectorAll<HTMLElement>("[data-story-lane]");
+          const isMobileStories = window.matchMedia(`(max-width: ${MOBILE_STORIES_MAX}px)`).matches;
+          const scrub = isMobileStories ? 1.1 : MOTION.storyScrub;
+          const endFactor = isMobileStories ? 1.8 : 2.4;
           const scene = gsap.timeline({
             defaults: { ease: "none" },
             scrollTrigger: {
               trigger: section,
               pin: stage,
               start: "top top",
-              end: () => `+=${Math.round(stage.clientHeight * 2.4)}`,
-              scrub: MOTION.storyScrub,
+              end: () => `+=${Math.round(stage.clientHeight * endFactor)}`,
+              scrub,
               pinSpacing: true,
               anticipatePin: 1,
               invalidateOnRefresh: true,
