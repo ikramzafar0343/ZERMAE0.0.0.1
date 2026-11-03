@@ -3,11 +3,14 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { type ReactNode,useRef } from "react";
+import { type ReactNode, useRef } from "react";
 
 import { MOTION } from "@/lib/motion/motionTokens";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+const DESKTOP_MOTION = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
+const ANY_MOTION = "(prefers-reduced-motion: no-preference)";
 
 export function HomepageMotion({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
@@ -34,7 +37,8 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
         }, 180);
       };
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
+      // Light once-only entrances on all viewports (no scrub / pin).
+      mm.add(ANY_MOTION, () => {
         const header = document.querySelector<HTMLElement>("[data-float-header]");
         if (header && header.getBoundingClientRect().top >= 0) {
           gsap.from(header, {
@@ -68,17 +72,6 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
           });
         }
 
-        const tile = element.querySelector("[data-hero-tile]");
-        if (tile) {
-          gsap.from(tile, {
-            y: MOTION.heroTile.y,
-            opacity: 0,
-            duration: MOTION.heroTile.duration,
-            delay: 0.2,
-            ease: "power3.out",
-          });
-        }
-
         const scrollCue = element.querySelector<HTMLElement>("[data-hero-scroll]");
         if (scrollCue) {
           gsap.to(scrollCue, {
@@ -92,66 +85,6 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
             },
           });
         }
-
-        element.querySelectorAll<HTMLElement>("[data-parallax-shell]").forEach((shell) => {
-          const media = shell.querySelector("img, video");
-          if (!media) return;
-          gsap.fromTo(
-            media,
-            { y: -24 },
-            {
-              y: 24,
-              ease: "none",
-              scrollTrigger: {
-                trigger: shell.closest("section") ?? shell,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: MOTION.parallaxScrub,
-              },
-            },
-          );
-        });
-
-        // Card images: zoomed-in while approaching, ease out to natural scale in view
-        const zoomImages = element.querySelectorAll<HTMLElement>(
-          [
-            ".ha-product-tile__media img",
-            ".ha-mini-tile__thumb img",
-            ".ha-mosaic__left > img",
-            ".ha-mosaic__right-tile > img",
-            ".ha-social__card > img",
-            ".ha-journal__card img",
-            ".ha-review-card img",
-            "[data-reveal-item] img",
-          ].join(", "),
-        );
-
-        const zoomed = new Set<HTMLElement>();
-        zoomImages.forEach((media) => {
-          if (zoomed.has(media)) return;
-          zoomed.add(media);
-          const clip =
-            media.closest<HTMLElement>(
-              ".ha-product-tile__media, .ha-mini-tile__thumb, .ha-mosaic__left, .ha-mosaic__right-tile, .ha-social__card, .ha-journal__media, .ha-journal__card, [data-reveal-item], .ha-review-card",
-            ) ?? media.parentElement;
-          if (!clip) return;
-          clip.classList.add("ha-zoom-clip");
-          media.classList.add("ha-zoom-media");
-          gsap.fromTo(
-            media,
-            { scale: MOTION.imageZoom.from, transformOrigin: "50% 50%" },
-            {
-              scale: MOTION.imageZoom.to,
-              ease: "none",
-              scrollTrigger: {
-                trigger: clip,
-                start: "top 92%",
-                end: "top 42%",
-                scrub: MOTION.imageZoom.scrub,
-              },
-            },
-          );
-        });
 
         element.querySelectorAll<HTMLElement>("[data-section-intro]").forEach((intro) => {
           if (intro.getBoundingClientRect().top < 0) return;
@@ -191,7 +124,80 @@ export function HomepageMotion({ children }: { children: ReactNode }) {
         }
       });
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
+      // Heavy scrub / pin / parallax — desktop only (mobile scroll jank source).
+      mm.add(DESKTOP_MOTION, () => {
+        const tile = element.querySelector("[data-hero-tile]");
+        if (tile) {
+          gsap.from(tile, {
+            y: MOTION.heroTile.y,
+            opacity: 0,
+            duration: MOTION.heroTile.duration,
+            delay: 0.2,
+            ease: "power3.out",
+          });
+        }
+
+        element.querySelectorAll<HTMLElement>("[data-parallax-shell]").forEach((shell) => {
+          const media = shell.querySelector("img, video");
+          if (!media) return;
+          gsap.fromTo(
+            media,
+            { y: -24 },
+            {
+              y: 24,
+              ease: "none",
+              scrollTrigger: {
+                trigger: shell.closest("section") ?? shell,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: MOTION.parallaxScrub,
+              },
+            },
+          );
+        });
+
+        const zoomImages = element.querySelectorAll<HTMLElement>(
+          [
+            ".ha-product-tile__media img",
+            ".ha-mini-tile__thumb img",
+            ".ha-mosaic__left > img",
+            ".ha-mosaic__right-tile > img",
+            ".ha-social__card > img",
+            ".ha-journal__card img",
+            ".ha-review-card img",
+            "[data-reveal-item] img",
+          ].join(", "),
+        );
+
+        const zoomed = new Set<HTMLElement>();
+        zoomImages.forEach((media) => {
+          if (zoomed.has(media)) return;
+          zoomed.add(media);
+          const clip =
+            media.closest<HTMLElement>(
+              ".ha-product-tile__media, .ha-mini-tile__thumb, .ha-mosaic__left, .ha-mosaic__right-tile, .ha-social__card, .ha-journal__media, .ha-journal__card, [data-reveal-item], .ha-review-card",
+            ) ?? media.parentElement;
+          if (!clip) return;
+          clip.classList.add("ha-zoom-clip");
+          media.classList.add("ha-zoom-media");
+          gsap.fromTo(
+            media,
+            { scale: MOTION.imageZoom.from, transformOrigin: "50% 50%" },
+            {
+              scale: MOTION.imageZoom.to,
+              ease: "none",
+              scrollTrigger: {
+                trigger: clip,
+                start: "top 92%",
+                end: "top 42%",
+                scrub: MOTION.imageZoom.scrub,
+              },
+            },
+          );
+        });
+      });
+
+      mm.add(DESKTOP_MOTION, () => {
         const section = element.querySelector<HTMLElement>(".stories-section");
         const stage = element.querySelector<HTMLElement>(".stories-stage");
         if (!section || !stage) return;
