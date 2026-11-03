@@ -177,6 +177,7 @@
   line-height: 0;
   aspect-ratio: 16 / 9;
   background: #fff;
+  overflow: hidden;
 }
 
 .ha-hero__media img,
@@ -186,7 +187,7 @@
   width: 100%;
   height: 100%;
   max-width: none;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
 }
 
@@ -1552,9 +1553,9 @@
 .ha-newsletter__media .ha-media-fill,
 .ha-newsletter__media span {
   position: absolute !important;
-  inset: 0 !important;
+  inset: -24px 0 !important;
   width: 100% !important;
-  height: 100% !important;
+  height: calc(100% + 48px) !important;
   max-width: none !important;
   object-fit: cover !important;
   object-position: 50% 45%;

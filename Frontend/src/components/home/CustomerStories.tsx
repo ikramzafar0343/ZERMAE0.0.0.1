@@ -38,14 +38,20 @@ function ReviewCard({ review }: { review: HomeReview }) {
 export function CustomerStories({ cms }: { cms?: StorefrontHome["sections"]["stories"] }) {
   const sectionRef = useRef<HTMLElement>(null);
   const reviews = (cms?.reviews?.length ? cms.reviews : HOME_REVIEWS) as HomeReview[];
+  const fallbackAvatar = (index: number) => MEDIA.avatars[index % MEDIA.avatars.length] ?? MEDIA.avatars[0]!;
   // Pad to 6 with clones + unique ids so lane siblings never share a React key.
   const padded: HomeReview[] = reviews.slice(0, 6).map((review, index) => ({
     ...review,
     id: `${review.id}-${index}`,
+    avatar: review.avatar.trim() || fallbackAvatar(index),
   }));
   while (padded.length < 6) {
     const source = reviews[padded.length % Math.max(1, reviews.length)] ?? HOME_REVIEWS[0]!;
-    padded.push({ ...source, id: `${source.id}-pad-${padded.length}` });
+    padded.push({
+      ...source,
+      id: `${source.id}-pad-${padded.length}`,
+      avatar: source.avatar.trim() || fallbackAvatar(padded.length),
+    });
   }
   const lanes = [
     { id: "left", start: "0.66", reviews: [padded[0]!, padded[3]!] },

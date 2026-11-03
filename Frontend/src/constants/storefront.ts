@@ -599,7 +599,7 @@ function asHome(value: unknown, faqFallback: StorefrontFaqItem[]): StorefrontHom
           body: asStoredText(row.body, fb.body),
           name: asStoredText(row.name, fb.name),
           context: asStoredText(row.context, fb.context),
-          avatar: asStoredText(row.avatar, fb.avatar),
+          avatar: asStoredText(row.avatar, fb.avatar) || fb.avatar,
         };
       })
     : storiesBase.reviews;
