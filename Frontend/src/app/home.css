@@ -1280,7 +1280,10 @@
 
 /* —— FAQ —— */
 .ha-faq {
+  position: relative;
+  z-index: 2;
   padding: 120px 0;
+  background: var(--page);
 }
 
 .ha-faq__inner {
@@ -1821,24 +1824,68 @@
     grid-template-columns: 1fr;
   }
 
+  /* Non-pinned tablet: static desktop-like composition (no GSAP pin) */
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage {
-    height: auto;
-    min-height: 0;
+    height: min(680px, 85svh);
+    min-height: 560px;
+    overflow: hidden;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lanes {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    pointer-events: none;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane {
-    display: contents;
+    position: absolute;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: min(28vw, 180px);
+    pointer-events: auto;
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane[data-lane="left"] {
+    left: 3%;
+    transform: translateY(14%);
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane[data-lane="center"] {
+    left: 36%;
+    transform: translateY(38%);
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane[data-lane="right"] {
+    left: auto;
+    right: 3%;
+    transform: translateY(18%);
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card + .ha-review-card {
+    margin-top: 22vh;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card {
     width: 100%;
     max-width: none;
-    min-height: auto;
+    min-height: 300px;
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage__product {
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    transform: translateX(-50%);
+    margin: 0;
+    width: min(420px, 58%);
+    height: min(400px, 52%);
   }
 
   .ha-stories[data-stories-mode="pinned"] .ha-stories-lane {
@@ -2080,10 +2127,12 @@
     height: 100svh;
   }
 
+  /* Non-pinned phone: same composition as desktop, fixed footprint (no FAQ overlap) */
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage {
-    min-height: 0;
-    height: auto;
-    padding-bottom: 48px;
+    height: min(620px, 90svh);
+    min-height: 520px;
+    overflow: hidden;
+    padding-bottom: 0;
   }
 
   .ha-stories-stage__intro {
@@ -2127,43 +2176,71 @@
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lanes {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    width: calc(100% - 2 * var(--gutter));
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    gap: 0;
     overflow: visible;
-    margin-top: 28px;
-    padding-bottom: 48px;
+    pointer-events: none;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane {
-    display: contents;
+    position: absolute;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: min(30vw, 148px);
+    pointer-events: auto;
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane[data-lane="left"] {
+    left: 2%;
+    transform: translateY(12%);
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane[data-lane="center"] {
+    left: 35%;
+    transform: translateY(36%);
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane[data-lane="right"] {
+    left: auto;
+    right: 2%;
+    transform: translateY(16%);
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card + .ha-review-card {
+    margin-top: 20vh;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card {
     width: 100%;
-    min-height: auto;
+    min-height: 260px;
     max-width: none;
-    padding: 16px;
+    padding: 10px;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card__title {
-    font-size: 17px;
+    font-size: 13px;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card__body {
-    font-size: 13px;
-    line-height: 1.35;
+    font-size: 11px;
+    line-height: 14px;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage__product {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    transform: none;
-    width: min(280px, 72%);
-    height: 200px;
-    margin: 20px auto 0;
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    transform: translateX(-50%);
+    width: min(280px, 64%);
+    height: min(260px, 42%);
+    margin: 0;
   }
 
   .ha-social__card {
