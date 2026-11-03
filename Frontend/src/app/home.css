@@ -1179,6 +1179,12 @@
   margin-top: 30vh;
 }
 
+.ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
 .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lanes {
   position: static;
   display: grid;
@@ -1815,9 +1821,24 @@
     grid-template-columns: 1fr;
   }
 
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage {
+    height: auto;
+    min-height: 0;
+  }
+
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lanes {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane {
+    display: contents;
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card {
+    width: 100%;
+    max-width: none;
+    min-height: auto;
   }
 
   .ha-stories[data-stories-mode="pinned"] .ha-stories-lane {
@@ -2059,6 +2080,12 @@
     height: 100svh;
   }
 
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage {
+    min-height: 0;
+    height: auto;
+    padding-bottom: 48px;
+  }
+
   .ha-stories-stage__intro {
     padding-top: 72px;
   }
@@ -2101,25 +2128,42 @@
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lanes {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 14px;
     width: calc(100% - 2 * var(--gutter));
     overflow: visible;
+    margin-top: 28px;
+    padding-bottom: 48px;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-lane {
-    gap: 12px;
+    display: contents;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card {
     width: 100%;
-    min-height: 240px;
+    min-height: auto;
     max-width: none;
+    padding: 16px;
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card__title {
+    font-size: 17px;
+  }
+
+  .ha-stories:not([data-stories-mode="pinned"]) .ha-review-card__body {
+    font-size: 13px;
+    line-height: 1.35;
   }
 
   .ha-stories:not([data-stories-mode="pinned"]) .ha-stories-stage__product {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    width: min(280px, 72%);
     height: 200px;
-    margin-top: 20px;
+    margin: 20px auto 0;
   }
 
   .ha-social__card {
