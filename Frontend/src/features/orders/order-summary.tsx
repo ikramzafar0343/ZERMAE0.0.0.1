@@ -52,7 +52,7 @@ export function OrderSummary({
             .join(" · ");
           return (
             <li key={`${item.productId}-${item.size ?? ""}-${item.color ?? ""}-${index}`} className="order-confirmation-item">
-              <div className="order-confirmation-thumb">
+              <div className="order-confirmation-thumb relative">
                 {image ? <CmsImage src={image} alt={item.name} fill sizes="60px" /> : null}
               </div>
               <div>

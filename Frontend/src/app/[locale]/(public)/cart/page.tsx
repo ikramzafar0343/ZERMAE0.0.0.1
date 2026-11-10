@@ -1,3 +1,5 @@
+import "@/app/zermae.css";
+
 import Link from "next/link";
 
 import { IconHeart, IconMinus, IconPlus, IconTrash } from "@/components/icons/icons";

@@ -1,3 +1,5 @@
+import "@/app/zermae.css";
+
 import { LegalPage } from "@/features/content/legal-page";
 import { OrderLookupForm } from "@/features/orders/order-lookup-form";
 import { getStorefront } from "@/lib/storefront";

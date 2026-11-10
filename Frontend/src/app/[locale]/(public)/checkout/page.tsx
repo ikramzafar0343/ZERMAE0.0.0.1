@@ -1,15 +1,14 @@
-import Link from "next/link";
+import "@/app/zermae.css";
+
 import { redirect } from "next/navigation";
 
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { formatMoney } from "@/constants/storefront";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
 import { OrderTotals } from "@/features/checkout/order-totals";
-import { CmsImage } from "@/features/media/cms-image";
 import { orderService } from "@/lib/api/orders";
 import { productService } from "@/lib/api/products";
 import { readCart } from "@/lib/cart-cookie";
-import { resolvePublicImageUrl } from "@/lib/public-image-url";
 
 export default async function CheckoutPage() {
   const cart = await readCart();
@@ -24,16 +23,11 @@ export default async function CheckoutPage() {
   const lines = cart.items.map((item) => {
     const product = map.get(item.productId);
     const price = Number(product?.effectivePrice ?? product?.price ?? 0);
-    const image = resolvePublicImageUrl(
-      ((product?.images as Array<{ url: string }> | undefined) ?? [])[0]?.url ?? "",
-    );
     return {
       title: String(product?.title ?? "Product"),
       size: item.size ?? null,
-      color: item.color ?? null,
       quantity: item.quantity,
       lineTotal: price * item.quantity,
-      image,
     };
   });
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
@@ -53,22 +47,12 @@ export default async function CheckoutPage() {
             <p className="checkout-summary-title">Order Summary</p>
             <ul className="checkout-summary-items">
               {lines.map((line, index) => (
-                <li key={`${line.title}-${line.size ?? ""}-${line.color ?? ""}-${index}`} className="checkout-summary-item">
-                  <div className="checkout-summary-thumb">
-                    {line.image ? (
-                      <CmsImage src={line.image} alt={line.title} fill sizes="56px" />
-                    ) : null}
-                    <span className="checkout-summary-qty">{line.quantity}</span>
-                  </div>
-                  <div>
-                    <p className="checkout-summary-name">{line.title}</p>
-                    {line.size || line.color ? (
-                      <p className="checkout-summary-meta">
-                        {[line.color, line.size ? `Size: ${line.size}` : null].filter(Boolean).join(" · ")}
-                      </p>
-                    ) : null}
-                  </div>
-                  <span className="checkout-summary-price">{formatMoney(line.lineTotal, commerce.currency)}</span>
+                <li key={`${line.title}-${line.size ?? ""}-${index}`} className="checkout-summary-row">
+                  <span>
+                    {line.title}
+                    {line.size ? ` · ${line.size}` : ""} × {line.quantity}
+                  </span>
+                  <span>{formatMoney(line.lineTotal, commerce.currency)}</span>
                 </li>
               ))}
             </ul>
@@ -84,9 +68,6 @@ export default async function CheckoutPage() {
             <p className="checkout-note">
               Payment is cash on delivery. Pay the courier in {commerce.currency} when your order arrives. No card is charged online.
             </p>
-            <Link href="/cart" className="checkout-back-link">
-              Back to bag
-            </Link>
           </aside>
         </div>
       </div>
