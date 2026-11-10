@@ -12,40 +12,67 @@ export function CheckoutForm({ itemsJson }: { itemsJson: string }) {
   }, {});
 
   return (
-    <form id="checkout-form" action={action} className="checkout-form space-y-4" autoComplete="off">
+    <form id="checkout-form" action={action} className="checkout-form" autoComplete="off">
       <input type="hidden" name="items" value={itemsJson} />
-      <label className="auth-field">
-        <span className="sr-only">Full name</span>
-        <input name="fullName" defaultValue="" required placeholder="Full name" className="auth-input" autoComplete="off" />
-      </label>
-      <label className="auth-field">
-        <span className="sr-only">Email</span>
-        <input name="email" type="email" defaultValue="" required placeholder="Email" className="auth-input" autoComplete="off" />
-      </label>
-      <label className="auth-field">
-        <span className="sr-only">Phone</span>
-        <input name="phone" defaultValue="" required placeholder="Phone" className="auth-input" autoComplete="off" />
-      </label>
-      <label className="auth-field">
-        <span className="sr-only">Address</span>
-        <input name="address" defaultValue="" required placeholder="Address" className="auth-input" autoComplete="off" />
-      </label>
-      <label className="auth-field">
-        <span className="sr-only">City</span>
-        <input name="city" defaultValue="" required placeholder="City" className="auth-input" autoComplete="off" />
-      </label>
-      <label className="auth-field">
-        <span className="sr-only">Postal code</span>
-        <input name="postalCode" defaultValue="" required placeholder="Postal code" className="auth-input" autoComplete="off" />
-      </label>
-      <label className="auth-field">
-        <span className="sr-only">Promo code</span>
-        <input name="promoCode" placeholder="Promo code (optional)" className="auth-input" autoComplete="off" />
-      </label>
-      <input type="hidden" name="paymentMethod" value="cod" />
-      <p className="checkout-note">Cash on delivery only. You will pay when the order is delivered. Card checkout is not offered.</p>
-      {state.error ? <p className="auth-form-error">{state.error}</p> : null}
-      <button type="submit" className="luxury-button-solid">
+
+      <section className="checkout-section">
+        <h2 className="checkout-section-title">Contact</h2>
+        <div className="checkout-fields">
+          <label className="checkout-field checkout-field--full">
+            <span className="checkout-label">Full name</span>
+            <input name="fullName" defaultValue="" required placeholder="Full name" className="checkout-input" autoComplete="off" />
+          </label>
+          <label className="checkout-field">
+            <span className="checkout-label">Email</span>
+            <input name="email" type="email" defaultValue="" required placeholder="Email" className="checkout-input" autoComplete="off" />
+          </label>
+          <label className="checkout-field">
+            <span className="checkout-label">Phone</span>
+            <input name="phone" defaultValue="" required placeholder="Phone" className="checkout-input" autoComplete="off" />
+          </label>
+        </div>
+      </section>
+
+      <section className="checkout-section">
+        <h2 className="checkout-section-title">Shipping</h2>
+        <div className="checkout-fields">
+          <label className="checkout-field checkout-field--full">
+            <span className="checkout-label">Address</span>
+            <input name="address" defaultValue="" required placeholder="Address" className="checkout-input" autoComplete="off" />
+          </label>
+          <label className="checkout-field">
+            <span className="checkout-label">City</span>
+            <input name="city" defaultValue="" required placeholder="City" className="checkout-input" autoComplete="off" />
+          </label>
+          <label className="checkout-field">
+            <span className="checkout-label">Postal code</span>
+            <input name="postalCode" defaultValue="" required placeholder="Postal code" className="checkout-input" autoComplete="off" />
+          </label>
+        </div>
+      </section>
+
+      <section className="checkout-section">
+        <h2 className="checkout-section-title">Payment</h2>
+        <div className="checkout-payment-options">
+          <label className="checkout-payment-option">
+            <input type="radio" name="paymentMethod" value="cod" defaultChecked />
+            <span>Cash on delivery — pay when your order arrives</span>
+          </label>
+        </div>
+      </section>
+
+      <section className="checkout-section">
+        <h2 className="checkout-section-title">Promo</h2>
+        <div className="checkout-fields">
+          <label className="checkout-field checkout-field--full">
+            <span className="checkout-label">Promo code</span>
+            <input name="promoCode" placeholder="Promo code (optional)" className="checkout-input" autoComplete="off" />
+          </label>
+        </div>
+      </section>
+
+      {state.error ? <p className="checkout-note" role="alert">{state.error}</p> : null}
+      <button type="submit" className="luxury-button-solid checkout-submit">
         Place order
       </button>
     </form>

@@ -14,8 +14,10 @@ export default async function AdminLoginPage() {
   }
   const storefront = await getStorefront();
   return (
-    <AuthPageFrame image={storefront.content.authAdminSrc} imageAlt={AUTH_BANNERS.adminLogin.alt}>
-      <AdminLoginForm />
-    </AuthPageFrame>
+    <div className="admin-auth-page">
+      <AuthPageFrame image={storefront.content.authAdminSrc} imageAlt={AUTH_BANNERS.adminLogin.alt}>
+        <AdminLoginForm />
+      </AuthPageFrame>
+    </div>
   );
 }

@@ -54,8 +54,6 @@ export default async function OrderConfirmationPage({
           </p>
         </header>
         <div className="order-confirmation-card">
-          <p className="order-confirmation-fallback-label">Order Reference</p>
-          <p className="order-confirmation-fallback-id">{order.orderNumber}</p>
           <OrderSummary order={order} currency={storefront.commerce.currency} />
         </div>
         <div className="order-confirmation-assurance">

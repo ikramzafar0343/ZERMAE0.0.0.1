@@ -31,13 +31,13 @@ export function AdminLoginForm() {
 
   return (
     <>
-      <div className="auth-form-panel">
+      <div className="admin-login-panel auth-form-panel">
         <div className="auth-form-header">
           <span className="auth-form-eyebrow">Admin Access</span>
           <h2 className="auth-form-title">Sign in</h2>
           <p className="auth-form-subtitle">Sign in to manage formulas, orders, and storefront content</p>
         </div>
-        <form className="auth-form" action={loginFormAction}>
+        <form className="admin-login-form auth-form" action={loginFormAction}>
           <label className="auth-field">
             <span className="sr-only">Email</span>
             <input type="email" name="email" required className="auth-input" placeholder="Email Address" />
@@ -48,7 +48,7 @@ export function AdminLoginForm() {
               Forgot password?
             </Link>
           </div>
-          {loginState.error ? <p className="auth-form-error">{loginState.error}</p> : null}
+          {loginState.error ? <p className="admin-login-error">{loginState.error}</p> : null}
           <button type="submit" className="auth-btn auth-btn-primary luxury-button-solid">
             Continue
           </button>
