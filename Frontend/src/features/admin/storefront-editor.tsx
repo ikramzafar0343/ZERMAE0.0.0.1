@@ -841,7 +841,7 @@ export function StorefrontEditor({
               </button>
             </div>
             <p className="admin-product-kicker admin-storefront-lead">
-              Live cards use real orders. Demo rows show on the shop, with a Demo label, when there are no recent orders.
+              Real orders and demo rows both show on the live shop. Demo cards stay labeled Demo. Hide a row to take it out of the rotation.
             </p>
             <input type="hidden" name="salesDemoCount" value={salesDemos.length} />
             <label className="admin-product-check">

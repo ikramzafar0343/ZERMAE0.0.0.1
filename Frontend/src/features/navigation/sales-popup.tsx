@@ -38,30 +38,31 @@ export function SalesPopup({ settings }: { settings: StorefrontSalesPopup }) {
       return undefined;
     }
     let cancelled = false;
+    const demos = settings.demos
+      .filter((item) => !item.hidden && item.customer.trim() && item.productName.trim())
+      .map((item) => ({
+        firstName: item.customer.trim(),
+        city: item.city.trim(),
+        productId: item.id,
+        productName: item.productName.trim(),
+        imageUrl: item.imageUrl,
+        productPath: item.productPath || "/collections/all",
+        purchasedAt: new Date(Date.now() - item.minutesAgo * 60_000).toISOString(),
+        demo: true,
+      }));
     loadRecentPurchases()
       .then((rows) => {
         if (cancelled) {
           return;
         }
-        if (rows.length > 0) {
-          setCards(rows.map((row) => ({ ...row, productPath: `/product/${row.productId}` })));
-          return;
-        }
-        const demos = settings.demos
-          .filter((item) => !item.hidden && item.customer.trim() && item.productName.trim())
-          .map((item) => ({
-            firstName: item.customer.trim(),
-            city: item.city.trim(),
-            productId: item.id,
-            productName: item.productName.trim(),
-            imageUrl: item.imageUrl,
-            productPath: item.productPath || "/collections/all",
-            purchasedAt: new Date(Date.now() - item.minutesAgo * 60_000).toISOString(),
-            demo: true,
-          }));
-        setCards(demos);
+        const live = rows.map((row) => ({ ...row, productPath: `/product/${row.productId}` }));
+        setCards([...live, ...demos]);
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!cancelled) {
+          setCards(demos);
+        }
+      });
     return () => {
       cancelled = true;
     };
