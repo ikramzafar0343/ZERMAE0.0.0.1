@@ -2383,6 +2383,130 @@
   cursor: pointer;
 }
 
+.ha-sales-popup {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.7rem;
+  border-radius: 6px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  font-family: var(--font-inter), Inter, Arial, sans-serif;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.ha-sales-popup.is-in {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.ha-sales-popup.is-out {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.ha-sales-popup--light {
+  background: var(--page, #ffffff);
+  color: var(--ink, #303531);
+}
+
+.ha-sales-popup--dark {
+  background: #303531;
+  color: #f7faf6;
+}
+
+.ha-sales-popup__media {
+  display: block;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--header, #ecf2f2);
+}
+
+.ha-sales-popup__img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+}
+
+.ha-sales-popup__copy {
+  min-width: 0;
+}
+
+.ha-sales-popup__who,
+.ha-sales-popup__event,
+.ha-sales-popup__time,
+.ha-sales-popup__demo {
+  margin: 0;
+}
+
+.ha-sales-popup__who {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ha-sales-popup__event {
+  margin-top: 0.15rem;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ha-sales-popup__event a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ha-sales-popup__time,
+.ha-sales-popup__demo {
+  margin-top: 0.2rem;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.ha-sales-popup__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ha-sales-popup__close svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ha-sales-popup {
+    transition: none;
+  }
+}
+
+@media print {
+  .ha-announce,
+  .ha-sales-popup {
+    display: none !important;
+  }
+}
+
 @media print {
   .site-header,
   .site-footer,

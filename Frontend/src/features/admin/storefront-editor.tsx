@@ -11,7 +11,9 @@ import {
   resolveStorefrontContent,
   resolveStorefrontTheme,
   SHOP_CATEGORY_ICONS,
+  type StorefrontAnnouncementMessage,
   type StorefrontNavLink,
+  type StorefrontSalesDemo,
   type StorefrontShopCategory,
 } from "@/constants/storefront";
 import { IconStorefront } from "@/features/admin/admin-nav-icons";
@@ -264,6 +266,12 @@ export function StorefrontEditor({
     return poster ? [{ desktop: poster, mobile: "" }] : [{ desktop: "", mobile: "" }];
   });
   const [pageFaq, setPageFaq] = useState(() => content.pageTemplates.faq.items.map((item) => ({ ...item })));
+  const [announceMessages, setAnnounceMessages] = useState<StorefrontAnnouncementMessage[]>(() =>
+    content.announcement.messages.map((item) => ({ ...item })),
+  );
+  const [salesDemos, setSalesDemos] = useState<StorefrontSalesDemo[]>(() =>
+    content.salesPopup.demos.map((item) => ({ ...item })),
+  );
   const [publishState, publishAction] = useActionState(
     async (_prev: { error?: string }, formData: FormData) => updateCommerceSettingsAction(formData),
     {},
@@ -755,6 +763,151 @@ export function StorefrontEditor({
         </div>
 
         <div className="admin-storefront-stack" hidden={tab !== "navigation"}>
+          <section className="admin-product-card">
+            <div className="admin-storefront-row">
+              <h2 className="admin-product-card-title">Announcement bar</h2>
+              <button
+                type="button"
+                className="admin-orders-filter"
+                onClick={() =>
+                  setAnnounceMessages((current) => [
+                    ...current,
+                    { id: `announce-${Date.now()}`, text: "", hidden: false },
+                  ])
+                }
+              >
+                Add line
+              </button>
+            </div>
+            <p className="admin-product-kicker admin-storefront-lead">
+              Full-width marquee above the header. It is on until you hide it.
+            </p>
+            <input type="hidden" name="announcementCount" value={announceMessages.length} />
+            <label className="admin-product-check">
+              <input type="checkbox" name="announcementHidden" defaultChecked={content.announcement.hidden} /> Hide bar
+            </label>
+            <ColorField name="announcementBackground" label="Background" defaultValue={content.announcement.background} />
+            <ColorField name="announcementColor" label="Text color" defaultValue={content.announcement.color} />
+            <SoftInput
+              label="Speed (seconds)"
+              name="announcementSpeed"
+              type="number"
+              min={8}
+              max={120}
+              step={1}
+              defaultValue={content.announcement.speed}
+            />
+            {announceMessages.map((item, index) => (
+              <div key={item.id} className="admin-storefront-inline-card">
+                <input type="hidden" name={`announcementId_${index}`} value={item.id} />
+                <SoftInput label="Text" name={`announcementText_${index}`} defaultValue={item.text} />
+                <label className="admin-product-check">
+                  <input type="checkbox" name={`announcementLineHidden_${index}`} defaultChecked={item.hidden} /> Hide line
+                </label>
+                <button
+                  type="button"
+                  className="admin-orders-filter"
+                  onClick={() => setAnnounceMessages((current) => current.filter((_, i) => i !== index))}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </section>
+          <section className="admin-product-card">
+            <div className="admin-storefront-row">
+              <h2 className="admin-product-card-title">Sales popup</h2>
+              <button
+                type="button"
+                className="admin-orders-filter"
+                onClick={() =>
+                  setSalesDemos((current) => [
+                    ...current,
+                    {
+                      id: `demo-${Date.now()}`,
+                      hidden: false,
+                      customer: "",
+                      city: "",
+                      productName: "",
+                      imageUrl: "",
+                      productPath: "/collections/all",
+                      minutesAgo: 15,
+                    },
+                  ])
+                }
+              >
+                Add demo
+              </button>
+            </div>
+            <p className="admin-product-kicker admin-storefront-lead">
+              Live cards use real orders. Demo rows show only in development, with a Demo label, when there are no orders yet.
+            </p>
+            <input type="hidden" name="salesDemoCount" value={salesDemos.length} />
+            <label className="admin-product-check">
+              <input type="checkbox" name="salesPopupEnabled" defaultChecked={content.salesPopup.enabled} /> Enable popup
+            </label>
+            <SoftInput
+              label="Pause between cards (seconds)"
+              name="salesPopupInterval"
+              type="number"
+              min={4}
+              max={120}
+              step={1}
+              defaultValue={content.salesPopup.intervalSeconds}
+            />
+            <SoftInput
+              label="Card visible for (seconds)"
+              name="salesPopupDuration"
+              type="number"
+              min={3}
+              max={30}
+              step={1}
+              defaultValue={content.salesPopup.durationSeconds}
+            />
+            <div className="admin-product-field">
+              <label className="admin-product-label" htmlFor="salesPopupTheme">
+                Theme
+              </label>
+              <select
+                id="salesPopupTheme"
+                name="salesPopupTheme"
+                className="admin-product-soft"
+                defaultValue={content.salesPopup.theme}
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            {salesDemos.map((item, index) => (
+              <div key={item.id} className="admin-storefront-inline-card">
+                <input type="hidden" name={`salesDemoId_${index}`} value={item.id} />
+                <SoftInput label="Customer" name={`salesDemoCustomer_${index}`} defaultValue={item.customer} />
+                <SoftInput label="City" name={`salesDemoCity_${index}`} defaultValue={item.city} />
+                <SoftInput label="Product" name={`salesDemoProduct_${index}`} defaultValue={item.productName} />
+                <ImageUrlField name={`salesDemoImage_${index}`} label="Product image" defaultValue={item.imageUrl} />
+                <SoftInput label="Product link" name={`salesDemoPath_${index}`} defaultValue={item.productPath} />
+                <SoftInput
+                  label="Minutes ago"
+                  name={`salesDemoMinutes_${index}`}
+                  type="number"
+                  min={1}
+                  max={10080}
+                  step={1}
+                  defaultValue={item.minutesAgo}
+                />
+                <label className="admin-product-check">
+                  <input type="checkbox" name={`salesDemoHidden_${index}`} defaultChecked={item.hidden} /> Hide
+                </label>
+                <button
+                  type="button"
+                  className="admin-orders-filter"
+                  onClick={() => setSalesDemos((current) => current.filter((_, i) => i !== index))}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </section>
           <MenuEditor title="Header links" prefix="headerNav" links={headerLinks} setLinks={setHeaderLinks} />
           <MenuEditor title="Footer — Shop" prefix="footerShop" links={footerShop} setLinks={setFooterShop} />
           <MenuEditor title="Footer — House" prefix="footerHouse" links={footerHouse} setLinks={setFooterHouse} />

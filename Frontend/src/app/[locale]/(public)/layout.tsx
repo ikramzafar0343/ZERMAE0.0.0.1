@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 
 import { FloatingHeader } from "@/components/home/FloatingHeader";
+import { announcementIsVisible } from "@/constants/storefront";
+import { AnnouncementBar } from "@/features/navigation/announcement-bar";
+import { SalesPopup } from "@/features/navigation/sales-popup";
 import { SiteFooter } from "@/features/navigation/site-footer";
 import { PublicSiteGate } from "@/features/site/public-site-gate";
 import { readCart } from "@/lib/cart-cookie";
@@ -19,9 +22,16 @@ export default async function PublicLayout({ children }: { children: ReactNode }
     getStorefront(),
   ]);
 
+  const showAnnouncement = announcementIsVisible(storefront.content.announcement);
+  const salesPopup = {
+    ...storefront.content.salesPopup,
+    demos: process.env.NODE_ENV === "development" ? storefront.content.salesPopup.demos : [],
+  };
+
   return (
     <PublicSiteGate>
-      <div className="flex min-h-screen flex-col">
+      <div className={showAnnouncement ? "flex min-h-screen flex-col has-announce" : "flex min-h-screen flex-col"}>
+        <AnnouncementBar announcement={storefront.content.announcement} />
         <FloatingHeader
           isAuthenticated={Boolean(user)}
           cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
@@ -34,6 +44,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
           {children}
         </main>
         <SiteFooter content={storefront.content} />
+        <SalesPopup settings={salesPopup} />
       </div>
     </PublicSiteGate>
   );

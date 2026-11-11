@@ -36,6 +36,7 @@ export type StorefrontFormImages = {
   reviewAvatars: string[];
   socialImages: string[];
   journalImages: string[];
+  demoImages: string[];
   /** Legacy fields kept for resolve compatibility */
   heroProductSrc: string;
   brandStoryPrimarySrc: string;
@@ -52,6 +53,42 @@ export type StorefrontPublishPayload = {
   theme: StorefrontTheme;
   content: StorefrontContent;
 };
+
+function readAnnouncement(formData: FormData) {
+  const count = Math.min(12, Math.max(0, Number(formData.get("announcementCount") ?? 0)));
+  return {
+    hidden: formData.get("announcementHidden") === "on",
+    background: String(formData.get("announcementBackground") ?? ""),
+    color: String(formData.get("announcementColor") ?? ""),
+    speed: Number(formData.get("announcementSpeed") ?? 28),
+    messages: Array.from({ length: count }, (_, index) => ({
+      id: String(formData.get(`announcementId_${index}`) ?? `announce-${index + 1}`),
+      text: String(formData.get(`announcementText_${index}`) ?? ""),
+      hidden: formData.get(`announcementLineHidden_${index}`) === "on",
+    })),
+  };
+}
+
+function readSalesPopup(formData: FormData, demoImages: string[]) {
+  const count = Math.min(12, Math.max(0, Number(formData.get("salesDemoCount") ?? 0)));
+  const theme = String(formData.get("salesPopupTheme") ?? "light") === "dark" ? "dark" : "light";
+  return {
+    enabled: formData.get("salesPopupEnabled") === "on",
+    intervalSeconds: Number(formData.get("salesPopupInterval") ?? 8),
+    durationSeconds: Number(formData.get("salesPopupDuration") ?? 5),
+    theme,
+    demos: Array.from({ length: count }, (_, index) => ({
+      id: String(formData.get(`salesDemoId_${index}`) ?? `demo-${index + 1}`),
+      hidden: formData.get(`salesDemoHidden_${index}`) === "on",
+      customer: String(formData.get(`salesDemoCustomer_${index}`) ?? ""),
+      city: String(formData.get(`salesDemoCity_${index}`) ?? ""),
+      productName: String(formData.get(`salesDemoProduct_${index}`) ?? ""),
+      imageUrl: demoImages[index] ?? String(formData.get(`salesDemoImage_${index}`) ?? ""),
+      productPath: String(formData.get(`salesDemoPath_${index}`) ?? "/collections/all"),
+      minutesAgo: Number(formData.get(`salesDemoMinutes_${index}`) ?? 15),
+    })),
+  };
+}
 
 function readMenu(formData: FormData, prefix: string, count: number) {
   return Array.from({ length: count }, (_, index) => ({
@@ -374,6 +411,8 @@ export function storefrontPublishFromForm(formData: FormData, images: Storefront
       home,
       pageTemplates,
       collectionPages,
+      ...(formData.has("announcementCount") ? { announcement: readAnnouncement(formData) } : {}),
+      ...(formData.has("salesDemoCount") ? { salesPopup: readSalesPopup(formData, images.demoImages ?? []) } : {}),
     }),
   };
 }

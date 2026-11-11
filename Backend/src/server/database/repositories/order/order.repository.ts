@@ -419,6 +419,71 @@ export class OrderRepository {
       })),
     };
   }
+
+  async listRecentPurchases(limit = 12): Promise<
+    Array<{
+      firstName: string;
+      city: string;
+      productId: string;
+      productName: string;
+      imageUrl: string;
+      purchasedAt: string;
+    }>
+  > {
+    const result = await query<{
+      customer: string;
+      shipping_city: string;
+      created_at: Date;
+      product_id: string;
+      name: string;
+      image_url: string | null;
+    }>(
+      `SELECT o.customer, o.shipping_city, o.created_at, i.product_id, i.name, i.image_url
+       FROM (
+         SELECT id, customer, shipping_city, created_at
+         FROM sales_order
+         WHERE deleted_at IS NULL AND status <> 'cancelled'
+         ORDER BY created_at DESC
+         LIMIT $1
+       ) o
+       INNER JOIN LATERAL (
+         SELECT product_id, name, image_url
+         FROM sales_order_item
+         WHERE sales_order_id = o.id
+         ORDER BY created_at ASC
+         LIMIT 1
+       ) i ON true
+       ORDER BY o.created_at DESC`,
+      [Math.min(Math.max(1, limit), 12)],
+    );
+    return result.rows.flatMap((row) => {
+      const firstName = publicFirstName(row.customer);
+      const city = row.shipping_city.trim().slice(0, 80);
+      const productName = row.name.trim().slice(0, 80);
+      if (!firstName || !city || !productName) {
+        return [];
+      }
+      return [
+        {
+          firstName,
+          city,
+          productId: row.product_id,
+          productName,
+          imageUrl: (row.image_url ?? "").trim(),
+          purchasedAt: new Date(row.created_at).toISOString(),
+        },
+      ];
+    });
+  }
+}
+
+function publicFirstName(customer: string): string {
+  const word = customer.trim().split(/\s+/)[0] ?? "";
+  if (!word || word.includes("@")) {
+    return "";
+  }
+  const clean = word.replace(/[^\p{L}\p{M}'’-]/gu, "");
+  return clean.length >= 2 ? clean.slice(0, 40) : "";
 }
 
 export const orderRepository = new OrderRepository();

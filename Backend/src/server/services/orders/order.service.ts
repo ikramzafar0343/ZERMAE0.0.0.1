@@ -236,6 +236,10 @@ export class OrderService {
     );
   }
 
+  async listRecentPurchases() {
+    return orderRepository.listRecentPurchases(12);
+  }
+
   async remove(id: string): Promise<void> {
     const order = await orderRepository.findById(id);
     if (!order) {

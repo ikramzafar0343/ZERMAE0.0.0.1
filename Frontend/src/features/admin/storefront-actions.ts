@@ -75,6 +75,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
     const reviewCount = Math.min(12, Math.max(0, Number(formData.get("homeReviewCount") ?? 0)));
     const socialCount = Math.min(8, Math.max(0, Number(formData.get("homeSocialCount") ?? 0)));
     const journalCount = Math.min(8, Math.max(0, Number(formData.get("homeJournalCount") ?? 0)));
+    const demoCount = Math.min(12, Math.max(0, Number(formData.get("salesDemoCount") ?? live.salesPopup.demos.length)));
 
     const existingCollectionHero = Object.fromEntries(
       collectionKeys.map((key) => [key, live.collectionPages[key]?.heroSrc ?? ""]),
@@ -127,6 +128,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       reviewAvatars,
       socialImages,
       journalImages,
+      demoImages,
     ] = await Promise.all([
       readImage(formData, "logoSrc", live.brand.logoSrc),
       readImage(formData, "logoOnLightSrc", live.brand.logoOnLightSrc),
@@ -183,6 +185,11 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
         journalCount,
         home.journal.articles.map((item) => item.src),
       ),
+      Promise.all(
+        Array.from({ length: demoCount }, (_, index) =>
+          readImage(formData, `salesDemoImage_${index}`, live.salesPopup.demos[index]?.imageUrl ?? ""),
+        ),
+      ),
     ]);
 
     const cleanedHeroBanners = Array.from({ length: heroBannerCount }, (_, index) => {
@@ -221,6 +228,7 @@ export async function updateCommerceSettingsAction(formData: FormData): Promise<
       reviewAvatars,
       socialImages,
       journalImages,
+      demoImages,
       heroProductSrc: heroPosterSrc,
       brandStoryPrimarySrc: "",
       brandStorySecondarySrc: "",

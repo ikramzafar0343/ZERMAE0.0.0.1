@@ -177,6 +177,41 @@ export type StorefrontContent = {
   home: StorefrontHome;
   pageTemplates: StorefrontPageTemplates;
   collectionPages: Record<string, StorefrontCollectionPage>;
+  announcement: StorefrontAnnouncement;
+  salesPopup: StorefrontSalesPopup;
+};
+
+export type StorefrontAnnouncementMessage = {
+  id: string;
+  text: string;
+  hidden: boolean;
+};
+
+export type StorefrontAnnouncement = {
+  hidden: boolean;
+  background: string;
+  color: string;
+  speed: number;
+  messages: StorefrontAnnouncementMessage[];
+};
+
+export type StorefrontSalesDemo = {
+  id: string;
+  hidden: boolean;
+  customer: string;
+  city: string;
+  productName: string;
+  imageUrl: string;
+  productPath: string;
+  minutesAgo: number;
+};
+
+export type StorefrontSalesPopup = {
+  enabled: boolean;
+  intervalSeconds: number;
+  durationSeconds: number;
+  theme: "light" | "dark";
+  demos: StorefrontSalesDemo[];
 };
 
 export const DEFAULT_STOREFRONT_THEME: StorefrontTheme = {
@@ -206,6 +241,46 @@ export const DEFAULT_SHOP_CATEGORIES: StorefrontShopCategory[] = SHOP_RANGE_CATE
   color: item.tone === "mint" ? DEFAULT_STOREFRONT_THEME.mint : DEFAULT_STOREFRONT_THEME.blush,
   hidden: false,
 }));
+
+export const DEFAULT_ANNOUNCEMENT: StorefrontAnnouncement = {
+  hidden: false,
+  background: "#303531",
+  color: "#f7faf6",
+  speed: 28,
+  messages: [
+    { id: "announce-shipping", text: "Free shipping on orders above PKR 15,000", hidden: false },
+    { id: "announce-brand", text: "Your skin, reimagined", hidden: false },
+  ],
+};
+
+export const DEFAULT_SALES_POPUP: StorefrontSalesPopup = {
+  enabled: true,
+  intervalSeconds: 8,
+  durationSeconds: 5,
+  theme: "light",
+  demos: [
+    {
+      id: "demo-serum",
+      hidden: false,
+      customer: "Ayesha",
+      city: "Karachi",
+      productName: "PDRN Serum",
+      imageUrl: "/assets/images/pdrnSerum.png",
+      productPath: "/collections/all",
+      minutesAgo: 12,
+    },
+    {
+      id: "demo-cleanser",
+      hidden: false,
+      customer: "Hina",
+      city: "Lahore",
+      productName: "Amino Acid Gel Cleanser",
+      imageUrl: "/assets/images/aminoAcidGelCleanser.png",
+      productPath: "/collections/all",
+      minutesAgo: 27,
+    },
+  ],
+};
 
 export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
   heroHeadline,
@@ -264,6 +339,8 @@ export const DEFAULT_STOREFRONT_CONTENT: StorefrontContent = {
     HOME_FAQ.map((item) => ({ id: item.id, question: item.question, answer: item.answer })),
   ),
   collectionPages: buildDefaultCollectionPages(),
+  announcement: DEFAULT_ANNOUNCEMENT,
+  salesPopup: DEFAULT_SALES_POPUP,
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -451,6 +528,69 @@ function asCollectionTitles(value: unknown): Record<string, StorefrontCollection
   return next;
 }
 
+function asInt(value: unknown, fallback: number, min: number, max: number): number {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, Math.round(number)));
+}
+
+function asAnnouncement(value: unknown): StorefrontAnnouncement {
+  const fallback = DEFAULT_STOREFRONT_CONTENT.announcement;
+  const record = asRecord(value);
+  if (!value || Array.isArray(value) || Object.keys(record).length === 0) {
+    return fallback;
+  }
+  const source = Array.isArray(record.messages) ? record.messages : fallback.messages;
+  const messages = source.slice(0, 12).map((item, index) => {
+    const row = asRecord(item);
+    const preset = fallback.messages[index];
+    return {
+      id: asText(row.id, preset?.id ?? `announce-${index + 1}`),
+      text: asStoredText(row.text, preset?.text ?? ""),
+      hidden: asBool(row.hidden),
+    };
+  }).filter((item) => item.text.length > 0);
+  return {
+    hidden: record.hidden === undefined ? fallback.hidden : asBool(record.hidden),
+    background: asHex(record.background, fallback.background),
+    color: asHex(record.color, fallback.color),
+    speed: asInt(record.speed, fallback.speed, 8, 120),
+    messages,
+  };
+}
+
+function asSalesPopup(value: unknown): StorefrontSalesPopup {
+  const fallback = DEFAULT_STOREFRONT_CONTENT.salesPopup;
+  const record = asRecord(value);
+  if (!value || Array.isArray(value) || Object.keys(record).length === 0) {
+    return fallback;
+  }
+  const source = Array.isArray(record.demos) ? record.demos : fallback.demos;
+  const demos = source.slice(0, 12).map((item, index) => {
+    const row = asRecord(item);
+    const preset = fallback.demos[index];
+    return {
+      id: asText(row.id, preset?.id ?? `demo-${index + 1}`),
+      hidden: asBool(row.hidden),
+      customer: asStoredText(row.customer, preset?.customer ?? "").slice(0, 40),
+      city: asStoredText(row.city, preset?.city ?? "").slice(0, 80),
+      productName: asStoredText(row.productName, preset?.productName ?? "").slice(0, 80),
+      imageUrl: asStoredText(row.imageUrl, preset?.imageUrl ?? ""),
+      productPath: asPath(row.productPath, preset?.productPath ?? "/collections/all"),
+      minutesAgo: asInt(row.minutesAgo, preset?.minutesAgo ?? 15, 1, 10080),
+    };
+  }).filter((item) => item.customer && item.productName);
+  return {
+    enabled: record.enabled === undefined ? fallback.enabled : asBool(record.enabled),
+    intervalSeconds: asInt(record.intervalSeconds, fallback.intervalSeconds, 4, 120),
+    durationSeconds: asInt(record.durationSeconds, fallback.durationSeconds, 3, 30),
+    theme: record.theme === "dark" ? "dark" : "light",
+    demos,
+  };
+}
+
 export function resolveStorefrontContent(raw: unknown): StorefrontContent {
   const record = asRecord(raw);
   const skus = Array.isArray(record.bestSellerSkus)
@@ -510,6 +650,8 @@ export function resolveStorefrontContent(raw: unknown): StorefrontContent {
       DEFAULT_STOREFRONT_CONTENT.collectionPages,
       record.collectionPages,
     ) as Record<string, StorefrontCollectionPage>,
+    announcement: asAnnouncement(record.announcement),
+    salesPopup: asSalesPopup(record.salesPopup),
   };
 }
 
