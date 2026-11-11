@@ -2445,8 +2445,7 @@
 
 .ha-sales-popup__who,
 .ha-sales-popup__event,
-.ha-sales-popup__time,
-.ha-sales-popup__demo {
+.ha-sales-popup__time {
   margin: 0;
 }
 
@@ -2468,8 +2467,7 @@
   text-decoration: none;
 }
 
-.ha-sales-popup__time,
-.ha-sales-popup__demo {
+.ha-sales-popup__time {
   margin-top: 0.2rem;
   font-size: 11px;
   letter-spacing: 0.08em;

@@ -8,7 +8,7 @@ import type { StorefrontSalesPopup } from "@/constants/storefront";
 import { CmsImage } from "@/features/media/cms-image";
 import { loadRecentPurchases, type RecentPurchase } from "@/features/navigation/recent-purchases";
 
-type Card = RecentPurchase & { productPath: string; demo?: boolean };
+type Card = RecentPurchase & { productPath: string };
 
 function relativeTime(iso: string): string {
   const delta = Date.now() - new Date(iso).getTime();
@@ -48,7 +48,6 @@ export function SalesPopup({ settings }: { settings: StorefrontSalesPopup }) {
         imageUrl: item.imageUrl,
         productPath: item.productPath || "/collections/all",
         purchasedAt: new Date(Date.now() - item.minutesAgo * 60_000).toISOString(),
-        demo: true,
       }));
     loadRecentPurchases()
       .then((rows) => {
@@ -134,7 +133,6 @@ export function SalesPopup({ settings }: { settings: StorefrontSalesPopup }) {
           <Link href={card.productPath}>{card.productName}</Link>
         </p>
         <p className="ha-sales-popup__time">{relativeTime(card.purchasedAt)}</p>
-        {card.demo ? <p className="ha-sales-popup__demo">Demo</p> : null}
       </div>
       <button
         type="button"
