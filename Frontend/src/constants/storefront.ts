@@ -252,7 +252,7 @@ export const DEFAULT_ANNOUNCEMENT: StorefrontAnnouncement = {
   hidden: false,
   background: "#303531",
   color: "#f7faf6",
-  speed: 28,
+  speed: 80,
   messages: [
     { id: "announce-shipping", text: "Free shipping on orders above PKR 15,000", hidden: false },
     { id: "announce-brand", text: "Your skin, reimagined", hidden: false },
@@ -811,7 +811,7 @@ function asAnnouncement(value: unknown): StorefrontAnnouncement {
     hidden: record.hidden === undefined ? fallback.hidden : asBool(record.hidden),
     background: asHex(record.background, fallback.background),
     color: asHex(record.color, fallback.color),
-    speed: asInt(record.speed, fallback.speed, 8, 120),
+    speed: asInt(record.speed, fallback.speed, 40, 180),
     messages,
   };
 }

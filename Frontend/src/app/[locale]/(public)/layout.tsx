@@ -23,10 +23,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
   ]);
 
   const showAnnouncement = announcementIsVisible(storefront.content.announcement);
-  const salesPopup = {
-    ...storefront.content.salesPopup,
-    demos: process.env.NODE_ENV === "development" ? storefront.content.salesPopup.demos : [],
-  };
+  const salesPopup = storefront.content.salesPopup;
 
   return (
     <PublicSiteGate>

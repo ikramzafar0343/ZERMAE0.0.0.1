@@ -60,7 +60,7 @@ function readAnnouncement(formData: FormData) {
     hidden: formData.get("announcementHidden") === "on",
     background: String(formData.get("announcementBackground") ?? ""),
     color: String(formData.get("announcementColor") ?? ""),
-    speed: Number(formData.get("announcementSpeed") ?? 28),
+    speed: Number(formData.get("announcementSpeed") ?? 80),
     messages: Array.from({ length: count }, (_, index) => ({
       id: String(formData.get(`announcementId_${index}`) ?? `announce-${index + 1}`),
       text: String(formData.get(`announcementText_${index}`) ?? ""),

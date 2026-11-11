@@ -47,9 +47,6 @@ export function SalesPopup({ settings }: { settings: StorefrontSalesPopup }) {
           setCards(rows.map((row) => ({ ...row, productPath: `/product/${row.productId}` })));
           return;
         }
-        if (process.env.NODE_ENV !== "development") {
-          return;
-        }
         const demos = settings.demos
           .filter((item) => !item.hidden && item.customer.trim() && item.productName.trim())
           .map((item) => ({

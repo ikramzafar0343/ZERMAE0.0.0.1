@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 
 import { announcementIsVisible, type StorefrontAnnouncement } from "@/constants/storefront";
 
-const COPIES = 8;
+const COPIES = 2;
 
 export function AnnouncementBar({ announcement }: { announcement: StorefrontAnnouncement }) {
   if (!announcementIsVisible(announcement)) {
@@ -13,7 +13,7 @@ export function AnnouncementBar({ announcement }: { announcement: StorefrontAnno
   const style = {
     "--announce-bg": announcement.background,
     "--announce-color": announcement.color,
-    "--announce-duration": `${announcement.speed}s`,
+    "--announce-duration": `${Math.max(announcement.speed, 70)}s`,
   } as CSSProperties;
 
   return (

@@ -792,8 +792,9 @@ export function StorefrontEditor({
               label="Speed (seconds)"
               name="announcementSpeed"
               type="number"
-              min={8}
-              max={120}
+              hint="Higher is slower"
+              min={40}
+              max={180}
               step={1}
               defaultValue={content.announcement.speed}
             />
@@ -840,7 +841,7 @@ export function StorefrontEditor({
               </button>
             </div>
             <p className="admin-product-kicker admin-storefront-lead">
-              Live cards use real orders. Demo rows show only in development, with a Demo label, when there are no orders yet.
+              Live cards use real orders. Demo rows show on the shop, with a Demo label, when there are no recent orders.
             </p>
             <input type="hidden" name="salesDemoCount" value={salesDemos.length} />
             <label className="admin-product-check">
