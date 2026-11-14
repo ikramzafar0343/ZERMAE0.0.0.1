@@ -4,6 +4,7 @@ import { type ReactNode, useTransition } from "react";
 
 import { addToCartAction } from "@/features/cart/actions";
 import { notifyBagOpened, notifyToast } from "@/lib/bag-events";
+import { trackMeta } from "@/lib/meta-pixel";
 
 export function AddToBagForm({
   productId,
@@ -14,6 +15,9 @@ export function AddToBagForm({
   className,
   disabled,
   children,
+  contentName,
+  value,
+  currency = "PKR",
 }: {
   productId: string;
   quantity?: number;
@@ -23,6 +27,9 @@ export function AddToBagForm({
   className?: string | undefined;
   disabled?: boolean | undefined;
   children: ReactNode;
+  contentName?: string;
+  value?: number;
+  currency?: string;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -36,6 +43,15 @@ export function AddToBagForm({
             notifyToast(result.error, "error");
             return;
           }
+          trackMeta("AddToCart", {
+            content_ids: [productId],
+            content_type: "product",
+            content_name: contentName,
+            value: typeof value === "number" ? value * quantity : undefined,
+            currency,
+            contents: [{ id: productId, quantity, item_price: value }],
+            num_items: quantity,
+          });
           notifyToast("Added to bag");
           notifyBagOpened();
         });

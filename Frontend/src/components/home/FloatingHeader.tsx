@@ -10,6 +10,7 @@ import type { StorefrontBrand, StorefrontNavLink, StorefrontShopCategory } from 
 import { SiteToast } from "@/features/navigation/site-toast";
 import { BAG_EVENT } from "@/lib/bag-events";
 import { SHOP_CATEGORIES } from "@/lib/content/homepage";
+import { trackMetaCustom } from "@/lib/meta-pixel";
 
 const SearchModal = dynamic(
   () => import("@/features/navigation/search-modal").then((mod) => mod.SearchModal),
@@ -114,7 +115,9 @@ export function FloatingHeader({
             {menuOpen ? <IconClose /> : <IconMenu />}
           </button>
           <nav className="ha-float-nav" aria-label="Primary">
-            <Link href="/collections/all">Shop All</Link>
+            <Link href="/collections/all" onClick={() => trackMetaCustom("ShopAll")}>
+              Shop All
+            </Link>
             <Link href="/collections/new">New Arrival</Link>
             <div
               ref={collectionsRef}
@@ -196,7 +199,13 @@ export function FloatingHeader({
       {menuOpen ? (
         <div className="ha-float-drawer" ref={menuRef} role="dialog" aria-modal="true" aria-label="Menu">
           <nav aria-label="Mobile">
-            <Link href="/collections/all" onClick={() => setMenuOpen(false)}>
+            <Link
+              href="/collections/all"
+              onClick={() => {
+                trackMetaCustom("ShopAll");
+                setMenuOpen(false);
+              }}
+            >
               Shop All
             </Link>
             <Link href="/collections/new" onClick={() => setMenuOpen(false)}>

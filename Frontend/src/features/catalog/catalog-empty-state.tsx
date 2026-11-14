@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { MetaTrackLink } from "@/features/analytics/meta-track-link";
+
 type CatalogEmptyStateProps = {
   eyebrow: string;
   title: string;
@@ -20,6 +22,7 @@ export function CatalogEmptyState({
   secondaryLabel,
 }: CatalogEmptyStateProps) {
   const hasActions = Boolean(primaryHref && primaryLabel);
+  const shopAll = primaryLabel === "Shop All";
   return (
     <div className="catalog-empty">
       <p className="catalog-empty-eyebrow">{eyebrow}</p>
@@ -27,9 +30,15 @@ export function CatalogEmptyState({
       <p className="catalog-empty-copy">{copy}</p>
       {hasActions ? (
         <div className="catalog-empty-actions">
-          <Link href={primaryHref!} className="luxury-button-solid">
-            {primaryLabel}
-          </Link>
+          {shopAll ? (
+            <MetaTrackLink href={primaryHref!} className="luxury-button-solid" event="ShopAll">
+              {primaryLabel}
+            </MetaTrackLink>
+          ) : (
+            <Link href={primaryHref!} className="luxury-button-solid">
+              {primaryLabel}
+            </Link>
+          )}
           {secondaryHref && secondaryLabel ? (
             <Link href={secondaryHref} className="luxury-button-outline">
               {secondaryLabel}

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { calculateOrderTotals, getFreeShippingNote } from "@/constants/commerce";
 import { formatMoney } from "@/constants/storefront";
+import { MetaInitiateCheckout } from "@/features/analytics/meta-initiate-checkout";
 import { CheckoutForm } from "@/features/checkout/checkout-form";
 import { OrderTotals } from "@/features/checkout/order-totals";
 import { orderService } from "@/lib/api/orders";
@@ -33,8 +34,17 @@ export default async function CheckoutPage() {
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
   const totals = calculateOrderTotals(subtotal, commerce);
 
+  const contentIds = cart.items.map((item) => item.productId);
+  const numItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <div className="checkout-page">
+      <MetaInitiateCheckout
+        value={totals.total}
+        currency={commerce.currency}
+        numItems={numItems}
+        contentIds={contentIds}
+      />
       <div className="mx-auto max-w-[1600px] px-6 md:px-20">
         <header className="section-intro checkout-intro">
           <span className="section-intro-eyebrow">Checkout</span>

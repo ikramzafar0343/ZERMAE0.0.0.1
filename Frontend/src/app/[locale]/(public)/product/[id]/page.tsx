@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { CATEGORY_LABELS, getCategoryPath } from "@/constants/catalog";
 import { productImageUrls, toCatalogProduct } from "@/features/catalog/map-product";
+import { MetaViewContent } from "@/features/analytics/meta-view-content";
 import { ProductBuyBox } from "@/features/catalog/product-buy-box";
 import { ProductGallery } from "@/features/catalog/product-gallery";
 import { ProductGrid } from "@/features/catalog/product-grid";
@@ -66,6 +67,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="product-detail-page">
+      <MetaViewContent
+        productId={product.id}
+        productName={product.title}
+        value={product.effectivePrice}
+        currency={storefront.commerce.currency}
+        category={CATEGORY_LABELS[category] ?? category}
+      />
       <div className="product-detail-inner">
         <nav className="product-breadcrumb">
           <Link href="/">Home</Link>

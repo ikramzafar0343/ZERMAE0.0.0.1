@@ -1,7 +1,9 @@
+import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
 import { FloatingHeader } from "@/components/home/FloatingHeader";
 import { announcementIsVisible } from "@/constants/storefront";
+import { MetaPixel } from "@/features/analytics/meta-pixel";
 import { AnnouncementBar } from "@/features/navigation/announcement-bar";
 import { SalesPopup } from "@/features/navigation/sales-popup";
 import { SiteFooter } from "@/features/navigation/site-footer";
@@ -15,19 +17,22 @@ import { readWishlist } from "@/lib/wishlist-cookie";
 export const dynamic = "force-dynamic";
 
 export default async function PublicLayout({ children }: { children: ReactNode }) {
-  const [user, cart, wishlist, storefront] = await Promise.all([
+  const [user, cart, wishlist, storefront, requestHeaders] = await Promise.all([
     getSessionUser(),
     readCart(),
     readWishlist(),
     getStorefront(),
+    headers(),
   ]);
 
   const showAnnouncement = announcementIsVisible(storefront.content.announcement);
   const salesPopup = storefront.content.salesPopup;
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
     <PublicSiteGate>
       <div className={showAnnouncement ? "flex min-h-screen flex-col has-announce" : "flex min-h-screen flex-col"}>
+        <MetaPixel nonce={nonce} />
         <AnnouncementBar announcement={storefront.content.announcement} />
         <FloatingHeader
           isAuthenticated={Boolean(user)}

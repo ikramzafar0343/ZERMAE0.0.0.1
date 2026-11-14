@@ -1,10 +1,9 @@
-import Link from "next/link";
-
 import { DeferredHeroTile } from "@/components/shop/DeferredHeroTile";
 import { HeroBannerSlider } from "@/components/shop/HeroBannerSlider";
 import { HeroProductSlider } from "@/components/shop/HeroProductSlider";
 import { type MiniProduct } from "@/components/shop/ProductMiniCard";
 import type { HeroBannerSlide } from "@/constants/storefront";
+import { MetaTrackLink } from "@/features/analytics/meta-track-link";
 import { HOME_HERO } from "@/lib/content/homepage";
 import { MEDIA } from "@/lib/content/media-manifest";
 import { resolvePublicImageUrl, withMediaWidth } from "@/lib/public-image-url";
@@ -89,9 +88,9 @@ export function PageHero({
       <h1 className="sr-only">{title}</h1>
 
       <div className="ha-hero__copy" data-hero-copy>
-        <Link href={ctaHref} className="ha-btn ha-hero__cta" data-hero-cta>
+        <MetaTrackLink href={ctaHref} className="ha-btn ha-hero__cta" data-hero-cta event="ShopNow">
           {ctaLabel}
-        </Link>
+        </MetaTrackLink>
       </div>
 
       {slides.length > 0 ? (

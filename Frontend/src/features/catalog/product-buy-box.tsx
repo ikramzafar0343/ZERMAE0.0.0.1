@@ -10,6 +10,7 @@ import { ShareProduct } from "@/features/catalog/share-product";
 import { SizeGuide } from "@/features/catalog/size-guide";
 import { toggleWishlistAction } from "@/features/wishlist/actions";
 import { notifyToast } from "@/lib/bag-events";
+import { trackMeta, trackMetaCustom } from "@/lib/meta-pixel";
 
 export type ProductBuyModel = {
   id: string;
@@ -123,6 +124,9 @@ export function ProductBuyBox({ product, currency = "PKR" }: { product: ProductB
           color={color}
           colorHex={selectedColor?.hex}
           disabled={soldOut}
+          contentName={product.title}
+          value={product.price}
+          currency={currency}
         >
           <button type="submit" className="product-btn-cart" disabled={soldOut}>
             <IconBag />
@@ -132,9 +136,23 @@ export function ProductBuyBox({ product, currency = "PKR" }: { product: ProductB
         <form
           action={(formData) => {
             startTransition(async () => {
-              const result = await buyNowAction(formData);
-              if (result?.error) {
-                notifyToast(result.error, "error");
+              try {
+                const result = await buyNowAction(formData);
+                if (result?.error) {
+                  notifyToast(result.error, "error");
+                  return;
+                }
+              } catch (error) {
+                trackMetaCustom("BuyNow", {
+                  content_ids: [product.id],
+                  content_type: "product",
+                  content_name: product.title,
+                  value: product.price * quantity,
+                  currency,
+                  contents: [{ id: product.id, quantity, item_price: product.price }],
+                  num_items: quantity,
+                });
+                throw error;
               }
             });
           }}
@@ -148,9 +166,25 @@ export function ProductBuyBox({ product, currency = "PKR" }: { product: ProductB
             Buy It Now
           </button>
         </form>
-        <form action={toggleWishlistAction}>
+        <form
+          action={(formData) => {
+            startTransition(async () => {
+              const wasWished = product.wished;
+              await toggleWishlistAction(formData);
+              if (!wasWished) {
+                trackMeta("AddToWishlist", {
+                  content_ids: [product.id],
+                  content_type: "product",
+                  content_name: product.title,
+                  value: product.price,
+                  currency,
+                });
+              }
+            });
+          }}
+        >
           <input type="hidden" name="productId" value={product.id} />
-          <button type="submit" className="product-wishlist-btn">
+          <button type="submit" className="product-wishlist-btn" disabled={pending}>
             <IconHeart />
             {product.wished ? "Saved to Wishlist" : "Add to Wishlist"}
           </button>

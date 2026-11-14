@@ -7,6 +7,7 @@ import { IconClose, IconSearch } from "@/components/icons/icons";
 import { formatMoney } from "@/constants/storefront";
 import { CmsImage } from "@/features/media/cms-image";
 import { type SearchHit, searchProductsAction } from "@/features/navigation/search-actions";
+import { trackMeta } from "@/lib/meta-pixel";
 
 const MIN_QUERY = 2;
 const DEBOUNCE_MS = 280;
@@ -67,6 +68,7 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
         setResults(hits);
         setLoading(false);
         setHasSearched(true);
+        trackMeta("Search", { search_string: trimmed });
       });
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(timer);

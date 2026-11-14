@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { IconShield, IconTruck } from "@/components/icons/icons";
 import { formatSupportPhoneDisplay, supportWhatsAppUrlFromPhone } from "@/constants/site";
+import { MetaPurchase } from "@/features/analytics/meta-purchase";
 import { OrderSummary } from "@/features/orders/order-summary";
 import { orderService } from "@/lib/api/orders";
 import { getSessionUser } from "@/lib/session";
@@ -31,8 +32,24 @@ export default async function OrderConfirmationPage({
     storefront.content.supportPhone,
     `Assalam o Alaikum Zermae, I just placed order ${order.orderNumber}. Please confirm.`,
   );
+  const contentIds = order.items.map((item) => item.productId);
+  const contents = order.items.map((item) => ({
+    id: item.productId,
+    quantity: item.quantity,
+    item_price: item.price,
+  }));
+  const numItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <div className="order-confirmation-page">
+      <MetaPurchase
+        orderId={order.orderNumber}
+        value={order.total}
+        currency={storefront.commerce.currency}
+        contentIds={contentIds}
+        contents={contents}
+        numItems={numItems}
+      />
       <div className="mx-auto max-w-[42rem] px-6 md:px-20">
         <header className="order-confirmation-hero">
           <span className="order-confirmation-eyebrow">Order Confirmed</span>

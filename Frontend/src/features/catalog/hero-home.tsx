@@ -8,6 +8,7 @@ import {
   heroHeadline,
 } from "@/constants/brand";
 import { type StorefrontContent, tileStyle } from "@/constants/storefront";
+import { MetaTrackLink } from "@/features/analytics/meta-track-link";
 import { HeroWaveMarquee } from "@/features/catalog/hero-wave-marquee";
 import { CmsImage } from "@/features/media/cms-image";
 
@@ -92,9 +93,9 @@ export function HeroHome({ content }: { content: StorefrontContent }) {
             ))}
           </h1>
           <p className="home-hero-support">{content.heroSupport}</p>
-          <Link href={heroCtaHref} className="home-hero-cta">
+          <MetaTrackLink href={heroCtaHref} className="home-hero-cta" event="ShopNow">
             {heroCtaLabel}
-          </Link>
+          </MetaTrackLink>
         </div>
         <div className="home-hero-stage" style={tileStyle(content.heroStageColor)}>
           <div className="home-hero-arch" aria-hidden="true" />
