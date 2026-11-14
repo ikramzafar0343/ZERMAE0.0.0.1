@@ -46,11 +46,17 @@ export function AddToBagForm({
           trackMeta("AddToCart", {
             content_ids: [productId],
             content_type: "product",
-            content_name: contentName,
-            value: typeof value === "number" ? value * quantity : undefined,
             currency,
-            contents: [{ id: productId, quantity, item_price: value }],
             num_items: quantity,
+            contents: [
+              {
+                id: productId,
+                quantity,
+                ...(typeof value === "number" ? { item_price: value } : {}),
+              },
+            ],
+            ...(contentName ? { content_name: contentName } : {}),
+            ...(typeof value === "number" ? { value: value * quantity } : {}),
           });
           notifyToast("Added to bag");
           notifyBagOpened();

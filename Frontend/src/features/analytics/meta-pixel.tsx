@@ -10,7 +10,7 @@ export function MetaPixel({ nonce }: { nonce?: string }) {
 
   return (
     <>
-      <Script id="meta-pixel" strategy="afterInteractive" nonce={nonce}>
+      <Script id="meta-pixel" strategy="afterInteractive" {...(nonce ? { nonce } : {})}>
         {`
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

@@ -27,12 +27,12 @@ export default async function PublicLayout({ children }: { children: ReactNode }
 
   const showAnnouncement = announcementIsVisible(storefront.content.announcement);
   const salesPopup = storefront.content.salesPopup;
-  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+  const nonce = requestHeaders.get("x-nonce")?.trim() || "";
 
   return (
     <PublicSiteGate>
       <div className={showAnnouncement ? "flex min-h-screen flex-col has-announce" : "flex min-h-screen flex-col"}>
-        <MetaPixel nonce={nonce} />
+        <MetaPixel {...(nonce ? { nonce } : {})} />
         <AnnouncementBar announcement={storefront.content.announcement} />
         <FloatingHeader
           isAuthenticated={Boolean(user)}

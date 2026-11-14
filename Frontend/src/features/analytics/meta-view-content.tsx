@@ -22,9 +22,9 @@ export function MetaViewContent({
       content_ids: [productId],
       content_type: "product",
       content_name: productName,
-      content_category: category,
       value,
       currency,
+      ...(category ? { content_category: category } : {}),
     });
   }, [category, currency, productId, productName, value]);
 
